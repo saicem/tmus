@@ -10,7 +10,10 @@
     "tauri": "tauri"
   },
   "dependencies": {
+    "@antv/data-set": "^0.11.8",
+    "@antv/g2": "^5.1.15",
     "@tauri-apps/api": "^1.5.3",
+    "moment": "^2.30.1",
     "vue": "^3.4.19"
   },
   "devDependencies": {
