@@ -1,5 +1,4 @@
 use std::{
-    collections::HashMap,
     sync::{
         mpsc::{self, Receiver, Sender},
         Arc, Mutex,
@@ -7,8 +6,9 @@ use std::{
     thread,
 };
 
-use crate::app::analyze::collect_record;
-use chrono::{prelude::*, Duration};
+use crate::app::file::core::{get_app_id_by_name, write_record};
+use crate::app::file::custom_now;
+use chrono::Duration;
 use once_cell::sync::Lazy;
 use windows::{
     core::PWSTR,
@@ -20,10 +20,6 @@ use windows::{
     },
 };
 
-use crate::app::focus_log::FocusRecord;
-
-use super::focus_log::FocusLogger;
-
 static CHANNEL_FOCUS: Lazy<Arc<(Sender<String>, Mutex<Receiver<String>>)>> = Lazy::new(|| {
     Arc::new({
         let (tx, rx) = mpsc::channel::<String>();
@@ -32,7 +28,8 @@ static CHANNEL_FOCUS: Lazy<Arc<(Sender<String>, Mutex<Receiver<String>>)>> = Laz
 });
 const DAY_CENTIS: u64 = (Duration::days(1).num_milliseconds() / 10) as u64;
 
-pub fn set_event_hook(mut logger: FocusLogger) {
+pub fn set_event_hook() {
+    println!("Set event hook");
     unsafe {
         SetWinEventHook(
             EVENT_SYSTEM_FOREGROUND,
@@ -46,100 +43,26 @@ pub fn set_event_hook(mut logger: FocusLogger) {
     };
 
     thread::spawn(move || {
-        let apps = logger.read_apps();
-        let mut app_count: u64 = 0;
-        let mut app_map = HashMap::new();
-
-        // debug
-        let records = logger.read_record();
-        for (id, duration) in collect_record(records) {
-            println!(
-                "{} {} {}",
-                id,
-                apps[(id - 1) as usize].clone(),
-                Duration::milliseconds((duration * 10) as i64)
-            )
-        }
-
-        for app in apps {
-            app_count += 1;
-            println!("read: {} {}", app_count, app.clone());
-            app_map.insert(app, app_count);
-        }
-
         let receiver = &CHANNEL_FOCUS.1.lock().unwrap();
-
         let mut last_process = foreground_process_path();
-        let mut last_focus = Utc::now();
-        let last_focus_centis = (last_focus.timestamp_millis() / 10) as u64;
-        let mut last_day = last_focus_centis / DAY_CENTIS;
-        let mut last_centis = last_focus_centis - last_day * DAY_CENTIS;
-
-        let mut index = logger.read_index();
-        let log_start_day = if index.is_empty() {
-            logger.write_index(last_day);
-            last_day
-        } else {
-            index.remove(0)
-        };
-        let days = last_day - log_start_day - index.len() as u64;
-        if days != 0 {
-            let val = index.last().copied().unwrap_or(0);
-            for _ in 0..days {
-                index.push(val);
-            }
-        }
+        let (mut last_day, mut last_time) = custom_now();
 
         loop {
             let cur_process = receiver.recv().unwrap();
+            println!("recv: {}", cur_process.clone());
             if cur_process == last_process {
                 continue;
             }
-            let app_id = app_map.entry(last_process.clone()).or_insert_with(|| {
-                logger.write_app(&last_process);
-                app_count += 1;
-                app_count
-            });
 
-            let cur_focus = Utc::now();
-            let cur_focus_centis = (cur_focus.timestamp_millis() / 10) as u64;
-            let cur_day = cur_focus_centis / DAY_CENTIS;
-            let cur_centis = cur_focus_centis - cur_day * DAY_CENTIS;
+            let (cur_day, cur_time) = custom_now();
 
-            for _ in cur_day..last_day {
-                let duration_centis = DAY_CENTIS - last_centis;
-                let len = logger.record_position();
-                logger.write_index(len);
-                index.push(len);
-                logger.write_record(FocusRecord::new(
-                    app_id.clone(),
-                    last_centis,
-                    duration_centis,
-                ));
-                last_centis = 0;
+            unsafe {
+                let app_id = get_app_id_by_name(&last_process);
+                write_record(app_id, last_day, last_time, cur_day, cur_time);
             }
 
-            let duration = cur_focus - last_focus;
-
-            let duration_centis = cur_centis - last_centis;
-
-            logger.write_record(FocusRecord::new(
-                app_id.clone(),
-                last_centis,
-                duration_centis,
-            ));
-
-            println!(
-                "{} {} {} {} {}",
-                app_id,
-                last_focus.clone(),
-                duration.clone(),
-                last_process.clone(),
-                cur_process.clone(),
-            );
-
             last_day = cur_day;
-            last_focus = cur_focus;
+            last_time = cur_time;
             last_process = cur_process;
         }
     });
@@ -156,6 +79,8 @@ unsafe extern "system" fn on_foreground_changed(
     _: u32,
 ) {
     let process_path = process_path(&hwnd);
+
+    println!("foreground change: {}", process_path.clone());
 
     CHANNEL_FOCUS
         .0

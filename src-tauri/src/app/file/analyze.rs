@@ -1,5 +1,5 @@
-use crate::app::focus_log::FocusRecord;
 use std::collections::HashMap;
+use crate::app::file::FocusRecord;
 
 pub fn collect_record(records: Vec<FocusRecord>) -> HashMap<u64, u64> {
     records

@@ -3,10 +3,11 @@
 
 mod app;
 
+use crate::app::file::core;
 use crate::app::file_version::file_version;
-use crate::app::focus_log::FocusLogger;
 use crate::app::monitor::set_event_hook;
 use crate::app::tray;
+use std::fs;
 use tauri::{AppHandle, RunEvent};
 
 fn main() {
@@ -23,10 +24,12 @@ fn main() {
 fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     let data_dir = app.handle().path_resolver().app_data_dir().unwrap();
     if !data_dir.is_dir() {
-        std::fs::create_dir_all(data_dir.clone()).expect("create date directory failed.");
+        fs::create_dir_all(data_dir.clone()).expect("create date directory failed.");
     }
-    let logger = FocusLogger::new(&data_dir);
-    set_event_hook(logger);
+    unsafe {
+        core::init(&data_dir);
+    }
+    set_event_hook();
     Ok(())
 }
 
