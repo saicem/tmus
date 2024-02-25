@@ -20,6 +20,10 @@
         "all": true
       }
     },
+    "systemTray": {
+      "iconPath": "icons/icon.png",
+      "iconAsTemplate": true
+    },
     "windows": [
       {
         "label": "main",
