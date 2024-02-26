@@ -5,7 +5,8 @@ use std::os::windows::prelude::OpenOptionsExt;
 use std::path::PathBuf;
 use windows::Win32::Storage::FileSystem::FILE_SHARE_READ;
 
-///App id start from 0.
+/// App id start from 0.
+#[derive(Debug)]
 pub struct AppTxtFile {
     file: File,
     name_id_map: HashMap<String, u64>,
@@ -47,9 +48,7 @@ impl AppTxtFile {
 
     pub fn get_id_by_name(&mut self, name: &str) -> u64 {
         match self.name_id_map.get(name) {
-            None => {
-                self.write_app(name)
-            }
+            None => self.write_app(name),
             Some(x) => x.clone(),
         }
     }

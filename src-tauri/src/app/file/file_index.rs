@@ -9,6 +9,7 @@ use windows::Win32::Storage::FileSystem::FILE_SHARE_READ;
 ///
 /// The first 8 bytes in file means the first day from `UNIX_EPOCH`.
 /// After which, every 8 bytes represent the starting index of the corresponding day in record.bin.
+#[derive(Debug)]
 pub struct IndexBinFile {
     file: File,
     start_day: u64,
@@ -44,6 +45,25 @@ impl IndexBinFile {
     pub fn write_index(&mut self, value: u64) {
         self.index.push(value);
         self.file.write(&value.to_le_bytes()).unwrap();
+    }
+
+    /// Query index range based on date.
+    ///
+    /// If the return value is u64::MAX, it indicates the end of the record file.
+    pub fn query_index(&mut self, start_day: u64, end_day: u64) -> (u64, u64) {
+        let calculate_index = |day: u64| -> u64 {
+            let dif = (day - self.start_day) as usize;
+            if dif <= 0 {
+                0
+            } else if dif >= self.index.len() {
+                u64::MAX
+            } else {
+                self.index.get(dif).unwrap().clone()
+            }
+        };
+        let start_index = calculate_index(start_day);
+        let end_index = calculate_index(end_day);
+        (start_index, end_index)
     }
 }
 

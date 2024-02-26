@@ -7,6 +7,7 @@ use std::{
 };
 use windows::Win32::Storage::FileSystem::FILE_SHARE_READ;
 
+#[derive(Debug)]
 pub struct RecordBinFile {
     file: File,
 }
@@ -38,6 +39,18 @@ impl RecordBinFile {
             if n != 8 {
                 break;
             }
+            ret.push(FocusRecord {
+                data: u64::from_le_bytes(buf),
+            });
+        }
+        ret
+    }
+
+    pub fn read_to_end(&mut self, start: u64) -> Vec<FocusRecord> {
+        let mut buf: [u8; 8] = [0; 8];
+        let mut ret = Vec::new();
+        self.file.seek(SeekFrom::Start(start)).unwrap();
+        while self.file.read(&mut buf).unwrap() != 0 {
             ret.push(FocusRecord {
                 data: u64::from_le_bytes(buf),
             });
