@@ -8,7 +8,7 @@ use crate::app::file_version::file_version;
 use crate::app::monitor::set_event_hook;
 use crate::app::tray;
 use std::fs;
-use tauri::{AppHandle, RunEvent};
+use tauri::{AppHandle, Manager, RunEvent};
 
 fn main() {
     tauri::Builder::default()
