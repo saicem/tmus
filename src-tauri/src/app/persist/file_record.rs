@@ -1,11 +1,15 @@
-use std::io::{Seek, SeekFrom};
-use std::{
-    fs::{File, OpenOptions},
-    io::{Read, Write},
-    os::windows::fs::OpenOptionsExt,
-    path::PathBuf,
-};
+use std::fs::File;
+use std::fs::OpenOptions;
+use std::io::Read;
+use std::io::Seek;
+use std::io::SeekFrom;
+use std::io::Write;
+use std::os::windows::fs::OpenOptionsExt;
+use std::path::PathBuf;
+
 use windows::Win32::Storage::FileSystem::FILE_SHARE_READ;
+
+use crate::app::data::focus_record::FocusRecord;
 
 #[derive(Debug)]
 pub struct RecordBinFile {
@@ -14,14 +18,7 @@ pub struct RecordBinFile {
 
 impl RecordBinFile {
     pub fn new(data_dir: &PathBuf) -> Self {
-        let record_path = data_dir.join("record.bin");
-        let file = OpenOptions::new()
-            .create(true)
-            .append(true)
-            .read(true)
-            .share_mode(FILE_SHARE_READ.0)
-            .open(record_path)
-            .expect("open record.bin failed.");
+        let file = Self::init_file(data_dir);
         Self { file }
     }
 
@@ -61,32 +58,14 @@ impl RecordBinFile {
     pub fn cur_position(&mut self) -> u64 {
         self.file.seek(SeekFrom::End(0)).unwrap()
     }
-}
 
-/// The meaning of 64bit as follows
-/// - app_id: 0..16
-/// - focus_at: 16..40
-/// - duration: 40..64
-pub struct FocusRecord {
-    data: u64,
-}
-
-impl FocusRecord {
-    pub fn new(app_id: u64, focus_at: u64, duration: u64) -> Self {
-        FocusRecord {
-            data: app_id | focus_at << 16 | duration << 40,
-        }
-    }
-
-    pub fn app_id(&self) -> u64 {
-        self.data & 0xffff
-    }
-
-    pub fn focus_at(&self) -> u64 {
-        (self.data >> 16) & 0xffffff
-    }
-
-    pub fn duration(&self) -> u64 {
-        (self.data >> 40) & 0xffffff
+    fn init_file(data_dir: &PathBuf) -> File {
+        OpenOptions::new()
+            .create(true)
+            .append(true)
+            .read(true)
+            .share_mode(FILE_SHARE_READ.0)
+            .open(data_dir.join("record.bin"))
+            .expect("open record.bin failed.")
     }
 }

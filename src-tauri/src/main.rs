@@ -1,14 +1,18 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-mod app;
+use std::fs;
 
-use crate::app::file::core;
+use tauri::{AppHandle, Manager, RunEvent};
+
 use crate::app::file_version::file_version;
+use crate::app::persist::core;
+use crate::app::global;
 use crate::app::monitor::set_event_hook;
 use crate::app::tray;
-use std::fs;
-use tauri::{AppHandle, Manager, RunEvent};
+use crate::app::window::init_window_style;
+
+mod app;
 
 fn main() {
     tauri::Builder::default()
@@ -22,18 +26,20 @@ fn main() {
 }
 
 fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
+    init_window_style(&app.get_window("main").unwrap());
     let data_dir = app.handle().path_resolver().app_data_dir().unwrap();
     if !data_dir.is_dir() {
         fs::create_dir_all(data_dir.clone()).expect("create date directory failed.");
     }
+    global::DATA_DIR.set(data_dir).unwrap();
     unsafe {
-        core::init(&data_dir);
+        core::init();
     }
     set_event_hook();
     Ok(())
 }
 
-fn event_callback(app_handle: &AppHandle, event: RunEvent) {
+fn event_callback(_: &AppHandle, event: RunEvent) {
     match event {
         RunEvent::ExitRequested { api, .. } => {
             api.prevent_exit();

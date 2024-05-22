@@ -1,24 +1,21 @@
-use std::{
-    sync::{
-        mpsc::{self, Receiver, Sender},
-        Arc, Mutex,
-    },
-    thread,
-};
+use std::sync::mpsc;
+use std::sync::mpsc::Receiver;
+use std::sync::mpsc::Sender;
+use std::sync::Arc;
+use std::sync::Mutex;
+use std::thread;
 
-use crate::app::file::core::{get_app_id_by_name, write_record};
-use crate::app::file::custom_now;
 use chrono::Duration;
 use once_cell::sync::Lazy;
-use windows::{
-    core::PWSTR,
-    Win32::{
-        Foundation::*,
-        System::Threading::*,
-        UI::Accessibility::{SetWinEventHook, HWINEVENTHOOK},
-        UI::WindowsAndMessaging::*,
-    },
-};
+use windows::core::PWSTR;
+use windows::Win32::Foundation::*;
+use windows::Win32::System::Threading::*;
+use windows::Win32::UI::Accessibility::SetWinEventHook;
+use windows::Win32::UI::Accessibility::HWINEVENTHOOK;
+use windows::Win32::UI::WindowsAndMessaging::*;
+
+use crate::app::persist::core::{get_app_id_by_name, write_record};
+use crate::app::persist::tmus_tick::TmusTick;
 
 static CHANNEL_FOCUS: Lazy<Arc<(Sender<String>, Mutex<Receiver<String>>)>> = Lazy::new(|| {
     Arc::new({
@@ -45,8 +42,7 @@ pub fn set_event_hook() {
     thread::spawn(move || {
         let receiver = &CHANNEL_FOCUS.1.lock().unwrap();
         let mut last_process = foreground_process_path();
-        let (mut last_day, mut last_time) = custom_now();
-
+        let mut last_focus = TmusTick::now();
         loop {
             let cur_process = receiver.recv().unwrap();
             println!("recv: {}", cur_process.clone());
@@ -54,15 +50,11 @@ pub fn set_event_hook() {
                 continue;
             }
 
-            let (cur_day, cur_time) = custom_now();
+            let cur_focus = TmusTick::now();
+            let app_id = get_app_id_by_name(&last_process);
+            write_record(app_id, last_focus, cur_focus.clone());
 
-            unsafe {
-                let app_id = get_app_id_by_name(&last_process);
-                write_record(app_id, last_day, last_time, cur_day, cur_time);
-            }
-
-            last_day = cur_day;
-            last_time = cur_time;
+            last_focus = cur_focus;
             last_process = cur_process;
         }
     });

@@ -1,10 +1,10 @@
 use core::slice;
 use serde::{Deserialize, Serialize};
 use std::{ffi::c_void, ptr};
-use windows::{
-    core::HSTRING,
-    Win32::Storage::FileSystem::{GetFileVersionInfoSizeW, GetFileVersionInfoW, VerQueryValueW},
-};
+use windows::core::HSTRING;
+use windows::Win32::Storage::FileSystem::GetFileVersionInfoSizeW;
+use windows::Win32::Storage::FileSystem::GetFileVersionInfoW;
+use windows::Win32::Storage::FileSystem::VerQueryValueW;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FileVersion {
@@ -20,46 +20,6 @@ pub struct FileVersion {
     file_version: Option<String>,
     original_filename: Option<String>,
     special_build: Option<String>,
-}
-
-unsafe fn query_lang_id(data: *const c_void) -> i32 {
-    let mut buffer: *mut c_void = ptr::null_mut();
-    let mut len = 0;
-
-    if VerQueryValueW(
-        data,
-        &HSTRING::from("\\VarFileInfo\\Translation"),
-        &mut buffer as _,
-        &mut len,
-    )
-    .as_bool()
-    {
-        let ret = *(buffer as *mut i32);
-        return ((ret & 0xffff) << 16) + (ret >> 16);
-    }
-    0x040904E4
-}
-
-unsafe fn file_version_detail(
-    pblock: *const c_void,
-    lang_id: i32,
-    version_detail: &str,
-) -> Option<String> {
-    let lpsubblock = format!(
-        "\\\\StringFileInfo\\\\{:08x}\\\\{}",
-        lang_id, version_detail
-    );
-    let mut buffer: *mut c_void = ptr::null_mut();
-    let mut len = 0;
-    let lpsubblock = &HSTRING::from(lpsubblock);
-    VerQueryValueW(pblock, lpsubblock, &mut buffer, &mut len);
-    if len == 0 {
-        return None;
-    }
-
-    Some(String::from_utf16_lossy(
-        &slice::from_raw_parts(buffer.cast(), (len - 1) as usize).to_vec(),
-    ))
 }
 
 #[tauri::command]
@@ -101,4 +61,44 @@ pub fn file_version(path: &str) -> FileVersion {
             special_build,
         }
     }
+}
+
+unsafe fn file_version_detail(
+    pblock: *const c_void,
+    lang_id: i32,
+    version_detail: &str,
+) -> Option<String> {
+    let lpsubblock = format!(
+        "\\\\StringFileInfo\\\\{:08x}\\\\{}",
+        lang_id, version_detail
+    );
+    let mut buffer: *mut c_void = ptr::null_mut();
+    let mut len = 0;
+    let lpsubblock = &HSTRING::from(lpsubblock);
+    VerQueryValueW(pblock, lpsubblock, &mut buffer, &mut len);
+    if len == 0 {
+        return None;
+    }
+
+    Some(String::from_utf16_lossy(
+        &slice::from_raw_parts(buffer.cast(), (len - 1) as usize).to_vec(),
+    ))
+}
+
+unsafe fn query_lang_id(data: *const c_void) -> i32 {
+    let mut buffer: *mut c_void = ptr::null_mut();
+    let mut len = 0;
+
+    if VerQueryValueW(
+        data,
+        &HSTRING::from("\\VarFileInfo\\Translation"),
+        &mut buffer as _,
+        &mut len,
+    )
+        .as_bool()
+    {
+        let ret = *(buffer as *mut i32);
+        return ((ret & 0xffff) << 16) + (ret >> 16);
+    }
+    0x040904E4
 }

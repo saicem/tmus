@@ -3,6 +3,7 @@ use std::fs::{File, OpenOptions};
 use std::io::{Read, Write};
 use std::os::windows::prelude::OpenOptionsExt;
 use std::path::PathBuf;
+
 use windows::Win32::Storage::FileSystem::FILE_SHARE_READ;
 
 /// App id start from 0.
@@ -11,19 +12,11 @@ pub struct AppTxtFile {
     file: File,
     name_id_map: HashMap<String, u64>,
     apps: Vec<String>,
-    app_count: u64,
 }
 
 impl AppTxtFile {
     pub fn new(data_dir: &PathBuf) -> AppTxtFile {
-        let app_path = data_dir.join("app.txt");
-        let mut file = OpenOptions::new()
-            .create(true)
-            .append(true)
-            .read(true)
-            .share_mode(FILE_SHARE_READ.0)
-            .open(app_path)
-            .expect("open app.txt failed.");
+        let mut file = Self::init_file(data_dir);
         let apps = read_apps(&mut file);
         let mut app_count = 0;
         let mut name_id_map = HashMap::new();
@@ -35,7 +28,6 @@ impl AppTxtFile {
             file,
             name_id_map,
             apps,
-            app_count,
         }
     }
 
@@ -55,9 +47,8 @@ impl AppTxtFile {
 
     /// Returns app_id which was written.
     pub fn write_app(&mut self, name: &str) -> u64 {
-        let app_id = self.app_count;
-        self.app_count += 1;
-        self.name_id_map.insert(name.to_string(), self.app_count);
+        let app_id = self.apps.len() as u64;
+        self.name_id_map.insert(name.to_string(), app_id);
         self.apps.push(name.to_string());
         self.file
             .write(format!("{}\n", name).as_bytes())
@@ -67,6 +58,16 @@ impl AppTxtFile {
 
     pub fn read_apps(&mut self) -> Vec<String> {
         read_apps(&mut self.file)
+    }
+
+    fn init_file(data_dir: &PathBuf) -> File {
+        OpenOptions::new()
+            .create(true)
+            .append(true)
+            .read(true)
+            .share_mode(FILE_SHARE_READ.0)
+            .open(data_dir.join("app.txt"))
+            .expect("open app.txt failed.")
     }
 }
 

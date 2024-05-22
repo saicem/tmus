@@ -1,6 +1,6 @@
-use crate::app::file::FocusRecord;
 use std::collections::HashMap;
-use tauri;
+
+use crate::app::data::focus_record::FocusRecord;
 
 /// Calculate duration based on app_id.
 ///
