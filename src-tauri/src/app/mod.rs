@@ -1,8 +1,10 @@
-pub mod persist;
+pub mod analyze;
+mod config;
+mod data;
 pub mod file_version;
+pub mod global;
+mod r#macro;
 pub mod monitor;
+pub mod persist;
 pub mod tray;
 pub mod window;
-mod config;
-pub mod global;
-mod data;

@@ -5,9 +5,9 @@ use std::fs;
 
 use tauri::{AppHandle, Manager, RunEvent};
 
+use crate::app::{global, persist};
+use crate::app::analyze::duration_aggregate;
 use crate::app::file_version::file_version;
-use crate::app::persist::core;
-use crate::app::global;
 use crate::app::monitor::set_event_hook;
 use crate::app::tray;
 use crate::app::window::init_window_style;
@@ -19,7 +19,7 @@ fn main() {
         .setup(setup)
         .system_tray(tray::menu())
         .on_system_tray_event(tray::handler)
-        .invoke_handler(tauri::generate_handler![file_version])
+        .invoke_handler(tauri::generate_handler![file_version, duration_aggregate])
         .build(tauri::generate_context!())
         .expect("error while running tauri application")
         .run(event_callback)
@@ -32,9 +32,7 @@ fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
         fs::create_dir_all(data_dir.clone()).expect("create date directory failed.");
     }
     global::DATA_DIR.set(data_dir).unwrap();
-    unsafe {
-        core::init();
-    }
+    persist::init();
     set_event_hook();
     Ok(())
 }

@@ -5,7 +5,7 @@ use std::sync::Arc;
 use std::sync::Mutex;
 use std::thread;
 
-use chrono::Duration;
+use crate::app::data::TmusTick;
 use once_cell::sync::Lazy;
 use windows::core::PWSTR;
 use windows::Win32::Foundation::*;
@@ -14,8 +14,7 @@ use windows::Win32::UI::Accessibility::SetWinEventHook;
 use windows::Win32::UI::Accessibility::HWINEVENTHOOK;
 use windows::Win32::UI::WindowsAndMessaging::*;
 
-use crate::app::persist::core::{get_app_id_by_name, write_record};
-use crate::app::persist::tmus_tick::TmusTick;
+use crate::app::persist::{get_id_by_name, write_record};
 
 static CHANNEL_FOCUS: Lazy<Arc<(Sender<String>, Mutex<Receiver<String>>)>> = Lazy::new(|| {
     Arc::new({
@@ -23,7 +22,6 @@ static CHANNEL_FOCUS: Lazy<Arc<(Sender<String>, Mutex<Receiver<String>>)>> = Laz
         (tx, Mutex::new(rx))
     })
 });
-const DAY_CENTIS: u64 = (Duration::days(1).num_milliseconds() / 10) as u64;
 
 pub fn set_event_hook() {
     println!("Set event hook");
@@ -51,7 +49,7 @@ pub fn set_event_hook() {
             }
 
             let cur_focus = TmusTick::now();
-            let app_id = get_app_id_by_name(&last_process);
+            let app_id = get_id_by_name(&last_process);
             write_record(app_id, last_focus, cur_focus.clone());
 
             last_focus = cur_focus;

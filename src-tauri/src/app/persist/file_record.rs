@@ -6,66 +6,61 @@ use std::io::SeekFrom;
 use std::io::Write;
 use std::os::windows::fs::OpenOptionsExt;
 use std::path::PathBuf;
+use std::sync::{Mutex, OnceLock};
 
 use windows::Win32::Storage::FileSystem::FILE_SHARE_READ;
 
-use crate::app::data::focus_record::FocusRecord;
+use crate::app::data::FocusRecord;
+use crate::upk;
 
-#[derive(Debug)]
-pub struct RecordBinFile {
-    file: File,
+static FILE: OnceLock<Mutex<File>> = OnceLock::new();
+
+pub fn init(data_dir: &PathBuf) {
+    let f = OpenOptions::new()
+        .create(true)
+        .append(true)
+        .read(true)
+        .share_mode(FILE_SHARE_READ.0)
+        .open(data_dir.join("record.bin"))
+        .expect("open record.bin failed.");
+    FILE.set(Mutex::new(f)).unwrap();
 }
 
-impl RecordBinFile {
-    pub fn new(data_dir: &PathBuf) -> Self {
-        let file = Self::init_file(data_dir);
-        Self { file }
-    }
+pub fn write_record(record: &FocusRecord) {
+    upk!(FILE).write(&record.data.to_le_bytes()).unwrap();
+}
 
-    pub fn write_record(&mut self, record: FocusRecord) {
-        self.file.write(&record.data.to_le_bytes()).unwrap();
-    }
-
-    pub fn read_record(&mut self, start: u64, end: u64) -> Vec<FocusRecord> {
-        let mut buf: [u8; 8] = [0; 8];
-        let mut ret = Vec::new();
-        self.file.seek(SeekFrom::Start(start)).unwrap();
-        let times = (end - start) / 8;
-        for _ in 0..times {
-            let n = self.file.read(&mut buf).unwrap();
-            if n != 8 {
-                break;
-            }
-            ret.push(FocusRecord {
-                data: u64::from_le_bytes(buf),
-            });
+pub fn read_record(start: u64, end: u64) -> Vec<FocusRecord> {
+    let mut buf: [u8; 8] = [0; 8];
+    let mut ret = Vec::new();
+    let mut file = upk!(FILE);
+    file.seek(SeekFrom::Start(start)).unwrap();
+    let times = (end - start) / 8;
+    for _ in 0..times {
+        let n = file.read(&mut buf).unwrap();
+        if n != 8 {
+            break;
         }
-        ret
+        ret.push(FocusRecord {
+            data: u64::from_le_bytes(buf),
+        });
     }
+    ret
+}
 
-    pub fn read_to_end(&mut self, start: u64) -> Vec<FocusRecord> {
-        let mut buf: [u8; 8] = [0; 8];
-        let mut ret = Vec::new();
-        self.file.seek(SeekFrom::Start(start)).unwrap();
-        while self.file.read(&mut buf).unwrap() != 0 {
-            ret.push(FocusRecord {
-                data: u64::from_le_bytes(buf),
-            });
-        }
-        ret
+pub fn read_to_end(start: u64) -> Vec<FocusRecord> {
+    let mut buf: [u8; 8] = [0; 8];
+    let mut ret = Vec::new();
+    let mut file = upk!(FILE);
+    file.seek(SeekFrom::Start(start)).unwrap();
+    while file.read(&mut buf).unwrap() != 0 {
+        ret.push(FocusRecord {
+            data: u64::from_le_bytes(buf),
+        });
     }
+    ret
+}
 
-    pub fn cur_position(&mut self) -> u64 {
-        self.file.seek(SeekFrom::End(0)).unwrap()
-    }
-
-    fn init_file(data_dir: &PathBuf) -> File {
-        OpenOptions::new()
-            .create(true)
-            .append(true)
-            .read(true)
-            .share_mode(FILE_SHARE_READ.0)
-            .open(data_dir.join("record.bin"))
-            .expect("open record.bin failed.")
-    }
+pub fn cur_position() -> u64 {
+    upk!(FILE).seek(SeekFrom::End(0)).unwrap()
 }

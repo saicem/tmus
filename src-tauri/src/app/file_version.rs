@@ -95,7 +95,7 @@ unsafe fn query_lang_id(data: *const c_void) -> i32 {
         &mut buffer as _,
         &mut len,
     )
-        .as_bool()
+    .as_bool()
     {
         let ret = *(buffer as *mut i32);
         return ((ret & 0xffff) << 16) + (ret >> 16);
