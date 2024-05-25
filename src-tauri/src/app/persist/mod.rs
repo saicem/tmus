@@ -1,4 +1,5 @@
-pub use file_app::get_id_by_name;
+pub use file_app::get_id_by_path;
+pub use file_app::get_path_by_id;
 pub use read::read_records_by_datetime;
 
 use crate::app::data::{FocusRecord, TmusTick, DAY_TICK};
@@ -31,6 +32,6 @@ pub fn write_record(app_id: u64, start: TmusTick, end: TmusTick) {
     file_record::write_record(&FocusRecord::new(
         app_id,
         start_tick_of_day,
-        end.tick_of_day(),
+        end.tick_of_day() - start_tick_of_day,
     ))
 }

@@ -5,12 +5,12 @@ use std::fs;
 
 use tauri::{AppHandle, Manager, RunEvent};
 
-use crate::app::{global, persist};
 use crate::app::analyze::duration_aggregate;
-use crate::app::file_version::file_version;
+use crate::app::analyze::file_version_by_id;
 use crate::app::monitor::set_event_hook;
 use crate::app::tray;
 use crate::app::window::init_window_style;
+use crate::app::{global, persist};
 
 mod app;
 
@@ -19,7 +19,10 @@ fn main() {
         .setup(setup)
         .system_tray(tray::menu())
         .on_system_tray_event(tray::handler)
-        .invoke_handler(tauri::generate_handler![file_version, duration_aggregate])
+        .invoke_handler(tauri::generate_handler![
+            file_version_by_id,
+            duration_aggregate
+        ])
         .build(tauri::generate_context!())
         .expect("error while running tauri application")
         .run(event_callback)

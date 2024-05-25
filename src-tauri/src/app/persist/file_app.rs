@@ -10,8 +10,8 @@ use windows::Win32::Storage::FileSystem::FILE_SHARE_READ;
 use crate::upk;
 
 static FILE: OnceLock<Mutex<File>> = OnceLock::new();
-static NAME_ID_MAP: OnceLock<Mutex<HashMap<String, u64>>> = OnceLock::new();
-static ID_NAME_MAP: OnceLock<Mutex<Vec<String>>> = OnceLock::new();
+static PATH_ID_MAP: OnceLock<Mutex<HashMap<String, u64>>> = OnceLock::new();
+static ID_PATH_MAP: OnceLock<Mutex<Vec<String>>> = OnceLock::new();
 
 pub fn init(data_dir: &PathBuf) {
     let mut file = OpenOptions::new()
@@ -29,34 +29,44 @@ pub fn init(data_dir: &PathBuf) {
         app_count += 1;
     }
     FILE.set(Mutex::new(file)).unwrap();
-    NAME_ID_MAP.set(Mutex::new(name_id_map)).unwrap();
-    ID_NAME_MAP.set(Mutex::new(apps)).unwrap()
+    PATH_ID_MAP.set(Mutex::new(name_id_map)).unwrap();
+    ID_PATH_MAP.set(Mutex::new(apps)).unwrap()
 }
 
-pub fn get_name_by_id(id: usize) -> String {
-    upk!(ID_NAME_MAP)
+#[cfg(debug_assertions)]
+pub fn get_path_by_id(id: usize) -> String {
+    upk!(ID_PATH_MAP)
+        .get(id)
+        .map_or(format!("id: {} not in app map.", id), ToString::to_string)
+}
+
+#[cfg(not(debug_assertions))]
+pub fn get_path_by_id(id: usize) -> String {
+    upk!(ID_PATH_MAP)
         .get(id)
         .expect(&format!("id: {} not in app map.", id))
         .to_string()
 }
 
-pub fn get_id_by_name(name: &str) -> u64 {
-    match upk!(NAME_ID_MAP).get(name) {
+pub fn get_id_by_path(name: &str) -> u64 {
+    let get = || upk!(PATH_ID_MAP).get(name).map(|x| x.to_owned());
+    match get() {
         None => write_app(name),
-        Some(x) => x.clone(),
+        Some(x) => x,
     }
 }
 
-/// Returns app_id which was written.
+/// Returns the app id which was written.
 pub fn write_app(name: &str) -> u64 {
-    let mut id_name_map = upk!(ID_NAME_MAP);
-    let mut name_id_map = upk!(NAME_ID_MAP);
+    let mut id_name_map = upk!(ID_PATH_MAP);
+    let mut name_id_map = upk!(PATH_ID_MAP);
     let app_id = id_name_map.len() as u64;
     name_id_map.insert(name.to_string(), app_id);
     id_name_map.push(name.to_string());
-    upk!(FILE)
-        .write(format!("{}\n", name).as_bytes())
+    let mut file = upk!(FILE);
+    file.write(format!("{}\n", name).as_bytes())
         .expect("can't write to app.txt");
+    file.flush().expect("can't flush app.txt");
     app_id
 }
 

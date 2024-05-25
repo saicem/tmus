@@ -31,6 +31,9 @@ pub fn write_record(record: &FocusRecord) {
 }
 
 pub fn read_record(start: u64, end: u64) -> Vec<FocusRecord> {
+    if end == u64::MAX {
+        return read_to_end(start);
+    }
     let mut buf: [u8; 8] = [0; 8];
     let mut ret = Vec::new();
     let mut file = upk!(FILE);
@@ -48,7 +51,7 @@ pub fn read_record(start: u64, end: u64) -> Vec<FocusRecord> {
     ret
 }
 
-pub fn read_to_end(start: u64) -> Vec<FocusRecord> {
+fn read_to_end(start: u64) -> Vec<FocusRecord> {
     let mut buf: [u8; 8] = [0; 8];
     let mut ret = Vec::new();
     let mut file = upk!(FILE);

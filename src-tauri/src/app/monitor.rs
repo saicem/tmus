@@ -14,7 +14,7 @@ use windows::Win32::UI::Accessibility::SetWinEventHook;
 use windows::Win32::UI::Accessibility::HWINEVENTHOOK;
 use windows::Win32::UI::WindowsAndMessaging::*;
 
-use crate::app::persist::{get_id_by_name, write_record};
+use crate::app::persist::{get_id_by_path, write_record};
 
 static CHANNEL_FOCUS: Lazy<Arc<(Sender<String>, Mutex<Receiver<String>>)>> = Lazy::new(|| {
     Arc::new({
@@ -49,9 +49,8 @@ pub fn set_event_hook() {
             }
 
             let cur_focus = TmusTick::now();
-            let app_id = get_id_by_name(&last_process);
+            let app_id = get_id_by_path(&last_process);
             write_record(app_id, last_focus, cur_focus.clone());
-
             last_focus = cur_focus;
             last_process = cur_process;
         }

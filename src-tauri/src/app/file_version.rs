@@ -7,30 +7,38 @@ use windows::Win32::Storage::FileSystem::GetFileVersionInfoW;
 use windows::Win32::Storage::FileSystem::VerQueryValueW;
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct FileVersion {
-    comments: Option<String>,
-    internal_name: Option<String>,
-    product_name: Option<String>,
-    company_name: Option<String>,
-    legal_copyright: Option<String>,
-    product_version: Option<String>,
-    file_description: Option<String>,
-    legal_trademarks: Option<String>,
-    private_build: Option<String>,
-    file_version: Option<String>,
-    original_filename: Option<String>,
-    special_build: Option<String>,
+    pub comments: Option<String>,
+    pub internal_name: Option<String>,
+    pub product_name: Option<String>,
+    pub company_name: Option<String>,
+    pub legal_copyright: Option<String>,
+    pub product_version: Option<String>,
+    pub file_description: Option<String>,
+    pub legal_trademarks: Option<String>,
+    pub private_build: Option<String>,
+    pub file_version: Option<String>,
+    pub original_filename: Option<String>,
+    pub special_build: Option<String>,
 }
 
-#[tauri::command]
-pub fn file_version(path: &str) -> FileVersion {
+pub fn file_version(path: &str) -> Option<FileVersion> {
     unsafe {
-        let filename = &HSTRING::from(path);
-        let size = GetFileVersionInfoSizeW(filename, None);
-        let mut data: Vec<u16> = vec![0; size as usize];
-        GetFileVersionInfoW(filename, 0, size, data.as_mut_ptr() as _)
-            .expect("get file version info failed.");
-        let pblock = data.as_ptr() as _;
+        let size = GetFileVersionInfoSizeW(&HSTRING::from(path), None) as usize;
+        if size == 0 {
+            println!("File: {}, don't have file version.", path);
+            return None;
+        }
+        let mut buffer: Vec<u16> = vec![0; size];
+        GetFileVersionInfoW(
+            &HSTRING::from(path),
+            0,
+            buffer.len() as u32,
+            buffer.as_mut_ptr() as _,
+        )
+        .expect("get file version info failed.");
+        let pblock = buffer.as_ptr() as _;
         let lang_id = query_lang_id(pblock);
 
         let comments = file_version_detail(pblock, lang_id, "Comments");
@@ -46,7 +54,7 @@ pub fn file_version(path: &str) -> FileVersion {
         let original_filename = file_version_detail(pblock, lang_id, "OriginalFilename");
         let special_build = file_version_detail(pblock, lang_id, "SpecialBuild");
 
-        FileVersion {
+        Some(FileVersion {
             comments,
             internal_name,
             product_name,
@@ -59,7 +67,7 @@ pub fn file_version(path: &str) -> FileVersion {
             file_version,
             original_filename,
             special_build,
-        }
+        })
     }
 }
 
@@ -75,14 +83,21 @@ unsafe fn file_version_detail(
     let mut buffer: *mut c_void = ptr::null_mut();
     let mut len = 0;
     let lpsubblock = &HSTRING::from(lpsubblock);
-    VerQueryValueW(pblock, lpsubblock, &mut buffer, &mut len);
-    if len == 0 {
+    let ok = VerQueryValueW(pblock, lpsubblock, &mut buffer, &mut len);
+    if ok == false || len == 0 {
         return None;
     }
 
-    Some(String::from_utf16_lossy(
-        &slice::from_raw_parts(buffer.cast(), (len - 1) as usize).to_vec(),
+    Some(utf16_to_string(
+        &slice::from_raw_parts(buffer.cast(), len as usize).to_vec(),
     ))
+}
+
+fn utf16_to_string(raw: &[u16]) -> String {
+    match raw.iter().position(|&c| c == 0) {
+        Some(null_pos) => String::from_utf16_lossy(&raw[..null_pos]),
+        None => String::from_utf16_lossy(raw),
+    }
 }
 
 unsafe fn query_lang_id(data: *const c_void) -> i32 {
