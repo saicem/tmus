@@ -64,7 +64,7 @@ pub fn duration_by_id(records: Vec<FocusRecord>) -> HashMap<u64, u64> {
     let mut map = HashMap::new();
 
     for record in records.iter() {
-        *map.entry(record.app_id()).or_insert(0) += record.duration() * 10;
+        *map.entry(record.app_id()).or_insert(0) += record.duration().to_millis();
     }
     return map;
 }

@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use std::cmp::min;
 
-use crate::app::data::{FocusRecord, TmusTick};
+use crate::app::data::{FocusRecord, Tick};
 use crate::app::persist::{file_index, file_record};
 
 /// Query records between start day and end day, both day are include.
@@ -34,8 +34,8 @@ pub fn read_records_by_datetime(
     start_datetime: DateTime<Utc>,
     end_datetime: DateTime<Utc>,
 ) -> Vec<Vec<FocusRecord>> {
-    let start = TmusTick::from_date_time(start_datetime);
-    let end = TmusTick::from_date_time(end_datetime);
+    let start = Tick::from_utc(&start_datetime);
+    let end = Tick::from_utc(&end_datetime);
     let records = read_records_by_day(start.day(), end.day());
     if records.is_empty() {
         return records;
@@ -44,7 +44,7 @@ pub fn read_records_by_datetime(
     let index = records
         .first()
         .unwrap()
-        .binary_search_by_key(&start.tick_of_day(), |x| x.focus_at())
+        .binary_search_by_key(&start.day_tick().0, |x| x.focus_at().0)
         .unwrap_or_else(|x| x);
     records
         .first()
@@ -53,7 +53,7 @@ pub fn read_records_by_datetime(
     let index = records
         .last()
         .unwrap()
-        .binary_search_by_key(&start.tick_of_day(), |x| x.focus_at())
+        .binary_search_by_key(&start.day_tick().0, |x| x.focus_at().0)
         .unwrap_or_else(|x| x);
     records
         .last()

@@ -5,7 +5,7 @@ use std::sync::Arc;
 use std::sync::Mutex;
 use std::thread;
 
-use crate::app::data::TmusTick;
+use crate::app::data::Tick;
 use once_cell::sync::Lazy;
 use windows::core::PWSTR;
 use windows::Win32::Foundation::*;
@@ -40,7 +40,7 @@ pub fn set_event_hook() {
     thread::spawn(move || {
         let receiver = &CHANNEL_FOCUS.1.lock().unwrap();
         let mut last_process = foreground_process_path();
-        let mut last_focus = TmusTick::now();
+        let mut last_focus = Tick::now();
         loop {
             let cur_process = receiver.recv().unwrap();
             println!("recv: {}", cur_process.clone());
@@ -48,7 +48,7 @@ pub fn set_event_hook() {
                 continue;
             }
 
-            let cur_focus = TmusTick::now();
+            let cur_focus = Tick::now();
             let app_id = get_id_by_path(&last_process);
             write_record(app_id, last_focus, cur_focus.clone());
             last_focus = cur_focus;

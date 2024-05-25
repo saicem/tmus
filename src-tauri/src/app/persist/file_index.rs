@@ -8,7 +8,7 @@ use std::sync::{Mutex, OnceLock};
 use once_cell::sync::OnceCell;
 use windows::Win32::Storage::FileSystem::FILE_SHARE_READ;
 
-use crate::app::data::TmusTick;
+use crate::app::data::Tick;
 use crate::upk;
 
 /// 2.85kB one year.
@@ -31,7 +31,7 @@ pub fn init(data_dir: &PathBuf) {
         .expect("open index.bin failed.");
     let mut index = read_index(&mut file);
     let epoch_day = if index.is_empty() {
-        let today = TmusTick::now().day();
+        let today = Tick::now().day();
         file.write(&today.to_le_bytes()).unwrap();
         index.push(0);
         today

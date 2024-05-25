@@ -27,7 +27,7 @@ pub fn init(data_dir: &PathBuf) {
 }
 
 pub fn write_record(record: &FocusRecord) {
-    upk!(FILE).write(&record.data.to_le_bytes()).unwrap();
+    upk!(FILE).write(&record.raw.to_le_bytes()).unwrap();
 }
 
 pub fn read_record(start: u64, end: u64) -> Vec<FocusRecord> {
@@ -45,7 +45,7 @@ pub fn read_record(start: u64, end: u64) -> Vec<FocusRecord> {
             break;
         }
         ret.push(FocusRecord {
-            data: u64::from_le_bytes(buf),
+            raw: u64::from_le_bytes(buf),
         });
     }
     ret
@@ -58,7 +58,7 @@ fn read_to_end(start: u64) -> Vec<FocusRecord> {
     file.seek(SeekFrom::Start(start)).unwrap();
     while file.read(&mut buf).unwrap() != 0 {
         ret.push(FocusRecord {
-            data: u64::from_le_bytes(buf),
+            raw: u64::from_le_bytes(buf),
         });
     }
     ret
