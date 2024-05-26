@@ -1,4 +1,6 @@
+use std::iter::Sum;
 use std::ops::Add;
+use std::ops::AddAssign;
 use std::ops::Sub;
 
 use chrono::DateTime;
@@ -7,11 +9,6 @@ use chrono::Utc;
 
 const TICK_PER_MILLIS: u64 = 10;
 const DAY_TICK: u64 = Duration::days(1).num_milliseconds() as u64 / TICK_PER_MILLIS;
-
-#[derive(Clone)]
-pub struct TmusTick {
-    pub tick: u64,
-}
 
 #[derive(Debug, Clone, Copy)]
 pub struct Tick(pub u64);
@@ -29,6 +26,7 @@ impl Tick {
         Tick::from_millis(date_time.timestamp_millis() as u64)
     }
 
+    /// Risk of losing accuracy. The `Tick`'s unit is 10 milliseconds.
     pub fn from_millis(millis: u64) -> Tick {
         Tick(millis / TICK_PER_MILLIS)
     }
@@ -59,5 +57,37 @@ impl Sub for Tick {
 
     fn sub(self, rhs: Self) -> Self::Output {
         Self(self.0 - rhs.0)
+    }
+}
+
+impl Ord for Tick {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.0.cmp(&other.0)
+    }
+}
+
+impl PartialOrd for Tick {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        self.0.partial_cmp(&other.0)
+    }
+}
+
+impl PartialEq for Tick {
+    fn eq(&self, other: &Self) -> bool {
+        self.0 == other.0
+    }
+}
+
+impl Eq for Tick {}
+
+impl Sum for Tick {
+    fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
+        iter.fold(Tick::from_millis(0), |acc, x| acc + x)
+    }
+}
+
+impl AddAssign for Tick {
+    fn add_assign(&mut self, rhs: Self) {
+        self.0 += rhs.0;
     }
 }

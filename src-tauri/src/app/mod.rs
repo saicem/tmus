@@ -1,4 +1,4 @@
-pub mod analyze;
+pub mod api;
 mod config;
 mod data;
 pub mod file_version;

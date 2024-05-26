@@ -1,4 +1,3 @@
-use chrono::{DateTime, Utc};
 use std::cmp::min;
 
 use crate::app::data::{FocusRecord, Tick};
@@ -8,7 +7,7 @@ use crate::app::persist::{file_index, file_record};
 /// `start_day` must be less than `end_day`.
 /// Return value are group by the day.
 fn read_records_by_day(start_day: u64, end_day: u64) -> Vec<Vec<FocusRecord>> {
-    // If you query two days, you need 3 index, so end_day + 1.
+    // If you query 2 days, you need 3 index, so end_day + 1.
     let index_vec = file_index::query_index(start_day, end_day + 1);
     let start_index = index_vec[0];
     let end_index = index_vec.last().unwrap().to_owned();
@@ -30,12 +29,9 @@ fn read_records_by_day(start_day: u64, end_day: u64) -> Vec<Vec<FocusRecord>> {
     ret
 }
 
-pub fn read_records_by_datetime(
-    start_datetime: DateTime<Utc>,
-    end_datetime: DateTime<Utc>,
-) -> Vec<Vec<FocusRecord>> {
-    let start = Tick::from_utc(&start_datetime);
-    let end = Tick::from_utc(&end_datetime);
+pub fn read_records_by_datetime(start_millis: u64, end_millis: u64) -> Vec<Vec<FocusRecord>> {
+    let start = Tick::from_millis(start_millis);
+    let end = Tick::from_millis(end_millis);
     let records = read_records_by_day(start.day(), end.day());
     if records.is_empty() {
         return records;
@@ -44,7 +40,7 @@ pub fn read_records_by_datetime(
     let index = records
         .first()
         .unwrap()
-        .binary_search_by_key(&start.day_tick().0, |x| x.focus_at().0)
+        .binary_search_by_key(&start.day_tick(), |x| x.focus_at())
         .unwrap_or_else(|x| x);
     records
         .first()
@@ -53,7 +49,7 @@ pub fn read_records_by_datetime(
     let index = records
         .last()
         .unwrap()
-        .binary_search_by_key(&start.day_tick().0, |x| x.focus_at().0)
+        .binary_search_by_key(&start.day_tick(), |x| x.focus_at())
         .unwrap_or_else(|x| x);
     records
         .last()
