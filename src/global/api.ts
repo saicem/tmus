@@ -1,15 +1,16 @@
-import moment from "moment"
-import { durationAggregate, fileVersionById } from "./command"
+import { invoke } from "@tauri-apps/api";
 
-export async function latestTwoWeek() {
-    let end = moment()
-    let start = end.clone().startOf('week').subtract(7, 'days')
-    let records = await durationAggregate(start, end)
-    let result = Object.entries(records).map(async ([k, v]) => {
-        return {
-            file: await fileVersionById(Number.parseInt(k)),
-            duration: moment.duration(v).toISOString()
-        }
-    })
-    console.log(await Promise.all(result))
+export async function durationAggregate(startMillis: number, endMillis: number): Promise<Record<number, number>> {
+    let ret = await invoke('duration_aggregate', { startMillis, endMillis });
+    return ret as any
+}
+
+export async function fileDetail(id: number): Promise<FileDetail> {
+    let ret = await invoke('file_version_by_id', { id: id })
+    return ret as any
+}
+
+export async function durationByDay(startMillis: number, endMillis: number, offsetTimeZone: number): Promise<Record<number, number>> {
+    let ret = await invoke('duration_by_day', { startMillis, endMillis, offsetTimeZone });
+    return ret as any
 }

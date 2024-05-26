@@ -2,9 +2,7 @@
 import {Chart} from "@antv/g2"
 import {onMounted, ref} from "vue"
 import {themeStore} from "@/global/state.ts"
-import {latestTwoWeek} from "@/global/api.ts"
-
-latestTwoWeek()
+import {} from "@/global/command.ts"
 
 const root = ref<HTMLDivElement | null>(null)
 

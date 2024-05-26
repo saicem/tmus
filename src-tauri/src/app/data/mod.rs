@@ -11,8 +11,8 @@ mod tick;
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FileDetail {
-    pub name: String,
     pub id: usize,
+    pub name: String,
     pub path: String,
     pub version: Option<FileVersion>,
 }

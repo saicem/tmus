@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {appWindow} from "@tauri-apps/api/window"
 import minimize from "@/assets/title-bar/minimize.svg"
-import maximize from "@/assets/title-bar/maxmize.svg"
+import maximize from "@/assets/title-bar/maximize.svg"
 import close from "@/assets/title-bar/close.svg"
 </script>
 

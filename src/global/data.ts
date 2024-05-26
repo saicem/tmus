@@ -15,6 +15,7 @@ type FileVersion = {
 
 type FileDetail = {
     id: number,
+    name: string,
     path: string,
     version?: FileVersion
 }

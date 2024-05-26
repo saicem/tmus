@@ -3,11 +3,11 @@ import moment from "moment";
 
 const now = moment()
 
-const emptyCellCount = now.month(0).date(1).day()
-const daysInYearCount = now.month(11).date(31).dayOfYear()
+const emptyCellCount = now.clone().startOf("year").day()
+const daysInYearCount = now.clone().month(11).date(31).dayOfYear()
 const weekCount = Math.ceil((emptyCellCount + daysInYearCount) / 7)
 const monthWeeks = new Array(12).fill(null).map((_, idx) => {
-  const monthFirstDay = now.month(idx).date(1).dayOfYear() + emptyCellCount
+  const monthFirstDay = now.clone().month(idx).date(1).dayOfYear() + emptyCellCount - 1
   return Math.ceil((monthFirstDay - 1) / 7)
 })
 
@@ -17,7 +17,6 @@ const monthList = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep"
 function inYearDate(week: number, dow: number) {
   const d = week * 7 + dow
   return !(d < emptyCellCount || d >= daysInYearCount + emptyCellCount)
-
 }
 
 </script>
@@ -35,11 +34,11 @@ function inYearDate(week: number, dow: number) {
     </thead>
     <tbody>
       <tr v-for="(_, dow) in 7" :key="dow">
-        <td style="width: 32px;user-select: none;">{{ dow % 2 == 1 ? dayOfWeekList[dow] : "" }}</td>
-        <td v-for="(_, week) in weekCount" :key="week" style="height: 10px;width: 10px">
+        <div style="width: 32px;user-select: none;">{{ dow % 2 == 1 ? dayOfWeekList[dow] : "" }}</div>
+        <td v-for="(_, week) in weekCount" :key="week" style="height: 10px;width: 10px;">
           <a-tooltip v-if="inYearDate(week, dow)">
             <template #title>{{
-              now.dayOfYear(week * 7 + dow - 1 - emptyCellCount).format("yyyy-MM-DD")
+              now.clone().dayOfYear(week * 7 + dow + 1 - emptyCellCount).format("yyyy-MM-DD")
             }}
             </template>
             <div :data-tag="4" class="block-unit"></div>

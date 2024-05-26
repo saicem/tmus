@@ -6,6 +6,9 @@ import up from "@/assets/general-card/up.svg"
 import GeneralCard from "@/components/GeneralCard.vue"
 import DayOfWeekChart from "@/components/DayOfWeekChart.vue"
 import HeatCalendar from "@/components/HeatCalendar.vue"
+
+
+
 </script>
 
 <template>
