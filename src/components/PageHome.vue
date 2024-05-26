@@ -24,11 +24,10 @@ durationByDayInThisYear().then((res) => {
 })
 
 todayAppGeneral().then((res) => {
-  console.log(res)
   appCount.value = res.length.toString()
-  mostUse.value = Math.max(...res.map((x) => x.duration.hours())).toFixed(2)
+  mostUse.value = Math.max(...res.map((x) => x.duration.asHours())).toFixed(2)
   totalUse.value = res
-    .map((x) => x.duration.hours())
+    .map((x) => x.duration.asHours())
     .reduce((acc, x) => acc + x)
     .toFixed(2)
 })
@@ -57,11 +56,7 @@ todayAppGeneral().then((res) => {
       />
     </div>
     <HeatCalendar :data="duration" v-if="duration" />
-    <WeeklyChart
-      :durations="weeklyDurations"
-      v-if="weeklyDurations"
-      style="flex: 1 0; height: 200px"
-    />
+    <WeeklyChart :durations="weeklyDurations" v-if="weeklyDurations" />
   </div>
 </template>
 

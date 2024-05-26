@@ -14,7 +14,7 @@ import { themeStore } from "@/global/state.ts"
     <TitleBar />
     <div class="frame">
       <TabBar />
-      <HomePage style="flex: 1 0 600px; width: 600px" />
+      <HomePage />
     </div>
   </div>
 </template>

@@ -36,7 +36,6 @@ export async function durationByDayInThisYear() {
 
   Object.entries(records).forEach(([k, v]) => {
     ret[Number.parseInt(k) - startDay + 1] = moment.duration(v)
-    console.log(moment().dayOfYear(Number.parseInt(k) - startDay + 1))
   })
   return ret
 }

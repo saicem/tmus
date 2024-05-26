@@ -32,28 +32,22 @@ fn read_records_by_day(start_day: u64, end_day: u64) -> Vec<Vec<FocusRecord>> {
 pub fn read_records_by_datetime(start_millis: u64, end_millis: u64) -> Vec<Vec<FocusRecord>> {
     let start = Tick::from_millis(start_millis);
     let end = Tick::from_millis(end_millis);
-    let records = read_records_by_day(start.day(), end.day());
+    let mut records = read_records_by_day(start.day(), end.day());
     if records.is_empty() {
         return records;
     }
     // Extract records within the time range.
-    let index = records
-        .first()
-        .unwrap()
-        .binary_search_by_key(&start.day_tick(), |x| x.focus_at())
+    let first = &records[0];
+    let index = first
+        .binary_search_by_key(&start.day_tick(), |x| x.blur_at())
         .unwrap_or_else(|x| x);
-    records
-        .first()
-        .unwrap()
-        .clone_from(&&records.first().unwrap()[index..].to_vec());
-    let index = records
-        .last()
-        .unwrap()
-        .binary_search_by_key(&start.day_tick(), |x| x.focus_at())
+    records[0] = records[0][index..].to_vec();
+
+    let last_index = records.len() - 1;
+    let last = &records[last_index];
+    let index = last
+        .binary_search_by_key(&end.day_tick(), |x| x.focus_at())
         .unwrap_or_else(|x| x);
-    records
-        .last()
-        .unwrap()
-        .clone_from(&&records.last().unwrap()[0..index].to_vec());
+    records[last_index] = records[last_index][..index].to_vec();
     records
 }

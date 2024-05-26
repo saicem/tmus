@@ -4,7 +4,7 @@ use super::Tick;
 /// - app_id: 0..16
 /// - focus_at: 16..40
 /// - duration: 40..64
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct FocusRecord {
     pub raw: u64,
 }

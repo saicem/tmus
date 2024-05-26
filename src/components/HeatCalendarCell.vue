@@ -21,7 +21,10 @@ const minutes = computed(() => {
       hours > 0 ? `${hours}h ${minutes}min` : `${minutes}min`
     }`"
   >
-    <div :data-tag="Math.min(4, Math.ceil(hours / 4))" class="block-unit"></div>
+    <div
+      :data-tag="Math.min(4, Math.ceil(props.duration.asHours() / 4))"
+      class="block-unit"
+    ></div>
   </a-tooltip>
 </template>
 
