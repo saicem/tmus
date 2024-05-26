@@ -2,9 +2,38 @@
 import { Chart } from "@antv/g2"
 import { onMounted, ref } from "vue"
 import { themeStore } from "@/global/state.ts"
-import {} from "@/global/command.ts"
+import { Duration } from "moment"
 
+const props = defineProps<{
+  /**
+   * 14 days duration, last week and this week.
+   */
+  durations: Duration[]
+}>()
 const root = ref<HTMLDivElement | null>(null)
+
+const dayOfWeekName = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"]
+const data = ((durations) => {
+  let lastWeek = durations.slice(0, 7)
+  let thisWeek = durations.slice(7, 14)
+  return thisWeek
+    .map((d, i) => {
+      return {
+        week: "本周",
+        dayOfWeek: dayOfWeekName[i % 7],
+        duration: Number(d.asHours().toFixed(2)),
+      }
+    })
+    .concat(
+      lastWeek.map((d, i) => {
+        return {
+          week: "上周",
+          dayOfWeek: dayOfWeekName[i % 7],
+          duration: Number(d.asHours().toFixed(2)),
+        }
+      })
+    )
+})(props.durations)
 
 function renderBarChart(container: HTMLElement) {
   const chart = new Chart({ container })
@@ -17,22 +46,7 @@ function renderBarChart(container: HTMLElement) {
     title: "周使用时长",
     type: "interval",
     autoFit: true,
-    data: [
-      { week: "本周", dayOfWeek: "周一", duration: 18.9 },
-      { week: "本周", dayOfWeek: "周二", duration: 28.8 },
-      { week: "本周", dayOfWeek: "周三", duration: 39.3 },
-      { week: "本周", dayOfWeek: "周四", duration: 81.4 },
-      { week: "本周", dayOfWeek: "周五", duration: 47 },
-      { week: "本周", dayOfWeek: "周六", duration: 20.3 },
-      { week: "本周", dayOfWeek: "周日", duration: 24 },
-      { week: "上周", dayOfWeek: "周一", duration: 18.9 },
-      { week: "上周", dayOfWeek: "周二", duration: 28.8 },
-      { week: "上周", dayOfWeek: "周三", duration: 39.3 },
-      { week: "上周", dayOfWeek: "周四", duration: 81.4 },
-      { week: "上周", dayOfWeek: "周五", duration: 47 },
-      { week: "上周", dayOfWeek: "周六", duration: 20.3 },
-      { week: "上周", dayOfWeek: "周日", duration: 24 },
-    ],
+    data: data,
     encode: { x: "dayOfWeek", y: "duration", color: "week" },
     transform: [{ type: "dodgeX" }],
     axis: {

@@ -27,7 +27,9 @@ pub fn init(data_dir: &PathBuf) {
 }
 
 pub fn write_record(record: &FocusRecord) {
-    upk!(FILE).write(&record.raw.to_le_bytes()).unwrap();
+    let mut file = upk!(FILE);
+    file.write(&record.raw.to_le_bytes()).unwrap();
+    file.flush().unwrap();
 }
 
 pub fn read_record(start: u64, end: u64) -> Vec<FocusRecord> {

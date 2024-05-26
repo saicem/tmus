@@ -19,7 +19,7 @@ impl Default for Config {
     fn default() -> Self {
         Config {
             lang: "lang_zhs".to_string(),
-            always_flush: false,
+            always_flush: true,
         }
     }
 }

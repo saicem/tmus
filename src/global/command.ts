@@ -30,12 +30,13 @@ export async function durationByDayInThisYear() {
   const start = end.clone().startOf("year")
   const offset = end.utcOffset() * minMillis
   const records = await durationByDay(start.valueOf(), end.valueOf(), offset)
-  const startDay = Math.floor(start.valueOf() / dayMillis)
+  const startDay = Math.floor((start.valueOf() + offset) / dayMillis)
 
   const ret: Record<number, Duration> = {}
 
   Object.entries(records).forEach(([k, v]) => {
     ret[Number.parseInt(k) - startDay + 1] = moment.duration(v)
+    console.log(moment().dayOfYear(Number.parseInt(k) - startDay + 1))
   })
   return ret
 }

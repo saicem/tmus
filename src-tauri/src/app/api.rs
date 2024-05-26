@@ -30,48 +30,49 @@ pub fn duration_aggregate(start_millis: u64, end_millis: u64) -> HashMap<u64, u6
 
 /// `time_zone_offset` base on the time zone of user, and it is the offset milliseconds of UTC time.
 /// The return value is a map of day and duration. The key is the day from `UNIX_EPOCH` which base on the user's time zone.
+/// Remember receive with timezone.
 #[tauri::command]
 pub fn duration_by_day(
     start_millis: u64,
     end_millis: u64,
     time_zone_offset: i64,
-) -> HashMap<u64, u64> {
-    println!("{} {} {}", start_millis, end_millis, time_zone_offset);
+) -> HashMap<usize, u64> {
     let one_day_millis = Duration::days(1).num_milliseconds();
-    let (offset, compensation) = if time_zone_offset < 0 {
+    // Hard to think, for utc time, > -offset is the same day of user's timezone.
+    let (threshold, compensation) = if time_zone_offset > 0 {
         (one_day_millis - time_zone_offset, 1)
     } else {
-        (time_zone_offset, 0)
+        (-time_zone_offset, 0)
     };
-    let threshold = Tick::from_millis((one_day_millis - offset) as u64);
+    let threshold = Tick::from_millis(threshold as u64);
     let records = read_records_by_datetime(start_millis, end_millis);
-    let start_day = start_millis / one_day_millis as u64;
+    let start_day = (start_millis as i64) / one_day_millis;
     let mut ret = HashMap::new();
     for (idx, records_by_day) in records.iter().enumerate() {
         if records_by_day.is_empty() {
             continue;
         };
-        let day = start_day + idx as u64 + compensation;
+        let day = start_day as usize + idx + compensation;
         let part = records_by_day
             .binary_search_by_key(&threshold, |x| x.focus_at())
             .unwrap_or_else(|x| x);
-        let mut cur_day_total: Tick = records_by_day[..part.saturating_sub(1)]
+        let mut pre_day_total: Tick = records_by_day[..part.saturating_sub(1)]
             .iter()
             .map(|x| x.duration())
             .sum();
-        let mut nex_day_total: Tick = records_by_day[part..].iter().map(|x| x.duration()).sum();
+        let mut cur_day_total: Tick = records_by_day[part..].iter().map(|x| x.duration()).sum();
         // The previous position record of partition point may include both yesterday and today.
         if part - 1 < records_by_day.len() {
             let record = &records_by_day[part - 1];
             if record.blur_at() < threshold {
-                cur_day_total += record.duration();
+                pre_day_total += record.duration();
             } else {
-                cur_day_total += threshold - record.focus_at();
-                nex_day_total += record.blur_at() - threshold;
+                pre_day_total += threshold - record.focus_at();
+                cur_day_total += record.blur_at() - threshold;
             }
         }
+        *ret.entry(day - 1).or_insert(0) += pre_day_total.to_millis();
         *ret.entry(day).or_insert(0) += cur_day_total.to_millis();
-        *ret.entry(day + 1).or_insert(0) += nex_day_total.to_millis();
     }
     ret
 }

@@ -3,33 +3,65 @@ import app from "@/assets/general-card/app.svg"
 import usage from "@/assets/general-card/usage.svg"
 import up from "@/assets/general-card/up.svg"
 import GeneralCard from "@/components/GeneralCard.vue"
-import DayOfWeekChart from "@/components/DayOfWeekChart.vue"
+import WeeklyChart from "@/components/WeeklyChart.vue"
 import HeatCalendar from "@/components/HeatCalendar.vue"
-import { durationByDayInThisYear } from "@/global/command"
+import { durationByDayInThisYear, todayAppGeneral } from "@/global/command"
 import { ref } from "vue"
-import { Duration } from "moment"
+import moment, { Duration } from "moment"
 
 const duration = ref<Record<number, Duration>>()
+const weeklyDurations = ref<Duration[]>()
+const appCount = ref("0")
+const totalUse = ref("0")
+const mostUse = ref("0")
 
 durationByDayInThisYear().then((res) => {
   duration.value = res
+  let startDayOfYear = moment().startOf("week").subtract(1, "week").dayOfYear()
+  weeklyDurations.value = new Array(14).fill(null).map((_, idx) => {
+    return res[startDayOfYear + idx] ?? moment.duration(0)
+  })
+})
+
+todayAppGeneral().then((res) => {
+  console.log(res)
+  appCount.value = res.length.toString()
+  mostUse.value = Math.max(...res.map((x) => x.duration.hours())).toFixed(2)
+  totalUse.value = res
+    .map((x) => x.duration.hours())
+    .reduce((acc, x) => acc + x)
+    .toFixed(2)
 })
 </script>
 
 <template>
   <div class="container" style="gap: 16px; padding: 8px">
     <div class="cards">
-      <GeneralCard :icon="app" value="16" unit="个" illustration="应用量" />
-      <GeneralCard :icon="usage" value="3.89" unit="小时" illustration="总计" />
+      <GeneralCard
+        :icon="app"
+        :value="appCount"
+        unit="个"
+        illustration="应用量"
+      />
+      <GeneralCard
+        :icon="usage"
+        :value="totalUse"
+        unit="小时"
+        illustration="总计"
+      />
       <GeneralCard
         :icon="up"
-        value="2.13"
+        :value="mostUse"
         unit="小时"
         illustration="最常使用"
       />
     </div>
     <HeatCalendar :data="duration" v-if="duration" />
-    <DayOfWeekChart style="flex: 1 0; height: 200px" />
+    <WeeklyChart
+      :durations="weeklyDurations"
+      v-if="weeklyDurations"
+      style="flex: 1 0; height: 200px"
+    />
   </div>
 </template>
 
