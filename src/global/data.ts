@@ -1,21 +1,21 @@
-type FileVersion = {
-    comments?: string,
-    internalName?: string,
-    productName?: string,
-    companyName?: string,
-    legalCopyright?: string,
-    productVersion?: string,
-    fileDescription?: string,
-    legalTrademarks?: string,
-    privateBuild?: string,
-    fileVersion?: string,
-    originalFilename?: string,
-    specialBuild?: string,
+interface FileVersion {
+  comments?: string
+  internalName?: string
+  productName?: string
+  companyName?: string
+  legalCopyright?: string
+  productVersion?: string
+  fileDescription?: string
+  legalTrademarks?: string
+  privateBuild?: string
+  fileVersion?: string
+  originalFilename?: string
+  specialBuild?: string
 }
 
-type FileDetail = {
-    id: number,
-    name: string,
-    path: string,
-    version?: FileVersion
+interface FileDetail {
+  id: number
+  name: string
+  path: string
+  version?: FileVersion
 }

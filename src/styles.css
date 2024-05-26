@@ -11,12 +11,12 @@
 
   --font-color: #808080;
   --font-color-bold: #0f0f0f;
-  --accent-color: #396AFC;
+  --accent-color: #396afc;
   --accent-color-1: #668bf9;
   --accent-color-2: #92acf6;
   --accent-color-3: #bfccf3;
   --accent-color-4: #ebedf0;
-  --app-bg-color: #E4ECF1;
+  --app-bg-color: #e4ecf1;
   --card-bg-color: #fff;
   --card-bg-color-1: #f6f6f6;
   --inactive-color: #8f94a3;
@@ -25,7 +25,7 @@
 .dark {
   --font-color: #808080;
   --font-color-bold: #cfcfcf;
-  --accent-color: #396AFC;
+  --accent-color: #396afc;
   --accent-color-1: #668bf9;
   --accent-color-2: #92acf6;
   --accent-color-3: #bfccf3;
@@ -64,7 +64,8 @@
   justify-content: center;
 }
 
-img, p {
+img,
+p {
   -webkit-user-select: none; /* Safari */
   -moz-user-select: none; /* Firefox */
   -ms-user-select: none; /* Internet Explorer/Edge */

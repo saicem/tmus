@@ -36,41 +36,42 @@ pub fn duration_by_day(
     end_millis: u64,
     time_zone_offset: i64,
 ) -> HashMap<u64, u64> {
+    println!("{} {} {}", start_millis, end_millis, time_zone_offset);
     let one_day_millis = Duration::days(1).num_milliseconds();
     let (offset, compensation) = if time_zone_offset < 0 {
         (one_day_millis - time_zone_offset, 1)
     } else {
         (time_zone_offset, 0)
     };
-    let offset = Tick::from_millis(offset as u64);
+    let threshold = Tick::from_millis((one_day_millis - offset) as u64);
     let records = read_records_by_datetime(start_millis, end_millis);
     let start_day = start_millis / one_day_millis as u64;
     let mut ret = HashMap::new();
     for (idx, records_by_day) in records.iter().enumerate() {
         if records_by_day.is_empty() {
             continue;
-        }
+        };
         let day = start_day + idx as u64 + compensation;
         let part = records_by_day
-            .binary_search_by_key(&offset, |x| x.focus_at())
+            .binary_search_by_key(&threshold, |x| x.focus_at())
             .unwrap_or_else(|x| x);
-        let mut yesterday_total: Tick = records_by_day[..part.saturating_sub(1)]
+        let mut cur_day_total: Tick = records_by_day[..part.saturating_sub(1)]
             .iter()
             .map(|x| x.duration())
             .sum();
-        let mut today_total: Tick = records_by_day[part..].iter().map(|x| x.duration()).sum();
+        let mut nex_day_total: Tick = records_by_day[part..].iter().map(|x| x.duration()).sum();
         // The previous position record of partition point may include both yesterday and today.
         if part - 1 < records_by_day.len() {
             let record = &records_by_day[part - 1];
-            if record.blur_at() < offset {
-                yesterday_total += record.duration();
+            if record.blur_at() < threshold {
+                cur_day_total += record.duration();
             } else {
-                yesterday_total += offset - record.focus_at();
-                today_total += record.blur_at() - offset;
+                cur_day_total += threshold - record.focus_at();
+                nex_day_total += record.blur_at() - threshold;
             }
         }
-        *ret.entry(day - 1).or_insert(0) += yesterday_total.to_millis();
-        *ret.entry(day).or_insert(0) += today_total.to_millis();
+        *ret.entry(day).or_insert(0) += cur_day_total.to_millis();
+        *ret.entry(day + 1).or_insert(0) += nex_day_total.to_millis();
     }
     ret
 }

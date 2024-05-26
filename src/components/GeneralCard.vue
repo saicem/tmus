@@ -1,11 +1,10 @@
 <script setup lang="ts">
 const props = defineProps<{
-  icon: string,
-  value: string,
-  unit: string,
-  illustration: string,
+  icon: string
+  value: string
+  unit: string
+  illustration: string
 }>()
-
 </script>
 
 <template>
@@ -13,11 +12,11 @@ const props = defineProps<{
     <div class="icon">
       <img :src="icon" alt="icon" />
     </div>
-    <div class="container" style="align-items: start;">
+    <div class="container" style="align-items: start">
       <div class="vice-info">{{ props.illustration }}</div>
       <div>
         <span class="value">{{ props.value }}</span>
-        <span style="user-select: none;">{{ props.unit }}</span>
+        <span style="user-select: none">{{ props.unit }}</span>
       </div>
     </div>
   </div>

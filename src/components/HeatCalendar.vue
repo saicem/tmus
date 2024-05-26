@@ -1,24 +1,44 @@
 <script setup lang="ts">
-import moment from "moment";
+import moment, { Duration } from "moment"
+import HeatCalendarCell from "./HeatCalendarCell.vue"
+
+const props = defineProps<{
+  data: Record<number, Duration>
+}>()
 
 const now = moment()
-
 const emptyCellCount = now.clone().startOf("year").day()
 const daysInYearCount = now.clone().month(11).date(31).dayOfYear()
 const weekCount = Math.ceil((emptyCellCount + daysInYearCount) / 7)
 const monthWeeks = new Array(12).fill(null).map((_, idx) => {
-  const monthFirstDay = now.clone().month(idx).date(1).dayOfYear() + emptyCellCount - 1
+  const monthFirstDay =
+    now.clone().month(idx).date(1).dayOfYear() + emptyCellCount - 1
   return Math.ceil((monthFirstDay - 1) / 7)
 })
 
 const dayOfWeekList = ["Sun", "Mon", "Tues", "Wed", "Thur", "Fri", "Sat"]
-const monthList = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+const monthList = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+]
 
-function inYearDate(week: number, dow: number) {
-  const d = week * 7 + dow
-  return !(d < emptyCellCount || d >= daysInYearCount + emptyCellCount)
+function dayOfYear(week: number, dow: number) {
+  return week * 7 + dow + 1 - emptyCellCount
 }
-
+function showCell(week: number, dow: number) {
+  const doy = dayOfYear(week, dow)
+  return doy > 0 && doy <= daysInYearCount
+}
 </script>
 
 <template>
@@ -26,23 +46,35 @@ function inYearDate(week: number, dow: number) {
     <thead>
       <tr style="height: 13px">
         <th></th>
-        <th v-for="(_, i) in 12" :key="i"
-          :colspan="i == 11 ? weekCount - monthWeeks[i] : monthWeeks[i + 1] - monthWeeks[i]" style="user-select: none;">
+        <th
+          v-for="(_, i) in 12"
+          :key="i"
+          :colspan="
+            i == 11
+              ? weekCount - monthWeeks[i]
+              : monthWeeks[i + 1] - monthWeeks[i]
+          "
+          style="user-select: none"
+        >
           {{ monthList[i] }}
         </th>
       </tr>
     </thead>
     <tbody>
       <tr v-for="(_, dow) in 7" :key="dow">
-        <div style="width: 32px;user-select: none;">{{ dow % 2 == 1 ? dayOfWeekList[dow] : "" }}</div>
-        <td v-for="(_, week) in weekCount" :key="week" style="height: 10px;width: 10px;">
-          <a-tooltip v-if="inYearDate(week, dow)">
-            <template #title>{{
-              now.clone().dayOfYear(week * 7 + dow + 1 - emptyCellCount).format("yyyy-MM-DD")
-            }}
-            </template>
-            <div :data-tag="4" class="block-unit"></div>
-          </a-tooltip>
+        <div style="width: 32px; user-select: none">
+          {{ dow % 2 == 1 ? dayOfWeekList[dow] : "" }}
+        </div>
+        <td
+          v-for="(_, week) in weekCount"
+          :key="week"
+          style="height: 10px; width: 10px"
+        >
+          <HeatCalendarCell
+            :day-of-year="dayOfYear(week, dow)"
+            :duration="props.data[dayOfYear(week, dow)] ?? moment.duration(0)"
+            v-if="showCell(week, dow)"
+          />
         </td>
       </tr>
     </tbody>
@@ -57,35 +89,5 @@ function inYearDate(week: number, dow: number) {
   line-height: 13px;
   text-align: left;
   font-weight: bold;
-}
-
-.block-unit {
-  height: 10px;
-  width: 10px;
-  border-radius: 2px;
-}
-
-.block-unit[data-tag="0"] {
-  background: var(--accent-color);
-}
-
-.block-unit[data-tag="1"] {
-  background: var(--accent-color-1);
-}
-
-.block-unit[data-tag="2"] {
-  background: var(--accent-color-2);
-}
-
-.block-unit[data-tag="3"] {
-  background: var(--accent-color-3);
-}
-
-.block-unit[data-tag="4"] {
-  background: var(--accent-color-4);
-}
-
-.block-unit:hover {
-  box-shadow: 0 0 5px rgb(57, 120, 255);
 }
 </style>

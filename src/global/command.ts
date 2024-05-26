@@ -1,40 +1,41 @@
-import moment from "moment-timezone"
+import moment, { Duration } from "moment-timezone"
 import { durationAggregate, fileDetail, durationByDay } from "./api"
 
 export async function todayAppGeneral() {
-    let end = moment()
-    let start = end.clone().startOf('day')
-    let records = await durationAggregate(start.valueOf(), end.valueOf())
-    let result = Object.entries(records).map(async ([k, v]) => {
-        return {
-            file: await fileDetail(Number.parseInt(k)),
-            duration: moment.duration(v)
-        }
-    })
-    return Promise.all(result)
+  const end = moment()
+  const start = end.clone().startOf("day")
+  const records = await durationAggregate(start.valueOf(), end.valueOf())
+  const result = Object.entries(records).map(async ([k, v]) => {
+    return {
+      file: await fileDetail(Number.parseInt(k)),
+      duration: moment.duration(v),
+    }
+  })
+  return Promise.all(result)
 }
 
-const fileDetailCache: { [key: number]: FileDetail } = {}
+const fileDetailCache: Record<number, FileDetail> = {}
 
 export async function appDetail(id: number): Promise<FileDetail> {
-    if (fileDetailCache[id]) {
-        return fileDetailCache[id]
-    }
-    return fileDetailCache[id] = await fileDetail(id)
+  if (fileDetailCache[id]) {
+    return fileDetailCache[id]
+  }
+  return (fileDetailCache[id] = await fileDetail(id))
 }
 
 export async function durationByDayInThisYear() {
-    const dayMillis = moment.duration(1, 'day').asMilliseconds();
-    const minMillis = moment.duration(1, 'minute').asMilliseconds();
-    let end = moment()
-    let start = end.clone().startOf('year')
-    let offset = end.utcOffset() * minMillis;
-    let records = await durationByDay(start.valueOf(), end.valueOf(), offset);
-    let result = Object.entries(records).map(async ([k, v]) => {
-        return {
-            date: moment.unix(Number.parseInt(k) * dayMillis),
-            duration: moment.duration(v)
-        }
-    })
-    return Promise.all(result)
+  const dayMillis = moment.duration(1, "day").asMilliseconds()
+  const minMillis = moment.duration(1, "minute").asMilliseconds()
+  const end = moment()
+  const start = end.clone().startOf("year")
+  const offset = end.utcOffset() * minMillis
+  const records = await durationByDay(start.valueOf(), end.valueOf(), offset)
+  const startDay = Math.floor(start.valueOf() / dayMillis)
+
+  const ret: Record<number, Duration> = {}
+
+  Object.entries(records).forEach(([k, v]) => {
+    ret[Number.parseInt(k) - startDay + 1] = moment.duration(v)
+  })
+  return ret
 }

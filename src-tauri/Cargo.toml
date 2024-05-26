@@ -1,5 +1,5 @@
 [package]
-name = "tamus"
+name = "tmus"
 version = "0.0.0"
 description = "An app records your usage time"
 authors = ["saicem"]

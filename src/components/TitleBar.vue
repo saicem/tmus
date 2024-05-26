@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {appWindow} from "@tauri-apps/api/window"
+import { appWindow } from "@tauri-apps/api/window"
 import minimize from "@/assets/title-bar/minimize.svg"
 import maximize from "@/assets/title-bar/maximize.svg"
 import close from "@/assets/title-bar/close.svg"
@@ -10,13 +10,13 @@ import close from "@/assets/title-bar/close.svg"
     <div></div>
     <div class="title-bar-button-box">
       <div class="title-bar-button" @click="appWindow.minimize">
-        <img :src="minimize" alt="minimize"/>
+        <img :src="minimize" alt="minimize" />
       </div>
       <div class="title-bar-button" @click="appWindow.toggleMaximize">
-        <img :src="maximize" alt="maximize"/>
+        <img :src="maximize" alt="maximize" />
       </div>
       <div class="title-bar-button" @click="appWindow.close">
-        <img :src="close" alt="close"/>
+        <img :src="close" alt="close" />
       </div>
     </div>
   </div>

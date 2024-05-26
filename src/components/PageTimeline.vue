@@ -1,14 +1,13 @@
 <script setup lang="ts">
-
 import AppBasicCard from "@/components/AppBasicCard.vue"
 import moment from "moment"
 
 defineProps<{
   usageDaily: {
-    date: string,
+    date: string
     appList: {
       icon: string
-      name: string,
+      name: string
       duration: string
     }[]
   }[]
@@ -30,11 +29,22 @@ function dateText(date: string) {
 </script>
 
 <template>
-  <div class="container usage-timeline" v-for="(usage, index) in usageDaily" :key="index">
-    <h3 style="text-align: left;color: var(--font-color-bold)">{{ dateText(usage.date) }}</h3>
+  <div
+    class="container usage-timeline"
+    v-for="(usage, index) in usageDaily"
+    :key="index"
+  >
+    <h3 style="text-align: left; color: var(--font-color-bold)">
+      {{ dateText(usage.date) }}
+    </h3>
     <div class="usage-timeline-app-box">
-      <AppBasicCard v-for="(app,index) in usage.appList" :key="index" :duration="app.duration" :icon="app.icon"
-                    :name="app.name"/>
+      <AppBasicCard
+        v-for="(app, index) in usage.appList"
+        :key="index"
+        :duration="app.duration"
+        :icon="app.icon"
+        :name="app.name"
+      />
     </div>
   </div>
 </template>

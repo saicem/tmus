@@ -1,14 +1,14 @@
 <script setup lang="ts">
 defineProps<{
-  icon: string,
-  name: string,
+  icon: string
+  name: string
   duration: string
 }>()
 </script>
 
 <template>
   <div class="app-basic-card row">
-    <img :src="icon" alt="app icon">
+    <img :src="icon" alt="app icon" />
     <div class="container text-container">
       <div class="app-basic-card-name">{{ name }}</div>
       <div class="app-basic-card-duration">{{ duration }}</div>
@@ -37,7 +37,7 @@ defineProps<{
   color: var(--font-color-bold);
 }
 
-.app-basic-card-duration{
+.app-basic-card-duration {
   user-select: none;
   font-size: 12px;
 }

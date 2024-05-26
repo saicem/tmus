@@ -1,18 +1,17 @@
 <script setup lang="ts">
-import {tabStore} from "@/global/state.ts"
+import { tabStore } from "@/global/state.ts"
 
 const props = defineProps<{
-  tag: string,
-  text: string,
+  tag: string
+  text: string
 }>()
-
 </script>
 
 <template>
   <div
-      class="menu-item"
-      :class="props.tag === tabStore.cur ? 'active' : 'inActive'"
-      @click="tabStore.change(props.tag)"
+    class="menu-item"
+    :class="props.tag === tabStore.cur ? 'active' : 'inActive'"
+    @click="tabStore.change(props.tag)"
   >
     <p>{{ props.text }}</p>
   </div>
@@ -37,5 +36,4 @@ const props = defineProps<{
   text-align: center;
   line-height: 40px;
 }
-
 </style>
