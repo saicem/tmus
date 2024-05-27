@@ -11,7 +11,11 @@ edition = "2021"
 tauri-build = { version = "1.5", features = [] }
 
 [dependencies]
-tauri = { version = "1.6", features = ["system-tray", "window-all", "shell-open"] }
+tauri = { version = "1.6", features = [
+    "system-tray",
+    "window-all",
+    "shell-open",
+] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 windows = { version = "0.56.0", features = [
@@ -22,6 +26,8 @@ windows = { version = "0.56.0", features = [
     "Win32_System_SystemServices",
     "Win32_System_LibraryLoader",
     "Win32_Storage_FileSystem",
+    "Win32_System_Threading",
+    "Win32_Security",
 ] }
 window-shadows = "0.2.2"
 chrono = { version = "0.4.38" }
