@@ -34,7 +34,7 @@ todayAppGeneral().then((res) => {
 </script>
 
 <template>
-  <div class="container" style="gap: 16px; padding: 8px">
+  <div class="container" style="gap: 16px; padding: 16px">
     <div class="cards">
       <GeneralCard
         :icon="app"

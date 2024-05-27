@@ -54,7 +54,7 @@ function showCell(week: number, dow: number) {
               ? weekCount - monthWeeks[i]
               : monthWeeks[i + 1] - monthWeeks[i]
           "
-          style="user-select: none"
+          class="month-label"
         >
           {{ monthList[i] }}
         </th>
@@ -62,7 +62,7 @@ function showCell(week: number, dow: number) {
     </thead>
     <tbody>
       <tr v-for="(_, dow) in 7" :key="dow">
-        <div style="width: 32px; user-select: none">
+        <div class="week-label">
           {{ dow % 2 == 1 ? dayOfWeekList[dow] : "" }}
         </div>
         <td
@@ -82,6 +82,16 @@ function showCell(week: number, dow: number) {
 </template>
 
 <style scoped>
+.week-label {
+  width: 32px;
+  user-select: none;
+  color: var(--font-color-bold);
+}
+.month-label {
+  -select: none;
+  color: var(--font-color-bold);
+}
+
 .heat-calendar-table {
   width: max-content;
   padding: 16px;

@@ -8,6 +8,9 @@ import close from "@/assets/title-bar/close.svg"
 <template>
   <div data-tauri-drag-region class="title-bar">
     <div></div>
+    <div>
+      <div class="card search-box">🔍Tmus</div>
+    </div>
     <div class="title-bar-button-box">
       <div class="title-bar-button" @click="appWindow.minimize">
         <img :src="minimize" alt="minimize" />
@@ -23,6 +26,15 @@ import close from "@/assets/title-bar/close.svg"
 </template>
 
 <style scoped>
+.search-box {
+  height: 20px;
+  width: 200px;
+  line-height: 20px;
+  font-size: small;
+  text-align: center;
+  color: var(--font-color);
+}
+
 .title-bar {
   height: 32px;
   user-select: none;

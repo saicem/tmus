@@ -12,7 +12,7 @@ import TabItem from "@/components/MenuItem.vue"
 
 <style scoped>
 .tab-bar {
-  padding: 8px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 12px;

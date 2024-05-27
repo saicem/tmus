@@ -28,7 +28,7 @@ const props = defineProps<{
 }
 
 .menu-item {
-  border: solid 1px transparent;
+  border: solid 1px var(--base-color-3);
   border-radius: 8px;
   height: 40px;
   width: 40px;

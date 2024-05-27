@@ -16,24 +16,22 @@
   --accent-color-2: #92acf6;
   --accent-color-3: #bfccf3;
   --accent-color-4: #ebedf0;
-  --app-bg-color: #e4ecf1;
-  --card-bg-color: #fff;
-  --card-bg-color-1: #f6f6f6;
-  --inactive-color: #8f94a3;
+  --base-color-1: #fff;
+  --base-color-2: #f6f6f6;
+  --base-color-3: #e5e5e5;
 }
 
 .dark {
   --font-color: #808080;
   --font-color-bold: #cfcfcf;
   --accent-color: #396afc;
-  --accent-color-1: #668bf9;
-  --accent-color-2: #92acf6;
-  --accent-color-3: #bfccf3;
-  --accent-color-4: #ebedf0;
-  --app-bg-color: #010409;
-  --card-bg-color: #141414;
-  --card-bg-color-1: #f6f6f6;
-  --inactive-color: #8f94a3;
+  --accent-color-1: #3359c8;
+  --accent-color-2: #2d4995;
+  --accent-color-3: #273861;
+  --accent-color-4: #21272d;
+  --base-color-1: #1f1f1f;
+  --base-color-2: #181818;
+  --base-color-3: #2b2b2b;
 }
 
 ::-webkit-scrollbar {
@@ -55,7 +53,8 @@
 
 .card {
   border-radius: 8px;
-  background-color: var(--card-bg-color);
+  background-color: var(--base-color-1);
+  border: 2px solid var(--base-color-3);
 }
 
 .row {
