@@ -29,7 +29,17 @@ pub fn duration_aggregate(
     Ok(duration_by_id(records.into_iter().collect()))
 }
 
-/// The return value is a map of day and duration. The key is the day from `UNIX_EPOCH` which base on the user's time zone.
+/// Calculates the duration per day given a time range and timezone offset.
+/// 
+/// # Parameters
+/// - `start`: The start timestamp in milliseconds.
+/// - `end`: The end timestamp in milliseconds.
+/// - `time_zone_offset`: The timezone offset in milliseconds.
+/// 
+/// # Returns
+/// A `Result` containing either:
+/// - A `HashMap` where keys are days (in i64 format) and values are durations in milliseconds for that day.
+/// - A `String` containing an error message if an error occurs.
 #[tauri::command]
 pub fn duration_by_day(
     start: Millisecond,

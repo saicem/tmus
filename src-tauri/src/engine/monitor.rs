@@ -1,3 +1,4 @@
+use windows::core::Result;
 use windows::core::PWSTR;
 use windows::Win32::Foundation::*;
 use windows::Win32::System::Threading::*;
@@ -32,29 +33,36 @@ unsafe extern "system" fn on_foreground_changed(
 ) {
     use crate::engine::engine::on_focus;
 
-    let process_path = process_path(&hwnd);
-
-    println!("foreground change: {}", process_path.clone());
-
-    on_focus(&process_path);
+    match process_path(&hwnd) {
+        Ok(process_path) => {
+            println!("foreground change: {}", &process_path);
+            on_focus(&process_path);
+        }
+        Err(e) => {
+            eprintln!("Error getting process path: {}", e);
+        }
+    }
 }
 
-pub fn process_path(hwnd: &HWND) -> String {
+/// Get the path of the process.
+/// Here are some probabilities of failure:
+/// - The process is just exited, like a updater or a launcher.
+pub fn process_path(hwnd: &HWND) -> Result<String> {
     let mut text: [u16; 1024] = [0; 1024];
     let mut process_name_length: u32 = 1024;
     let mut process_id: u32 = 0;
 
     unsafe {
         GetWindowThreadProcessId(*hwnd, Some(&mut process_id));
-        let handle = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, true, process_id)
-            .expect("win32 OpenProcess failed.");
+        let handle = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, true, process_id)?;
         QueryFullProcessImageNameW(
             handle,
             PROCESS_NAME_WIN32,
             PWSTR(text.as_mut_ptr()),
             &mut process_name_length,
-        )
-        .expect("win32 QueryFullProcessImageNameW failed.")
+        )?;
     }
-    String::from_utf16_lossy(&text[..process_name_length as usize])
+    Ok(String::from_utf16_lossy(
+        &text[..process_name_length as usize],
+    ))
 }
