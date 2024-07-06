@@ -8,19 +8,17 @@ use std::{
     thread,
 };
 
-use crate::engine::r#type::{AppId, Millisecond};
+use crate::engine::millisecond::Millisecond;
 
 use super::{
     file_app::FileApp,
     file_index::{FileIndex, IndexValue},
     file_record::FileRecord,
-    focus_record::SAFE_SPAN,
-    now,
-    r#type::Day,
     FocusRecord,
 };
 
 pub static ENGINE: OnceLock<Engine> = OnceLock::new();
+static SENDER: OnceLock<Sender<FocusEvent>> = OnceLock::new();
 
 /// This engine is designed to allow for accuracy loss.
 /// The record with duration less than threshold (set in start function) will be discard.
@@ -29,15 +27,12 @@ pub static ENGINE: OnceLock<Engine> = OnceLock::new();
 pub struct Engine {
     file_app: FileApp,
     file_index: FileIndex,
-    file_record: FileRecord<8>,
-    sender: Sender<FocusEvent>,
+    file_record: FileRecord,
 }
 
 struct FocusEvent {
     app_id: u16,
-
-    /// Seconds from unix epoch.
-    focus_at: u32,
+    focus_at: Millisecond,
 }
 
 impl Debug for Engine {
@@ -47,12 +42,11 @@ impl Debug for Engine {
 }
 
 impl Engine {
-    fn new(data_dir: &PathBuf, sender: Sender<FocusEvent>) -> Engine {
+    fn new(data_dir: &PathBuf) -> Engine {
         Self {
             file_app: FileApp::new(data_dir),
             file_index: FileIndex::new(data_dir),
             file_record: FileRecord::new(data_dir),
-            sender,
         }
     }
 
@@ -60,11 +54,15 @@ impl Engine {
         self.file_app.get_path_by_id(id).to_owned()
     }
 
+    pub fn get_id_by_path(&self, path: &str) -> usize {
+        self.file_app.get_id_by_path(path)
+    }
+
     /// Read records. Both start day and end day are included.
     /// The records may beyond the required range. Need to be cropped.
-    pub fn read_rough_records(&self, start: Day, end: Day) -> Vec<FocusRecord> {
-        let start_index = self.file_index.query_index(start).offset(-SAFE_SPAN);
-        let end_index = self.file_index.query_index(end + 1).offset(SAFE_SPAN);
+    pub fn read_rough_records(&self, start_day: i64, end_day: i64) -> Vec<FocusRecord> {
+        let start_index = self.file_index.query_index(start_day).offset(-1);
+        let end_index = self.file_index.query_index(end_day + 1);
         match (start_index, end_index) {
             (_, IndexValue::Before) => vec![],
             (IndexValue::After, _) => vec![],
@@ -85,42 +83,46 @@ impl Engine {
     pub fn write_record(&self, record: FocusRecord) {
         for sub_record in record.split_record() {
             let index = self.file_record.write(sub_record.unsafe_to_byte());
-            self.file_index.update_index(sub_record.focus_at, index as i64)
+            self.file_index
+                .update_index(sub_record.focus_at.as_days(), index as i64)
         }
-    }
-
-    pub fn on_focus(&self, process_path: &str) {
-        let focus_at = now().as_secs() as u32;
-        let app_id = self.file_app.get_id_by_path(&process_path) as u16;
-        self.sender.send(FocusEvent { app_id, focus_at }).unwrap();
     }
 }
 
 /// Can only call once. Return sender, use for sending windows foreground change event.
 pub fn start(data_dir: &PathBuf) {
-    let threshold = 1;
+    const THRESHOLD: Millisecond = Millisecond::from_secs(1);
     let (sender, receiver) = channel::<FocusEvent>();
-    let engine = Engine::new(data_dir, sender);
+    SENDER.set(sender).unwrap();
+    let engine = Engine::new(data_dir);
     ENGINE.set(engine).expect("Engine init failed.");
     thread::spawn(move || {
         let mut last_focus = FocusEvent {
             app_id: u16::MAX,
-            focus_at: u32::MAX,
+            focus_at: Millisecond::from_millis(i64::MAX),
         };
         loop {
             let cur_focus = receiver.recv().unwrap();
-            println!("recv: {}, {}", cur_focus.app_id, cur_focus.focus_at);
+            println!("recv: {:?}, {:?}", cur_focus.app_id, cur_focus.focus_at);
             // Only record beyond threshold can be storied.
-            if cur_focus.app_id != last_focus.app_id
-                && cur_focus.focus_at - threshold > last_focus.focus_at
-            {
+            if cur_focus.focus_at - THRESHOLD > last_focus.focus_at {
                 ENGINE.get().unwrap().write_record(FocusRecord {
-                    id: last_focus.app_id as AppId,
-                    focus_at: last_focus.focus_at as Millisecond * 1000,
-                    blur_at: cur_focus.focus_at as Millisecond * 1000,
+                    id: last_focus.app_id as usize,
+                    focus_at: last_focus.focus_at,
+                    blur_at: cur_focus.focus_at,
                 });
             }
             last_focus = cur_focus;
         }
     });
+}
+
+pub fn on_focus(process_path: &str) {
+    let focus_at = Millisecond::now();
+    let app_id = ENGINE.get().unwrap().get_id_by_path(&process_path) as u16;
+    SENDER
+        .get()
+        .unwrap()
+        .send(FocusEvent { app_id, focus_at })
+        .unwrap();
 }

@@ -6,7 +6,7 @@ use std::path::PathBuf;
 use std::sync::Mutex;
 use windows::Win32::Storage::FileSystem::FILE_SHARE_READ;
 
-use super::r#type::AppId;
+type AppId = usize;
 
 pub struct FileApp {
     file: Mutex<File>,

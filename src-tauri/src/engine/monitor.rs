@@ -1,4 +1,3 @@
-use crate::engine::ENGINE;
 use windows::core::PWSTR;
 use windows::Win32::Foundation::*;
 use windows::Win32::System::Threading::*;
@@ -31,11 +30,13 @@ unsafe extern "system" fn on_foreground_changed(
     _: u32,
     _: u32,
 ) {
+    use crate::engine::engine::on_focus;
+
     let process_path = process_path(&hwnd);
 
     println!("foreground change: {}", process_path.clone());
 
-    ENGINE.get().unwrap().on_focus(&process_path);
+    on_focus(&process_path);
 }
 
 pub fn process_path(hwnd: &HWND) -> String {

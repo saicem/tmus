@@ -1,4 +1,4 @@
-use crate::engine::r#type::Millisecond;
+use crate::engine::Millisecond;
 use crate::engine::{FocusRecord, ENGINE};
 use file_detail::FileDetail;
 use read::read_by_timestamp;
@@ -10,9 +10,6 @@ mod file_detail;
 mod file_version;
 mod read;
 
-const ONE_DAY_SECS: u64 = 24 * 60 * 60;
-const ONE_DAY_MILLIS: i64 = 24 * 60 * 60 * 1000;
-
 #[tauri::command]
 pub fn raw_record(start: Millisecond, end: Millisecond) -> Result<Vec<FocusRecord>, String> {
     Ok(read_by_timestamp(start, end))
@@ -22,7 +19,7 @@ pub fn raw_record(start: Millisecond, end: Millisecond) -> Result<Vec<FocusRecor
 pub fn duration_aggregate(
     start_millis: Millisecond,
     end_millis: Millisecond,
-) -> Result<HashMap<usize, i64>, String> {
+) -> Result<HashMap<usize, Millisecond>, String> {
     let records = read_by_timestamp(start_millis, end_millis);
     Ok(duration_by_id(records.into_iter().collect()))
 }
@@ -33,20 +30,20 @@ pub fn duration_by_day(
     start: Millisecond,
     end: Millisecond,
     time_zone_offset: Millisecond,
-) -> Result<HashMap<i64, i64>, String> {
+) -> Result<HashMap<i64, Millisecond>, String> {
     let records = read_by_timestamp(start, end);
     let mut cur_pat_millis = start + time_zone_offset;
-    let mut cur_day = (start + time_zone_offset) / ONE_DAY_MILLIS;
+    let mut cur_day = (start + time_zone_offset).as_days();
     let mut ret = HashMap::new();
     for record in records.iter() {
         if record.blur_at >= cur_pat_millis {
-            *ret.entry(cur_day).or_insert(0) += min(0, cur_pat_millis - record.focus_at);
-            *ret.entry(cur_day + 1).or_insert(0) +=
+            *ret.entry(cur_day).or_insert(Millisecond::ZERO) += min(Millisecond::ZERO, cur_pat_millis - record.focus_at);
+            *ret.entry(cur_day + 1).or_insert(Millisecond::ZERO) +=
                 record.blur_at - max(record.focus_at, cur_pat_millis);
             cur_day += 1;
-            cur_pat_millis += ONE_DAY_MILLIS;
+            cur_pat_millis += Millisecond::from_days(1);
         } else {
-            *ret.entry(cur_day).or_insert(0) += record.duration()
+            *ret.entry(cur_day).or_insert(Millisecond::ZERO) += record.duration()
         }
     }
     Ok(ret)
@@ -74,11 +71,11 @@ pub fn file_detail(id: usize) -> Result<FileDetail, String> {
 }
 
 /// Calculate duration based on app_id.
-pub fn duration_by_id(records: Vec<FocusRecord>) -> HashMap<usize, i64> {
+pub fn duration_by_id(records: Vec<FocusRecord>) -> HashMap<usize, Millisecond> {
     let mut map = HashMap::new();
 
     for record in records.iter() {
-        *map.entry(record.id).or_insert(0) += record.duration();
+        *map.entry(record.id).or_insert(Millisecond::ZERO) += record.duration();
     }
     return map;
 }

@@ -1,9 +1,6 @@
 use std::cmp::{max, min};
 
-use crate::engine::{
-    r#type::{Day, Millisecond},
-    FocusRecord, ENGINE,
-};
+use crate::engine::{FocusRecord, Millisecond, ENGINE};
 
 /// Query records between start day and end day, both day are include.
 // fn read_by_day(start_day: Day, end_day: Day) -> Vec<FocusRecord> {
@@ -29,15 +26,14 @@ use crate::engine::{
 //     ret
 // }
 
-fn read_by_day(start: Day, end: Day) -> Vec<FocusRecord> {
-    ENGINE.get().unwrap().read_rough_records(start, end)
+fn read_by_day(start_day: i64, end_day: i64) -> Vec<FocusRecord> {
+    ENGINE.get().unwrap().read_rough_records(start_day, end_day)
 }
 
 pub fn read_by_timestamp(start_millis: Millisecond, end_millis: Millisecond) -> Vec<FocusRecord> {
-    const MILLIS_ONE_DAY: i64 = 24 * 60 * 60 * 1000;
-    let start = start_millis / MILLIS_ONE_DAY;
-    let end = end_millis / MILLIS_ONE_DAY;
-    let mut records = read_by_day(start, end);
+    let start_day = start_millis.as_days();
+    let end_day = end_millis.as_days();
+    let mut records = read_by_day(start_day, end_day);
     if records.is_empty() {
         return records;
     }

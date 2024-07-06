@@ -6,8 +6,10 @@ use std::path::PathBuf;
 use std::sync::Mutex;
 use windows::Win32::Storage::FileSystem::FILE_SHARE_READ;
 
-use super::now_day;
-use super::r#type::{Day, IndexUnit, IndexUnitByte, Millisecond};
+use super::Millisecond;
+
+type IndexUnitByte = [u8; 8];
+type IndexUnit = i64;
 
 pub enum IndexValue {
     Before,
@@ -32,7 +34,7 @@ impl IndexValue {
 /// Each value is the record file index of specific day.
 pub struct FileIndex {
     file: Mutex<File>,
-    base_day: Day,
+    base_day: i64,
     record_index_vec: Mutex<Vec<IndexUnit>>,
 }
 
@@ -48,7 +50,7 @@ impl FileIndex {
             .expect("open index.bin failed.");
         let mut index = Self::read_index(&mut file);
         let base_day = if index.is_empty() {
-            let today = now_day() as IndexUnit;
+            let today = Millisecond::now().as_days() as IndexUnit;
             file.write(&today.to_le_bytes()).unwrap();
             index.push(0);
             today
@@ -64,7 +66,7 @@ impl FileIndex {
         }
     }
 
-    pub fn query_index(&self, day: Day) -> IndexValue {
+    pub fn query_index(&self, day: i64) -> IndexValue {
         let index = self.record_index_vec.lock().unwrap();
         let size = index.len();
         match day - self.base_day {
@@ -75,8 +77,7 @@ impl FileIndex {
     }
 
     /// If the record start time is later than the last day, write the index to the file.
-    pub fn update_index(&self, value: Millisecond, index: IndexUnit) {
-        let day = value / (24 * 60 * 60 * 1000);
+    pub fn update_index(&self, day: i64, index: IndexUnit) {
         let last_day = self.last_day();
         if day <= last_day {
             return;
@@ -94,8 +95,7 @@ impl FileIndex {
         file.write(&value.to_le_bytes()).unwrap();
     }
 
-
-    fn last_day(&self) -> Day {
+    fn last_day(&self) -> i64 {
         self.base_day + self.record_index_vec.lock().unwrap().len() as i64 - 1
     }
 

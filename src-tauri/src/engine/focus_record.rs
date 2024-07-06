@@ -1,11 +1,10 @@
 use serde::Serialize;
 
-use super::r#type::{Millisecond, RecordByte};
+use super::millisecond::Millisecond;
 
-const MILLIS_ONE_SEC: u64 = 1000;
-const MILLIS_ONE_DAY: u64 = 24 * 60 * 60 * MILLIS_ONE_SEC;
-const DURATION_MAX: Millisecond = u16::MAX as Millisecond * 1000;
-pub const SAFE_SPAN: i64 = MILLIS_ONE_DAY as i64 / DURATION_MAX as i64 + 1;
+const DURATION_MAX: Millisecond = Millisecond::from_secs(u16::MAX as i64);
+
+pub type RecordByte = [u8; 8];
 
 /// - app_id: 2^16, 8192 applications support.
 /// - focus_at: 2^32, The time when the focus starts. About 136 year from unix epoch.
@@ -23,9 +22,9 @@ impl FocusRecord {
             id,
             focus_at,
             blur_at,
-        }    
+        }
     }
-    
+
     pub fn duration(&self) -> Millisecond {
         self.blur_at - self.focus_at
     }
@@ -34,8 +33,8 @@ impl FocusRecord {
     pub fn unsafe_to_byte(&self) -> RecordByte {
         let mut ret = RecordByte::default();
         let id = self.id as u16;
-        let focus_at = (self.focus_at / 1000) as u32;
-        let duration = (self.duration() / 1000) as u16;
+        let focus_at = self.focus_at.as_secs() as u32;
+        let duration = self.duration().as_secs() as u16;
         ret[..2].copy_from_slice(&id.to_le_bytes());
         ret[2..4].copy_from_slice(&duration.to_le_bytes());
         ret[4..].copy_from_slice(&focus_at.to_le_bytes());
@@ -44,9 +43,10 @@ impl FocusRecord {
 
     fn from_byte(bytes: RecordByte) -> Self {
         let id = u16::from_le_bytes(bytes[..2].try_into().unwrap()) as usize;
-        let focus_at = u32::from_le_bytes(bytes[4..].try_into().unwrap()) as Millisecond * 1000;
+        let focus_at =
+            Millisecond::from_secs(u32::from_le_bytes(bytes[4..].try_into().unwrap()) as i64);
         let blur_at = focus_at
-            + u16::from_le_bytes(bytes[2..4].try_into().unwrap()) as u32 as Millisecond * 1000;
+            + Millisecond::from_secs(u16::from_le_bytes(bytes[2..4].try_into().unwrap()) as i64);
         Self {
             id,
             focus_at,
@@ -64,7 +64,7 @@ impl FocusRecord {
             focus_at += DURATION_MAX;
             duration -= DURATION_MAX;
         }
-        ret.push(FocusRecord::new(self.id, focus_at, focus_at+ duration));
+        ret.push(FocusRecord::new(self.id, focus_at, focus_at + duration));
         ret
     }
 }
