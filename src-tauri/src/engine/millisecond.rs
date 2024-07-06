@@ -14,7 +14,7 @@ impl Millisecond {
         let duration = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .expect("system time before Unix epoch");
-        Millisecond(duration.as_secs() as i64 * 1000 + duration.as_millis() as i64)
+        Millisecond(duration.as_millis() as i64)
     }
 
     pub fn as_days(&self) -> i64 {
