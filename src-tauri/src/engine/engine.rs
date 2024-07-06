@@ -108,7 +108,14 @@ pub fn start(data_dir: &PathBuf) {
         };
         loop {
             let cur_focus = receiver.recv().unwrap();
-            println!("recv: {:?}, {:?}", cur_focus.app_id, cur_focus.focus_at);
+            println!(
+                "last: {:?}, {:?} recv: {:?}, {:?}",
+                last_focus.app_id, last_focus.focus_at, cur_focus.app_id, cur_focus.focus_at
+            );
+            if cur_focus.app_id == last_focus.app_id {
+                continue;
+            }
+            println!("{} {}", last_focus.focus_at, cur_focus.focus_at);
             // Only record beyond threshold can be storied.
             if cur_focus.focus_at - THRESHOLD > last_focus.focus_at {
                 ENGINE.get().unwrap().write_record(FocusRecord {

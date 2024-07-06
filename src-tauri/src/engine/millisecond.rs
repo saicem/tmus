@@ -1,4 +1,5 @@
 use std::{
+    fmt::Display,
     ops::{Add, AddAssign, Sub, SubAssign},
     time::{SystemTime, UNIX_EPOCH},
 };
@@ -37,6 +38,16 @@ impl Millisecond {
     }
 
     pub const ZERO: Millisecond = Millisecond(0);
+}
+
+impl Display for Millisecond {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let second = (self.0 / 1000) % (60 * 60 * 24);
+        let minute = (second / 60) % 60;
+        let hour = second / 60 / 60;
+        let second = second % 60;
+        f.write_str(&format!("{}:{}:{}", hour, minute, second))
+    }
 }
 
 impl Serialize for Millisecond {
