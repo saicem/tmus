@@ -9,7 +9,7 @@ pub type RecordByte = [u8; 8];
 /// - app_id: 2^16, 8192 applications support.
 /// - focus_at: 2^32, The time when the focus starts. About 136 year from unix epoch.
 /// - duration: 2^16, Maximum time that can be represented is about 0.76 day,
-#[derive(Clone, Copy, Serialize)]
+#[derive(Clone, Copy, Debug, Serialize, PartialEq, Eq)]
 pub struct FocusRecord {
     pub id: usize,
     pub focus_at: Millisecond,

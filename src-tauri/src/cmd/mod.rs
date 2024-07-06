@@ -16,6 +16,11 @@ pub fn raw_record(start: Millisecond, end: Millisecond) -> Result<Vec<FocusRecor
 }
 
 #[tauri::command]
+pub fn read_reverse(cursor: Option<u64>, count: u64) -> Result<(Vec<FocusRecord>, u64), String> {
+    Ok(read::read_reverse(cursor, count))
+}
+
+#[tauri::command]
 pub fn duration_aggregate(
     start_millis: Millisecond,
     end_millis: Millisecond,
@@ -37,7 +42,8 @@ pub fn duration_by_day(
     let mut ret = HashMap::new();
     for record in records.iter() {
         if record.blur_at >= cur_pat_millis {
-            *ret.entry(cur_day).or_insert(Millisecond::ZERO) += min(Millisecond::ZERO, cur_pat_millis - record.focus_at);
+            *ret.entry(cur_day).or_insert(Millisecond::ZERO) +=
+                min(Millisecond::ZERO, cur_pat_millis - record.focus_at);
             *ret.entry(cur_day + 1).or_insert(Millisecond::ZERO) +=
                 record.blur_at - max(record.focus_at, cur_pat_millis);
             cur_day += 1;

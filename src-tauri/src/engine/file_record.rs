@@ -73,4 +73,26 @@ impl FileRecord {
         }
         ret
     }
+
+    pub fn read_reverse(&self, cursor: Option<u64>, count: u64) -> (Vec<RecordByte>, u64) {
+        if count == 0 {
+            return (vec![], 0);
+        }
+        let mut buf: RecordByte = RecordByte::default();
+        let mut file = self.file.lock().unwrap();
+        let start =
+            cursor.unwrap_or_else(|| file.seek(SeekFrom::End(0)).unwrap() / RECORD_SIZE as u64);
+        file.seek(SeekFrom::Start(start * RECORD_SIZE as u64))
+            .unwrap();
+        let mut ret = vec![];
+        for _ in 0..count {
+            let n = file.read(&mut buf).unwrap();
+            if n != RECORD_SIZE {
+                break;
+            }
+            ret.push(buf)
+        }
+        ret.reverse();
+        return (ret, start);
+    }
 }

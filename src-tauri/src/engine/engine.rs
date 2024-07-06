@@ -80,6 +80,11 @@ impl Engine {
         .collect()
     }
 
+    pub fn read_reverse(&self, cursor: Option<u64>, count: u64) -> (Vec<FocusRecord>, u64) {
+        let (records, ret_cursor) = self.file_record.read_reverse(cursor, count);
+        (records.into_iter().map(|x| x.into()).collect(), ret_cursor)
+    }
+
     pub fn write_record(&self, record: FocusRecord) {
         for sub_record in record.split_record() {
             let index = self.file_record.write(sub_record.unsafe_to_byte());

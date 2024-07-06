@@ -22,6 +22,7 @@ fn main() {
             cmd::duration_aggregate,
             cmd::duration_by_day,
             cmd::raw_record,
+            cmd::read_reverse,
         ])
         .build(tauri::generate_context!())
         .expect("error while running tauri application")
