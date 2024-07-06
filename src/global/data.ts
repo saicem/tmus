@@ -1,4 +1,6 @@
-interface FileVersion {
+import { Duration, Moment } from "moment"
+
+export interface FileVersion {
   comments?: string
   internalName?: string
   productName?: string
@@ -13,9 +15,15 @@ interface FileVersion {
   specialBuild?: string
 }
 
-interface FileDetail {
+export interface FileDetail {
   id: number
   name: string
   path: string
   version?: FileVersion
+}
+
+export interface FocusRecord {
+  id: number
+  start: Moment
+  duration: Duration
 }

@@ -3,14 +3,32 @@ import { appWindow } from "@tauri-apps/api/window"
 import minimize from "@/assets/title-bar/minimize.svg"
 import maximize from "@/assets/title-bar/maximize.svg"
 import close from "@/assets/title-bar/close.svg"
+import { useDark, useToggle } from "@vueuse/core"
+
+const isDark = useDark({
+  selector: "html",
+  attribute: "class",
+  valueDark: "dark",
+  valueLight: "light",
+})
+const toggleDark = useToggle(isDark)
 </script>
 
 <template>
   <div data-tauri-drag-region class="title-bar">
-    <div></div>
-    <div>
-      <div class="card search-box">🔍Tmus</div>
-    </div>
+    <nav class="nav">
+      <RouterLink class="nav-item" to="/">Home</RouterLink>
+      <RouterLink class="nav-item" to="timeline">Timeline</RouterLink>
+    </nav>
+    <div
+        @click="
+          () => {
+            toggleDark()
+          }
+        "
+      >
+        toggle
+      </div>
     <div class="title-bar-button-box">
       <div class="title-bar-button" @click="appWindow.minimize">
         <img :src="minimize" alt="minimize" />
@@ -26,6 +44,15 @@ import close from "@/assets/title-bar/close.svg"
 </template>
 
 <style scoped>
+.nav {
+  margin-left: 20px;
+  justify-content: start;
+}
+
+.nav-item {
+  margin: 10px;
+}
+
 .search-box {
   height: 20px;
   width: 200px;
@@ -45,6 +72,9 @@ import close from "@/assets/title-bar/close.svg"
   left: 0;
   right: 0;
   z-index: 999;
+  background-color: var(--base-color-2);
+  position: fixed;
+  border-bottom: 1px solid var(--base-color-3);
 }
 
 .title-bar-button-box {

@@ -93,7 +93,6 @@ function showCell(week: number, dow: number) {
 }
 
 .heat-calendar-table {
-  width: max-content;
   padding: 16px;
   font-size: 12px;
   line-height: 13px;

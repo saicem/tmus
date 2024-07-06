@@ -1,9 +1,7 @@
 import { createApp } from "vue"
 import "./styles.css"
 import App from "./App.vue"
-import { themeStore } from "@/global/state.ts"
-import Antd from "ant-design-vue"
+import { router } from "./global/route"
+import "element-plus/theme-chalk/dark/css-vars.css"
 
-themeStore.setTheme("light")
-
-createApp(App).use(Antd).mount("#app")
+createApp(App).use(router).mount("#app")

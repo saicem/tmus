@@ -24,6 +24,9 @@ durationByDayInThisYear().then((res) => {
 })
 
 todayAppGeneral().then((res) => {
+  if (res.length == 0) {
+    return
+  }
   appCount.value = res.length.toString()
   mostUse.value = Math.max(...res.map((x) => x.duration.asHours())).toFixed(2)
   totalUse.value = res
@@ -34,7 +37,7 @@ todayAppGeneral().then((res) => {
 </script>
 
 <template>
-  <div class="container" style="gap: 16px; padding: 16px">
+  <div>
     <div class="cards">
       <GeneralCard
         :icon="app"

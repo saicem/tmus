@@ -1,5 +1,6 @@
-import moment, { Duration } from "moment-timezone"
-import { durationAggregate, fileDetail, durationByDay } from "./api"
+import moment, { Duration, Moment } from "moment-timezone"
+import { durationAggregate, fileDetail, durationByDay, rawRecord } from "./api"
+import { FileDetail } from "./data"
 
 export async function todayAppGeneral() {
   const end = moment()
@@ -38,4 +39,15 @@ export async function durationByDayInThisYear() {
     ret[Number.parseInt(k) - startDay + 1] = moment.duration(v)
   })
   return ret
+}
+
+export async function queryRecords(start: Moment, end: Moment) {
+  const records = await rawRecord(start.valueOf(), end.valueOf())
+  return records.map((x) => {
+    return {
+      id: x.id,
+      start: moment(x.start),
+      duration: moment.duration(x.duration),
+    }
+  })
 }

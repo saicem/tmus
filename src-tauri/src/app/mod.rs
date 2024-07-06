@@ -1,12 +1,5 @@
-pub mod api;
-mod config;
-mod data;
-pub mod file_version;
-pub mod global;
-mod r#macro;
-pub mod monitor;
-pub mod persist;
-mod singleton;
+pub mod config;
+pub mod constant;
+pub mod singleton;
 pub mod tray;
 pub mod window;
-pub use singleton::check_singleton;

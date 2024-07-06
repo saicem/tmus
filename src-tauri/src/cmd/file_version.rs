@@ -23,7 +23,7 @@ pub struct FileVersion {
     pub special_build: Option<String>,
 }
 
-pub fn file_version(path: &str) -> Option<FileVersion> {
+pub fn query_file_version(path: &str) -> Option<FileVersion> {
     unsafe {
         let size = GetFileVersionInfoSizeW(&HSTRING::from(path), None) as usize;
         if size == 0 {
@@ -41,18 +41,18 @@ pub fn file_version(path: &str) -> Option<FileVersion> {
         let pblock = buffer.as_ptr() as _;
         let lang_id = query_lang_id(pblock);
 
-        let comments = file_version_detail(pblock, lang_id, "Comments");
-        let internal_name = file_version_detail(pblock, lang_id, "InternalName");
-        let product_name = file_version_detail(pblock, lang_id, "ProductName");
-        let company_name = file_version_detail(pblock, lang_id, "CompanyName");
-        let legal_copyright = file_version_detail(pblock, lang_id, "LegalCopyright");
-        let product_version = file_version_detail(pblock, lang_id, "ProductVersion");
-        let file_description = file_version_detail(pblock, lang_id, "FileDescription");
-        let legal_trademarks = file_version_detail(pblock, lang_id, "LegalTrademarks");
-        let private_build = file_version_detail(pblock, lang_id, "PrivateBuild");
-        let file_version = file_version_detail(pblock, lang_id, "FileVersion");
-        let original_filename = file_version_detail(pblock, lang_id, "OriginalFilename");
-        let special_build = file_version_detail(pblock, lang_id, "SpecialBuild");
+        let comments = file_version_item(pblock, lang_id, "Comments");
+        let internal_name = file_version_item(pblock, lang_id, "InternalName");
+        let product_name = file_version_item(pblock, lang_id, "ProductName");
+        let company_name = file_version_item(pblock, lang_id, "CompanyName");
+        let legal_copyright = file_version_item(pblock, lang_id, "LegalCopyright");
+        let product_version = file_version_item(pblock, lang_id, "ProductVersion");
+        let file_description = file_version_item(pblock, lang_id, "FileDescription");
+        let legal_trademarks = file_version_item(pblock, lang_id, "LegalTrademarks");
+        let private_build = file_version_item(pblock, lang_id, "PrivateBuild");
+        let file_version = file_version_item(pblock, lang_id, "FileVersion");
+        let original_filename = file_version_item(pblock, lang_id, "OriginalFilename");
+        let special_build = file_version_item(pblock, lang_id, "SpecialBuild");
 
         Some(FileVersion {
             comments,
@@ -71,7 +71,7 @@ pub fn file_version(path: &str) -> Option<FileVersion> {
     }
 }
 
-unsafe fn file_version_detail(
+unsafe fn file_version_item(
     pblock: *const c_void,
     lang_id: i32,
     version_detail: &str,

@@ -1,4 +1,5 @@
 import { invoke } from "@tauri-apps/api"
+import { FileDetail } from "./data"
 
 export async function durationAggregate(
   startMillis: number,
@@ -21,4 +22,11 @@ export async function durationByDay(
     endMillis,
     timeZoneOffset,
   })
+}
+
+export async function rawRecord(
+  startMillis: number,
+  endMillis: number
+): Promise<{ id: number; start: number; duration: number }[]> {
+  return await invoke("raw_record", { startMillis, endMillis })
 }

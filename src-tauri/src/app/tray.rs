@@ -1,3 +1,4 @@
+use crate::app::window::focus_main_window;
 use tauri::AppHandle;
 use tauri::CustomMenuItem;
 use tauri::SystemTray;
@@ -5,8 +6,6 @@ use tauri::SystemTrayEvent;
 use tauri::SystemTrayMenu;
 use tauri::SystemTrayMenuItem;
 use tauri::SystemTraySubmenu;
-
-use crate::app::window::focus_main_window;
 
 pub fn menu() -> SystemTray {
     SystemTray::new().with_menu(

@@ -1,62 +1,28 @@
 <script setup lang="ts">
-import AppBasicCard from "@/components/AppBasicCard.vue"
+import { queryRecords } from "@/global/command"
+import { FocusRecord } from "@/global/data"
 import moment from "moment"
+import { ref } from "vue"
 
-defineProps<{
-  usageDaily: {
-    date: string
-    appList: {
-      icon: string
-      name: string
-      duration: string
-    }[]
-  }[]
-}>()
+const records = ref<FocusRecord[]>([])
 
-const now = moment()
-
-function dateText(date: string) {
-  const target = moment(date)
-  const diffDays = now.diff(target, "day")
-  if (diffDays == 0) {
-    return "今天"
-  } else if (diffDays == 1) {
-    return "昨天"
-  } else {
-    return target.format("YYYY-MM-DD")
-  }
-}
+let end = moment()
+let start = end.clone().subtract(1, "days")
+queryRecords(start, end).then((res) => {
+  console.log(res)
+  records.value = res
+})
 </script>
 
 <template>
-  <div
-    class="container usage-timeline"
-    v-for="(usage, index) in usageDaily"
-    :key="index"
-  >
-    <h3 style="text-align: left; color: var(--font-color-bold)">
-      {{ dateText(usage.date) }}
-    </h3>
-    <div class="usage-timeline-app-box">
-      <AppBasicCard
-        v-for="(app, index) in usage.appList"
-        :key="index"
-        :duration="app.duration"
-        :icon="app.icon"
-        :name="app.name"
-      />
-    </div>
-  </div>
+  <a-timeline style="padding: 32px; width: 100%; height: 100%">
+    <a-timeline-item v-for="record in records"
+      >{{
+        `${start.format()} ${record.duration.humanize()}`
+      }}
+      2015-09-01</a-timeline-item
+    >
+  </a-timeline>
 </template>
 
-<style scoped>
-.usage-timeline {
-  gap: 12px;
-}
-
-.usage-timeline-app-box {
-  display: flex;
-  flex-flow: row wrap;
-  gap: 12px;
-}
-</style>
+<style scoped></style>

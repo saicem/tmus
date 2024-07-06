@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Chart } from "@antv/g2"
 import { onMounted, ref } from "vue"
-import { themeStore } from "@/global/state.ts"
+// import { themeStore } from "@/global/state.ts"
 import { Duration } from "moment"
 
 const props = defineProps<{
@@ -38,7 +38,7 @@ const data = ((durations) => {
 function renderBarChart(container: HTMLElement) {
   const chart = new Chart({ container })
 
-  if (themeStore.isDark()) {
+  if ("isDark") {
     chart.theme({ type: "classicDark" })
   }
 
