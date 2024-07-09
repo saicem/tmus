@@ -13,10 +13,8 @@ const props = defineProps<{
       <img :src="icon" alt="icon" />
     </div>
     <div style="align-items: start; display: inline-block">
-      <el-statistic
-        :title="props.illustration"
-        :value="props.value + props.unit"
-      />
+      <p>{{ props.illustration }}</p>
+      <p>{{ props.value + props.unit }}</p>
     </div>
   </el-card>
 </template>

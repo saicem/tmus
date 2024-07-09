@@ -8,6 +8,8 @@ use std::{
     thread,
 };
 
+use log::info;
+
 use crate::engine::millisecond::Millisecond;
 
 use super::{
@@ -61,8 +63,12 @@ impl Engine {
     /// Read records. Both start day and end day are included.
     /// The records may beyond the required range. Need to be cropped.
     pub fn read_rough_records(&self, start_day: i64, end_day: i64) -> Vec<FocusRecord> {
-        let start_index = self.file_index.query_index(start_day).offset(-1);
+        let start_index: IndexValue = self.file_index.query_index(start_day).offset(-1);
         let end_index = self.file_index.query_index(end_day + 1);
+        info!(
+            "read_rough_records start_day:{:?}. end_day{:?}, start_index{:?}, end_index{:?}",
+            start_day, end_day, start_index, end_index
+        );
         match (start_index, end_index) {
             (_, IndexValue::Before) => vec![],
             (IndexValue::After, _) => vec![],
@@ -108,14 +114,14 @@ pub fn start(data_dir: &PathBuf) {
         };
         loop {
             let cur_focus = receiver.recv().unwrap();
-            println!(
+            info!(
                 "last: {:?}, {:?} recv: {:?}, {:?}",
                 last_focus.app_id, last_focus.focus_at, cur_focus.app_id, cur_focus.focus_at
             );
             if cur_focus.app_id == last_focus.app_id {
                 continue;
             }
-            println!("{} {}", last_focus.focus_at, cur_focus.focus_at);
+            info!("{} {}", last_focus.focus_at, cur_focus.focus_at);
             // Only record beyond threshold can be storied.
             if cur_focus.focus_at - THRESHOLD > last_focus.focus_at {
                 ENGINE.get().unwrap().write_record(FocusRecord {

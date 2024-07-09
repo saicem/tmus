@@ -2,12 +2,10 @@
 import app from "@/assets/general-card/app.svg"
 import usage from "@/assets/general-card/usage.svg"
 import up from "@/assets/general-card/up.svg"
-import GeneralCard from "@/components/GeneralCard.vue"
-import WeeklyChart from "@/components/WeeklyChart.vue"
-import HeatCalendar from "@/components/HeatCalendar.vue"
-import { durationByDayInThisYear, todayAppGeneral } from "@/global/command"
+import api from "@/global/api"
 import { ref } from "vue"
 import moment, { Duration } from "moment"
+import { colorMode } from "@/global/state"
 
 const duration = ref<Record<number, Duration>>()
 const weeklyDurations = ref<Duration[]>()
@@ -15,7 +13,8 @@ const appCount = ref("0")
 const totalUse = ref("0")
 const mostUse = ref("0")
 
-durationByDayInThisYear().then((res) => {
+api.durationByDayInThisYear().then((res) => {
+  console.log("durationByDayInThisYear", res)
   duration.value = res
   let startDayOfYear = moment().startOf("week").subtract(1, "week").dayOfYear()
   weeklyDurations.value = new Array(14).fill(null).map((_, idx) => {
@@ -23,7 +22,8 @@ durationByDayInThisYear().then((res) => {
   })
 })
 
-todayAppGeneral().then((res) => {
+api.todayAppGeneral().then((res) => {
+  console.log("todayAppGeneral", res)
   if (res.length == 0) {
     return
   }
@@ -37,7 +37,7 @@ todayAppGeneral().then((res) => {
 </script>
 
 <template>
-  <div>
+  <div style="display: flex; flex-direction: column; row-gap: 16px">
     <div class="cards">
       <GeneralCard
         :icon="app"
@@ -58,8 +58,16 @@ todayAppGeneral().then((res) => {
         illustration="最常使用"
       />
     </div>
-    <HeatCalendar :data="duration" v-if="duration" />
-    <WeeklyChart :durations="weeklyDurations" v-if="weeklyDurations" />
+    <el-card>
+      <HeatCalendar :data="duration" v-if="duration" />
+    </el-card>
+    <el-card>
+      <WeeklyChart
+        :durations="weeklyDurations"
+        v-if="weeklyDurations"
+        :theme="colorMode"
+      />
+    </el-card>
   </div>
 </template>
 

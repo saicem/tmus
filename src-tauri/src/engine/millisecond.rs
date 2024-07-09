@@ -6,6 +6,8 @@ use std::{
 
 use serde::{Deserialize, Serialize};
 
+/// Millisecond is a wrapper of i64, which represents the number of milliseconds since the Unix epoch.
+/// It is used because two defects, [std::time::Duration], cannot represent negative time periods, [std::time::Duration] Missing some methods, such as as_days
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord)]
 pub struct Millisecond(i64);
 
@@ -37,6 +39,18 @@ impl Millisecond {
         Millisecond(millis)
     }
 
+    pub fn set_day_offset(&self, offset: Millisecond) -> Millisecond {
+        Millisecond(self.0 / (1000 * 60 * 60 * 24) * (1000 * 60 * 60 * 24) + offset.0)
+    }
+
+    pub fn get_day_offset(&self) -> Millisecond {
+        Millisecond(self.0 % (1000 * 60 * 60 * 24))
+    }
+
+    pub const ONE_DAY: Millisecond = Millisecond(1000 * 60 * 60 * 24);
+    pub const ONE_HOUR: Millisecond = Millisecond(1000 * 60 * 60);
+    pub const ONE_MINUTE: Millisecond = Millisecond(1000 * 60);
+    pub const ONE_SECOND: Millisecond = Millisecond(1000);
     pub const ZERO: Millisecond = Millisecond(0);
 }
 

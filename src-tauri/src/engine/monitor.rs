@@ -1,3 +1,4 @@
+use log::info;
 use windows::core::Result;
 use windows::core::PWSTR;
 use windows::Win32::Foundation::*;
@@ -7,7 +8,7 @@ use windows::Win32::UI::Accessibility::HWINEVENTHOOK;
 use windows::Win32::UI::WindowsAndMessaging::*;
 
 pub fn set_event_hook() {
-    println!("Set event hook");
+    info!("Set event hook");
     unsafe {
         SetWinEventHook(
             EVENT_SYSTEM_FOREGROUND,
@@ -31,15 +32,17 @@ unsafe extern "system" fn on_foreground_changed(
     _: u32,
     _: u32,
 ) {
+    use log::error;
+
     use crate::engine::engine::on_focus;
 
     match process_path(&hwnd) {
         Ok(process_path) => {
-            println!("foreground change: {}", &process_path);
+            info!("foreground change: {}", &process_path);
             on_focus(&process_path);
         }
         Err(e) => {
-            eprintln!("Error getting process path: {}", e);
+            error!("Error getting process path: {}", e);
         }
     }
 }

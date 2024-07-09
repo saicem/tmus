@@ -30,6 +30,9 @@ windows = { version = "0.58.0", features = [
     "Win32_Security",
 ] }
 window-shadows = "0.2.2"
+log = "0.4.11"
+env_logger = "0.11.3"
+dirs-next = "2.0.0"
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem

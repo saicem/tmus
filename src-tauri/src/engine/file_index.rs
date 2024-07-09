@@ -11,6 +11,7 @@ use super::Millisecond;
 type IndexUnitByte = [u8; 8];
 type IndexUnit = i64;
 
+#[derive(Debug)]
 pub enum IndexValue {
     Before,
     In(IndexUnit),

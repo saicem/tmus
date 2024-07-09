@@ -37,12 +37,18 @@
 * {
   margin: 0;
   box-sizing: border-box;
-}
+} */
 
-img,
-p {
+* {
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
-} */
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+  font-weight: inherit;
+  font-style: inherit;
+}

@@ -4,7 +4,8 @@
 use app::tray;
 use app::window::init_window_style;
 use app::{constant, singleton::force_singleton};
-use std::fs;
+use env_logger::Builder;
+use log::info;
 use std::path::PathBuf;
 use tauri::{AppHandle, Manager, RunEvent};
 
@@ -13,6 +14,8 @@ mod cmd;
 mod engine;
 
 fn main() {
+    init_logger();
+    info!("Tmus start");
     tauri::Builder::default()
         .setup(setup)
         .system_tray(tray::menu())
@@ -30,23 +33,11 @@ fn main() {
 }
 
 fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
-    init_data_dir(app);
+    constant::init();
     force_singleton();
     init_window_style(&app.get_window("main").unwrap());
-    engine::init(&PathBuf::from(
-        constant::DEFAULT_DATA_DIR.get().unwrap().to_owned(),
-    ));
+    engine::init(&PathBuf::from(constant::DATA_DIR.get().unwrap().to_owned()));
     Ok(())
-}
-
-fn init_data_dir(app: &mut tauri::App) {
-    let data_dir = app.handle().path_resolver().app_data_dir().unwrap();
-    if !data_dir.is_dir() {
-        fs::create_dir_all(data_dir.clone()).expect("create date directory failed.");
-    }
-    constant::DEFAULT_DATA_DIR
-        .set(data_dir.to_str().unwrap().to_owned())
-        .unwrap();
 }
 
 fn event_callback(_: &AppHandle, event: RunEvent) {
@@ -56,4 +47,19 @@ fn event_callback(_: &AppHandle, event: RunEvent) {
         }
         _ => {}
     }
+}
+
+#[cfg(not(target_env = "production"))]
+fn init_logger() {
+    std::env::set_var("RUST_LOG", "debug");
+    Builder::from_default_env()
+        .target(env_logger::Target::Stderr)
+        .init();
+}
+
+#[cfg(target_env = "production")]
+fn init_logger() {
+    let mut builder = Builder::from_default_env();
+    builder.target(env_logger::Target::Pipe(()));
+    todo!()
 }

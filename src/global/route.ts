@@ -1,18 +1,33 @@
 import { createMemoryHistory, createRouter } from "vue-router"
 
-import PageHome from "@/components/PageHome.vue"
-import PageTimeline from "@/components/PageTimeline.vue"
+import Home from "@/pages/Home.vue"
+import Timeline from "@/pages/Timeline.vue"
 
 const routes = [
   {
     path: "/",
     name: "home",
-    component: PageHome,
+    component: Home,
   },
   {
     path: "/timeline",
     name: "timeline",
-    component: PageTimeline,
+    component: Timeline,
+  },
+  {
+    path: "/tags",
+    name: "tags",
+    component: Home,
+  },
+  {
+    path: "/statistic",
+    name: "statistic",
+    component: Home,
+  },
+  {
+    path: "/setting",
+    name: "setting",
+    component: Home,
   },
 ]
 

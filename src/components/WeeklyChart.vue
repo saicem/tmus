@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { Chart } from "@antv/g2"
-import { onMounted, ref } from "vue"
-// import { themeStore } from "@/global/state.ts"
+import { onMounted, ref, onUpdated } from "vue"
 import { Duration } from "moment"
 
 const props = defineProps<{
@@ -9,8 +8,10 @@ const props = defineProps<{
    * 14 days duration, last week and this week.
    */
   durations: Duration[]
+  theme: string
 }>()
 const root = ref<HTMLDivElement | null>(null)
+let plot = null
 
 const dayOfWeekName = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"]
 const data = ((durations) => {
@@ -37,11 +38,7 @@ const data = ((durations) => {
 
 function renderBarChart(container: HTMLElement) {
   const chart = new Chart({ container })
-
-  if ("isDark") {
-    chart.theme({ type: "classicDark" })
-  }
-
+  chart.theme({ type: props.theme })
   chart.options({
     title: "周使用时长",
     type: "interval",
@@ -68,8 +65,8 @@ function renderBarChart(container: HTMLElement) {
       ],
     },
   })
-
-  chart.render()
+  plot = chart
+  plot.render()
 }
 
 onMounted(() => {
@@ -77,10 +74,15 @@ onMounted(() => {
     renderBarChart(root.value)
   }
 })
+
+onUpdated(() => {
+  if (root?.value) {
+    plot.theme({ type: props.theme })
+    plot.render()
+  }
+})
 </script>
 
 <template>
-  <div class="card">
-    <div ref="root"></div>
-  </div>
+  <div ref="root"></div>
 </template>

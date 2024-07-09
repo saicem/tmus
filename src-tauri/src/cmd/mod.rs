@@ -1,6 +1,7 @@
 use crate::engine::Millisecond;
 use crate::engine::{FocusRecord, ENGINE};
 use file_detail::FileDetail;
+use log::info;
 use read::read_by_timestamp;
 use std::cmp::{max, min};
 use std::collections::HashMap;
@@ -11,8 +12,11 @@ mod file_version;
 mod read;
 
 #[tauri::command]
-pub fn raw_record(start: Millisecond, end: Millisecond) -> Result<Vec<FocusRecord>, String> {
-    Ok(read_by_timestamp(start, end))
+pub fn raw_record(
+    start_millis: Millisecond,
+    end_millis: Millisecond,
+) -> Result<Vec<FocusRecord>, String> {
+    Ok(read_by_timestamp(start_millis, end_millis))
 }
 
 #[tauri::command]
@@ -30,36 +34,41 @@ pub fn duration_aggregate(
 }
 
 /// Calculates the duration per day given a time range and timezone offset.
-/// 
+///
 /// # Parameters
 /// - `start`: The start timestamp in milliseconds.
 /// - `end`: The end timestamp in milliseconds.
 /// - `time_zone_offset`: The timezone offset in milliseconds.
-/// 
+///
 /// # Returns
 /// A `Result` containing either:
 /// - A `HashMap` where keys are days (in i64 format) and values are durations in milliseconds for that day.
 /// - A `String` containing an error message if an error occurs.
 #[tauri::command]
 pub fn duration_by_day(
-    start: Millisecond,
-    end: Millisecond,
+    start_millis: Millisecond,
+    end_millis: Millisecond,
     time_zone_offset: Millisecond,
 ) -> Result<HashMap<i64, Millisecond>, String> {
-    let records = read_by_timestamp(start, end);
-    let mut cur_pat_millis = start + time_zone_offset;
-    let mut cur_day = (start + time_zone_offset).as_days();
+    let records = read_by_timestamp(start_millis, end_millis);
+    info!(
+        "records len: {:?}, start: {:?}, end: {:?}",
+        records.len(),
+        start_millis,
+        end_millis
+    );
     let mut ret = HashMap::new();
-    for record in records.iter() {
-        if record.blur_at >= cur_pat_millis {
-            *ret.entry(cur_day).or_insert(Millisecond::ZERO) +=
-                min(Millisecond::ZERO, cur_pat_millis - record.focus_at);
-            *ret.entry(cur_day + 1).or_insert(Millisecond::ZERO) +=
-                record.blur_at - max(record.focus_at, cur_pat_millis);
-            cur_day += 1;
-            cur_pat_millis += Millisecond::from_days(1);
-        } else {
-            *ret.entry(cur_day).or_insert(Millisecond::ZERO) += record.duration()
+    for mut record in records.into_iter() {
+        record.focus_at += time_zone_offset;
+        record.blur_at += time_zone_offset;
+        let start_day = record.focus_at.as_days();
+        let end_day = record.focus_at.as_days();
+        if start_day == end_day {
+            *ret.entry(start_day).or_insert(Millisecond::ZERO) += record.duration();
+        }
+        else{
+            *ret.entry(start_day).or_insert(Millisecond::ZERO) += Millisecond::ONE_DAY - record.focus_at.get_day_offset();
+            *ret.entry(end_day).or_insert(Millisecond::ZERO) += record.blur_at.get_day_offset();
         }
     }
     Ok(ret)

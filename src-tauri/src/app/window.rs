@@ -7,7 +7,7 @@ pub fn focus_main_window(app: &AppHandle) {
     if main_window.is_none() {
         let window =
             tauri::WindowBuilder::new(app, "main", tauri::WindowUrl::App("index.html".into()))
-                .inner_size(900_f64, 600_f64)
+                .inner_size(1200_f64, 680_f64)
                 .build()
                 .unwrap();
         init_window_style(&window);

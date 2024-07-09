@@ -8,16 +8,24 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AppBasicCard: typeof import('./src/components/AppBasicCard.vue')['default']
+    ElAside: typeof import('element-plus/es')['ElAside']
     ElBu: typeof import('element-plus/es')['ElBu']
     ElButton: typeof import('element-plus/es')['ElButton']
     ElCard: typeof import('element-plus/es')['ElCard']
     ElContainer: typeof import('element-plus/es')['ElContainer']
     ElHeader: typeof import('element-plus/es')['ElHeader']
+    ElIcon: typeof import('element-plus/es')['ElIcon']
     ElMain: typeof import('element-plus/es')['ElMain']
     ElMenu: typeof import('element-plus/es')['ElMenu']
     ElMenuItem: typeof import('element-plus/es')['ElMenuItem']
+    ElPageHeader: typeof import('element-plus/es')['ElPageHeader']
+    ElScrollbar: typeof import('element-plus/es')['ElScrollbar']
+    ElSider: typeof import('element-plus/es')['ElSider']
     ElStatistic: typeof import('element-plus/es')['ElStatistic']
     ElText: typeof import('element-plus/es')['ElText']
+    ElTimeline: typeof import('element-plus/es')['ElTimeline']
+    ElTimelineItem: typeof import('element-plus/es')['ElTimelineItem']
+    ElTooltip: typeof import('element-plus/es')['ElTooltip']
     GeneralCard: typeof import('./src/components/GeneralCard.vue')['default']
     HeatCalendar: typeof import('./src/components/HeatCalendar.vue')['default']
     HeatCalendarCell: typeof import('./src/components/HeatCalendarCell.vue')['default']
@@ -28,5 +36,8 @@ declare module 'vue' {
     RouterView: typeof import('vue-router')['RouterView']
     TitleBar: typeof import('./src/components/TitleBar.vue')['default']
     WeeklyChart: typeof import('./src/components/WeeklyChart.vue')['default']
+  }
+  export interface ComponentCustomProperties {
+    vInfiniteScroll: typeof import('element-plus/es')['ElInfiniteScroll']
   }
 }

@@ -1,41 +1,46 @@
-use super::constant;
 use serde::{Deserialize, Serialize};
-use std::{fs, path::PathBuf, sync::OnceLock};
-
-static CONFIG: OnceLock<Config> = OnceLock::<Config>::new();
+use std::{
+    fs::{self, OpenOptions},
+    io::Read,
+    path::PathBuf,
+};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Config {
-    /// Lang id, determine the language of the interface.
     pub lang: String,
-
-    /// When logging the focus event, immediately flush if true or control by operate system if false.
-    pub always_flush: bool,
+    pub theme: String,
 }
 
 impl Default for Config {
     fn default() -> Self {
         Self {
             lang: "lang_zhs".to_string(),
-            always_flush: true,
+            theme: "theme_light".to_string(),
         }
     }
 }
 
 impl Config {
-    /// Load from file
-    pub fn load(&self) -> Config {
-        let str = fs::read_to_string(Self::config_path()).unwrap();
-        serde_json::from_str(&str).unwrap()
+    pub fn load(data_dir: &str) -> Config {
+        let config_path = Self::config_path(data_dir);
+        println!("config_path: {:?}", config_path.clone());
+        let mut file = OpenOptions::new()
+            .write(true)
+            .read(true)
+            .create(true)
+            .open(config_path)
+            .expect("Read config.json fail");
+        let mut buf = String::new();
+        file.read_to_string(&mut buf).unwrap();
+        serde_json::from_str(&buf).unwrap_or_default()
     }
 
-    /// Dump config to file
-    pub fn dump(&self) {
+    pub fn dump(&self, data_dir: &str) {
         let str = serde_json::to_string_pretty(self).unwrap();
-        fs::write(Self::config_path(), str).unwrap()
+        fs::write(Self::config_path(data_dir), str).unwrap()
     }
 
-    fn config_path() -> PathBuf {
-        PathBuf::from(constant::DEFAULT_DATA_DIR.get().unwrap()).join("config.json")
+    fn config_path(data_dir: &str) -> PathBuf {
+        PathBuf::from(data_dir).join("config.json")
     }
 }

@@ -1,3 +1,4 @@
+use log::{error, info};
 use std::process::exit;
 use windows::{
     core::HSTRING,
@@ -14,12 +15,12 @@ pub fn force_singleton() {
     let last_error = unsafe { GetLastError() };
 
     if last_error == ERROR_ALREADY_EXISTS {
-        println!("Another instance is already running.");
+        info!("Another instance is already running.");
         std::process::exit(0);
     }
 
     if mutex.is_err() {
-        eprintln!("Failed to create mutex, {}", mutex.err().unwrap());
+        error!("Failed to create mutex, {}", mutex.err().unwrap());
         exit(1);
     }
 

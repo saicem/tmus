@@ -10,6 +10,7 @@ pub type RecordByte = [u8; 8];
 /// - focus_at: 2^32, The time when the focus starts. About 136 year from unix epoch.
 /// - duration: 2^16, Maximum time that can be represented is about 0.76 day,
 #[derive(Clone, Copy, Debug, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
 pub struct FocusRecord {
     pub id: usize,
     pub focus_at: Millisecond,

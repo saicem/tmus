@@ -1,5 +1,3 @@
-import { Duration, Moment } from "moment"
-
 export interface FileVersion {
   comments?: string
   internalName?: string
@@ -24,6 +22,6 @@ export interface FileDetail {
 
 export interface FocusRecord {
   id: number
-  start: Moment
-  duration: Duration
+  focusAt: number
+  blurAt: number
 }

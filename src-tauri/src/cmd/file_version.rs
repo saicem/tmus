@@ -1,4 +1,5 @@
 use core::slice;
+use log::info;
 use serde::{Deserialize, Serialize};
 use std::{ffi::c_void, ptr};
 use windows::core::HSTRING;
@@ -27,7 +28,7 @@ pub fn query_file_version(path: &str) -> Option<FileVersion> {
     unsafe {
         let size = GetFileVersionInfoSizeW(&HSTRING::from(path), None) as usize;
         if size == 0 {
-            println!("File: {}, don't have file version.", path);
+            info!("File: {}, don't have file version.", path);
             return None;
         }
         let mut buffer: Vec<u16> = vec![0; size];

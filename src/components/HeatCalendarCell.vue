@@ -16,16 +16,18 @@ const minutes = computed(() => {
 </script>
 
 <template>
-  <a-tooltip
-    :title="`${moment().dayOfYear(props.dayOfYear).format('yyyy-MM-DD')} ${
-      hours > 0 ? `${hours}h ${minutes}min` : `${minutes}min`
-    }`"
-  >
+  <el-tooltip :show-after="200" :hide-after="200">
+    <template #content>
+      <div style="text-align: center">
+        {{ `${moment().dayOfYear(props.dayOfYear).format("yyyy-MM-DD")} ` }}
+        <br />{{ `${hours > 0 ? `${hours}h ${minutes}min` : `${minutes}min`}` }}
+      </div>
+    </template>
     <div
       :data-tag="Math.min(4, Math.ceil(props.duration.asHours() / 4))"
       class="block-unit"
     ></div>
-  </a-tooltip>
+  </el-tooltip>
 </template>
 
 <style scoped>
@@ -36,23 +38,23 @@ const minutes = computed(() => {
 }
 
 .block-unit[data-tag="4"] {
-  background: var(--accent-color);
+  background: var(--el-color-primary-dark-2);
 }
 
 .block-unit[data-tag="3"] {
-  background: var(--accent-color-1);
+  background: var(--el-color-primary-light-3);
 }
 
 .block-unit[data-tag="2"] {
-  background: var(--accent-color-2);
+  background: var(--el-color-primary-light-5);
 }
 
 .block-unit[data-tag="1"] {
-  background: var(--accent-color-3);
+  background: var(--el-color-primary-light-7);
 }
 
 .block-unit[data-tag="0"] {
-  background: var(--accent-color-4);
+  background: var(--el-color-primary-light-9);
 }
 
 .block-unit:hover {

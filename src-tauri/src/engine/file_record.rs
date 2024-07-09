@@ -9,6 +9,7 @@ use std::os::windows::fs::OpenOptionsExt;
 use std::path::PathBuf;
 use std::sync::Mutex;
 
+use log::debug;
 use windows::Win32::Storage::FileSystem::FILE_SHARE_READ;
 
 use super::focus_record::RecordByte;
@@ -37,6 +38,7 @@ impl FileRecord {
         let mut file = self.file.lock().unwrap();
         file.write(&record).unwrap();
         file.flush().unwrap();
+        debug!("write record:{:?}", record);
         return file.seek(SeekFrom::End(0)).unwrap() / RECORD_SIZE as u64;
     }
 
@@ -80,8 +82,10 @@ impl FileRecord {
         }
         let mut buf: RecordByte = RecordByte::default();
         let mut file = self.file.lock().unwrap();
-        let start =
-            cursor.unwrap_or_else(|| file.seek(SeekFrom::End(0)).unwrap() / RECORD_SIZE as u64);
+        let start = cursor
+            .unwrap_or_else(|| file.seek(SeekFrom::End(0)).unwrap() / RECORD_SIZE as u64)
+            .saturating_sub(count);
+        debug!("read_reverse start:{}", start);
         file.seek(SeekFrom::Start(start * RECORD_SIZE as u64))
             .unwrap();
         let mut ret = vec![];
