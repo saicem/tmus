@@ -3,7 +3,6 @@ use crate::engine::{FocusRecord, ENGINE};
 use file_detail::FileDetail;
 use log::info;
 use read::read_by_timestamp;
-use std::cmp::{max, min};
 use std::collections::HashMap;
 use std::path::Path;
 
@@ -65,9 +64,9 @@ pub fn duration_by_day(
         let end_day = record.focus_at.as_days();
         if start_day == end_day {
             *ret.entry(start_day).or_insert(Millisecond::ZERO) += record.duration();
-        }
-        else{
-            *ret.entry(start_day).or_insert(Millisecond::ZERO) += Millisecond::ONE_DAY - record.focus_at.get_day_offset();
+        } else {
+            *ret.entry(start_day).or_insert(Millisecond::ZERO) +=
+                Millisecond::ONE_DAY - record.focus_at.get_day_offset();
             *ret.entry(end_day).or_insert(Millisecond::ZERO) += record.blur_at.get_day_offset();
         }
     }

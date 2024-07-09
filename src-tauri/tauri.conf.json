@@ -28,10 +28,9 @@
       {
         "label": "main",
         "title": "Tmus",
-        "width": 900,
-        "height": 600,
-        "decorations": false,
-        "transparent": true
+        "width": 1200,
+        "height": 680,
+        "decorations": false
       }
     ],
     "security": {
