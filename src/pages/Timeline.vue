@@ -15,7 +15,7 @@ const load = async () => {
     scrollDisable.value = true
     return
   }
-  const res = await api.readReverse(cursor.value, 100)
+  const res = await api.readReverse(cursor.value, 30)
   console.log("api.readReverse", res)
   records.value = records.value.concat(res[0])
   cursor.value = res[1]

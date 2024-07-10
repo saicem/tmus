@@ -1,3 +1,4 @@
+use std::cmp::min;
 use std::fs::File;
 use std::fs::OpenOptions;
 use std::io::Read;
@@ -76,16 +77,17 @@ impl FileRecord {
         ret
     }
 
-    pub fn read_reverse(&self, cursor: Option<u64>, count: u64) -> (Vec<RecordByte>, u64) {
+    pub fn read_reverse(&self, cursor: Option<u64>, mut count: u64) -> (Vec<RecordByte>, u64) {
         if count == 0 {
             return (vec![], 0);
         }
         let mut buf: RecordByte = RecordByte::default();
         let mut file = self.file.lock().unwrap();
-        let start = cursor
-            .unwrap_or_else(|| file.seek(SeekFrom::End(0)).unwrap() / RECORD_SIZE as u64)
-            .saturating_sub(count);
-        debug!("read_reverse start:{}", start);
+        let cursor =
+            cursor.unwrap_or_else(|| file.seek(SeekFrom::End(0)).unwrap() / RECORD_SIZE as u64);
+        let start = cursor.saturating_sub(count);
+        count = min(count, cursor);
+        debug!("read_reverse start:{} count:{}", start, count);
         file.seek(SeekFrom::Start(start * RECORD_SIZE as u64))
             .unwrap();
         let mut ret = vec![];
