@@ -13,7 +13,7 @@ use std::sync::Mutex;
 use log::debug;
 use windows::Win32::Storage::FileSystem::FILE_SHARE_READ;
 
-use super::focus_record::RecordByte;
+use crate::engine::focus_record::RecordByte;
 
 const RECORD_SIZE: usize = size_of::<RecordByte>();
 
@@ -40,7 +40,7 @@ impl FileRecord {
         file.write(&record).unwrap();
         file.flush().unwrap();
         debug!("write record:{:?}", record);
-        return file.seek(SeekFrom::End(0)).unwrap() / RECORD_SIZE as u64;
+        file.seek(SeekFrom::End(0)).unwrap() / RECORD_SIZE as u64
     }
 
     /// End is not include.
@@ -99,6 +99,6 @@ impl FileRecord {
             ret.push(buf)
         }
         ret.reverse();
-        return (ret, start);
+        (ret, start)
     }
 }

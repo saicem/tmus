@@ -1,10 +1,9 @@
+use serde::{Deserialize, Serialize};
 use std::{
     fmt::Display,
     ops::{Add, AddAssign, Sub, SubAssign},
     time::{SystemTime, UNIX_EPOCH},
 };
-
-use serde::{Deserialize, Serialize};
 
 /// Millisecond is a wrapper of i64, which represents the number of milliseconds since the Unix epoch.
 /// It is used because two defects, [std::time::Duration], cannot represent negative time periods, [std::time::Duration] Missing some methods, such as as_days
@@ -52,6 +51,7 @@ impl Millisecond {
     pub const ONE_MINUTE: Millisecond = Millisecond(1000 * 60);
     pub const ONE_SECOND: Millisecond = Millisecond(1000);
     pub const ZERO: Millisecond = Millisecond(0);
+    pub const MAX: Millisecond = Millisecond(i64::MAX);
 }
 
 impl Display for Millisecond {

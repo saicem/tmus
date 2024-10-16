@@ -19,8 +19,10 @@ tauri = { version = "1.6", features = [
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 windows = { version = "0.58.0", features = [
+    "Win32",
+    "Win32_UI_Shell",
     "Win32_Foundation",
-    "Win32_System_Threading",
+    "Win32_Graphics_Gdi",
     "Win32_UI_WindowsAndMessaging",
     "Win32_UI_Accessibility",
     "Win32_System_SystemServices",
@@ -33,6 +35,9 @@ window-shadows = "0.2.2"
 log = "0.4.11"
 env_logger = "0.11.3"
 dirs-next = "2.0.0"
+image = "0.25.2"
+itertools = "0.13.0"
+memmap2 = "0.9.5"
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem

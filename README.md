@@ -1,3 +1,3 @@
 # Tmus
 
-An application that records your usage time on Windows applications.
+An application which records your usage time on Windows applications.

@@ -2,12 +2,13 @@ use std::{fs, path::PathBuf, sync::OnceLock};
 
 use super::config::Config;
 
+pub static APP_NAME: &str = "tmus";
 pub static DATA_DIR: OnceLock<String> = OnceLock::new();
 pub static CONFIG: OnceLock<Config> = OnceLock::new();
 
 pub fn init() {
     let data_dir = dirs_next::data_dir()
-        .map(|dir| dir.join(&"tmus"))
+        .map(|dir| dir.join(&APP_NAME))
         .unwrap()
         .to_str()
         .unwrap()

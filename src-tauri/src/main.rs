@@ -1,12 +1,13 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use std::path::PathBuf;
+
 use app::tray;
 use app::window::init_window_style;
 use app::{constant, singleton::force_singleton};
 use env_logger::Builder;
 use log::info;
-use std::path::PathBuf;
 use tauri::{AppHandle, Manager, RunEvent};
 
 mod app;
@@ -15,7 +16,7 @@ mod engine;
 
 fn main() {
     init_logger();
-    info!("Tmus start");
+    info!("Application started");
     tauri::Builder::default()
         .setup(setup)
         .system_tray(tray::menu())
@@ -28,7 +29,7 @@ fn main() {
             cmd::read_reverse,
         ])
         .build(tauri::generate_context!())
-        .expect("error while running tauri application")
+        .expect("Error while running tauri application")
         .run(event_callback)
 }
 

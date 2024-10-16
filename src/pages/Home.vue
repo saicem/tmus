@@ -39,34 +39,15 @@ api.todayAppGeneral().then((res) => {
 <template>
   <div style="display: flex; flex-direction: column; row-gap: 16px">
     <div class="cards">
-      <GeneralCard
-        :icon="app"
-        :value="appCount"
-        unit="个"
-        illustration="应用量"
-      />
-      <GeneralCard
-        :icon="usage"
-        :value="totalUse"
-        unit="小时"
-        illustration="总计"
-      />
-      <GeneralCard
-        :icon="up"
-        :value="mostUse"
-        unit="小时"
-        illustration="最常使用"
-      />
+      <GeneralCard :icon="app" :value="appCount" unit="个" illustration="应用量" />
+      <GeneralCard :icon="usage" :value="totalUse" unit="小时" illustration="总计" />
+      <GeneralCard :icon="up" :value="mostUse" unit="小时" illustration="最常使用" />
     </div>
     <el-card>
       <HeatCalendar :data="duration" v-if="duration" />
     </el-card>
     <el-card>
-      <WeeklyChart
-        :durations="weeklyDurations"
-        v-if="weeklyDurations"
-        :theme="colorMode"
-      />
+      <WeeklyChart :durations="weeklyDurations" v-if="weeklyDurations" :theme="colorMode" />
     </el-card>
   </div>
 </template>

@@ -1,6 +1,7 @@
 use std::cmp::{max, min};
 
-use crate::engine::{FocusRecord, Millisecond, ENGINE};
+use crate::engine::{data::Millisecond, Engine, FocusRecord, ENGINE};
+
 
 #[tauri::command]
 pub fn read_by_timestamp(start_millis: Millisecond, end_millis: Millisecond) -> Vec<FocusRecord> {

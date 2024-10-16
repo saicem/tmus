@@ -1,6 +1,7 @@
 use serde::Serialize;
 
-use super::millisecond::Millisecond;
+use super::data::Millisecond;
+
 
 const DURATION_MAX: Millisecond = Millisecond::from_secs(u16::MAX as i64);
 

@@ -11,7 +11,7 @@ const props = defineProps<{
   theme: string
 }>()
 const root = ref<HTMLDivElement | null>(null)
-let plot = null
+let plot: Chart | null = null
 
 const dayOfWeekName = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"]
 const data = ((durations) => {
@@ -77,8 +77,8 @@ onMounted(() => {
 
 onUpdated(() => {
   if (root?.value) {
-    plot.theme({ type: props.theme })
-    plot.render()
+    plot?.theme({ type: props.theme })
+    plot?.render()
   }
 })
 </script>

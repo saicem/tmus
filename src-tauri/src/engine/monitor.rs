@@ -1,4 +1,4 @@
-use log::info;
+use log;
 use windows::core::Result;
 use windows::core::PWSTR;
 use windows::Win32::Foundation::*;
@@ -6,9 +6,10 @@ use windows::Win32::System::Threading::*;
 use windows::Win32::UI::Accessibility::SetWinEventHook;
 use windows::Win32::UI::Accessibility::HWINEVENTHOOK;
 use windows::Win32::UI::WindowsAndMessaging::*;
+use crate::engine::Engine;
 
 pub fn set_event_hook() {
-    info!("Set event hook");
+    log::info!("Set event hook");
     unsafe {
         SetWinEventHook(
             EVENT_SYSTEM_FOREGROUND,
@@ -32,24 +33,22 @@ unsafe extern "system" fn on_foreground_changed(
     _: u32,
     _: u32,
 ) {
-    use log::error;
-
-    use crate::engine::engine::on_focus;
+    use crate::engine::pigeon_engine::ENGINE;
 
     match process_path(&hwnd) {
         Ok(process_path) => {
-            info!("foreground change: {}", &process_path);
-            on_focus(&process_path);
+            log::info!("foreground change: {}", &process_path);
+            ENGINE.get().unwrap().on_focus(&process_path);
         }
         Err(e) => {
-            error!("Error getting process path: {}", e);
+            log::error!("Error getting process path: {}", e);
         }
     }
 }
 
 /// Get the path of the process.
 /// Here are some probabilities of failure:
-/// - The process is just exited, like a updater or a launcher.
+/// - The process just exited, couldn't open the process.
 pub fn process_path(hwnd: &HWND) -> Result<String> {
     let mut text: [u16; 1024] = [0; 1024];
     let mut process_name_length: u32 = 1024;

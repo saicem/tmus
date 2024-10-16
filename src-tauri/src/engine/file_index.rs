@@ -6,7 +6,7 @@ use std::path::PathBuf;
 use std::sync::Mutex;
 use windows::Win32::Storage::FileSystem::FILE_SHARE_READ;
 
-use super::Millisecond;
+use super::data::Millisecond;
 
 type IndexUnitByte = [u8; 8];
 type IndexUnit = i64;
