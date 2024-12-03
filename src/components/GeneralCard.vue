@@ -8,27 +8,27 @@ const props = defineProps<{
 </script>
 
 <template>
-  <el-card class="root">
-    <div style="display: inline-block">
+  <el-card style="width: 100%">
+    <div class="card">
       <img :src="icon" alt="icon" />
-    </div>
-    <div style="align-items: start; display: inline-block">
-      <p>{{ props.illustration }}</p>
-      <p>{{ props.value + props.unit }}</p>
+      <div style="flex: 1">
+        <h3 style="margin: 0; font-size: 16px; font-weight: bold">
+          {{ props.illustration }}
+        </h3>
+        <p style="margin: 0; color: #888; font-size: 14px">
+          {{ props.value + props.unit }}
+        </p>
+      </div>
     </div>
   </el-card>
 </template>
 
 <style scoped>
-span {
-  user-select: none;
-}
-
-.root {
+.card {
+  display: flex;
   flex-direction: row;
-  justify-content: start;
-  padding: 16px 24px;
+  align-items: center;
   width: 100%;
-  gap: 16px;
+  gap: 8px;
 }
 </style>

@@ -11,7 +11,7 @@ async function rawRecord(
 async function readReverse(
   cursor: number | null,
   count: number
-): Promise<[FocusRecord[], number]> {
+): Promise<[FocusRecord[], number | null]> {
   return await invoke("read_reverse", { cursor, count })
 }
 

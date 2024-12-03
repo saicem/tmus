@@ -1,41 +1,44 @@
-use std::{
-    fmt::Debug,
-    path::PathBuf,
-    sync::{
-        mpsc::{channel, Sender},
-        OnceLock,
-    },
-    thread, usize,
-};
+use std::path::PathBuf;
+use std::fmt::Debug;
+use std::sync::mpsc::channel;
+use std::sync::mpsc::Sender;
+use std::sync::OnceLock;
+use std::thread;
 
 use log;
 
-use crate::engine::data::{EngineState, FocusEvent, Millisecond};
+use crate::engine::data::{CursorPosition, EngineState, FocusEvent, Millisecond, ReadDirection};
 use crate::engine::file_record::FileRecord;
-use super::{
-    data::{AppId, EngineError, OptimizeStorageConfig, RecordsQuery},
-    file_app::FileApp,
-    file_index::{FileIndex, IndexValue},
-    Engine, FocusRecord,
-};
+use super::file_app::FileApp;
+use super::data::AppId;
+use super::data::EngineError;
+use super::data::OptimizeStorageOptions;
+use super::file_index::FileIndex;
+use super::FocusRecord;
 
-pub static ENGINE: OnceLock<PigeonEngine> = OnceLock::new();
+pub static ENGINE: OnceLock<Engine> = OnceLock::new();
 static SENDER: OnceLock<Sender<FocusEvent>> = OnceLock::new();
 
 
 /// This engine is designed to allow for accuracy loss.
-/// The record with duration less than threshold (set in start function) will be discard.
+/// The record with duration less than threshold (set in start function) will be discarded.
 /// So it's not a good idea to use this engine for accurate recoding of app switching.
 /// It's just design for recording the duration of app usage with high efficiency and low storage usage.
-pub struct PigeonEngine {
+pub struct Engine {
     file_app: FileApp,
     file_index: FileIndex,
     file_record: FileRecord,
     status: EngineState,
 }
 
-impl Engine for PigeonEngine {
-    fn new(data_dir: &PathBuf) -> PigeonEngine {
+impl Debug for Engine {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Engine").finish()
+    }
+}
+
+impl Engine {
+    fn new(data_dir: &PathBuf) -> Engine {
         Self {
             file_app: FileApp::new(data_dir),
             file_index: FileIndex::new(data_dir),
@@ -44,29 +47,25 @@ impl Engine for PigeonEngine {
         }
     }
 
+    /// Not implement
+    /// Suspend engine, the app recording will truncate and set the current time as the end of focus duration.
     fn suspend(&mut self) {
         self.status = EngineState::Suspended;
     }
 
+    /// Not implement
     fn resume(&mut self) {
         self.status = EngineState::Running;
     }
 
-    fn app_path(&self, id: AppId) -> Result<String, EngineError> {
-        Ok(self.file_app.get_path_by_id(id).to_owned())
-    }
-
-    fn query_records(&self, query: RecordsQuery) -> Result<String, Vec<FocusRecord>> {
-        todo!()
-    }
-
-    fn optimize_storage(&mut self, config: OptimizeStorageConfig) {
+    /// Not implement
+    fn optimize_storage(&mut self, config: OptimizeStorageOptions) {
         self.suspend();
         let _ = config;
         self.resume();
     }
 
-    fn on_focus(&self, process_path: &str) {
+    pub(crate) fn on_focus(&self, process_path: &str) {
         match &self.status {
             EngineState::Running => {
                 self.add_record_to_queue(process_path)
@@ -80,8 +79,49 @@ impl Engine for PigeonEngine {
         }
     }
 
-    fn read_reverse(&self, cursor: Option<u64>, count: u64) -> (Vec<FocusRecord>, u64) {
-        let (records, ret_cursor) = self.file_record.read_reverse(cursor, count);
+    /// Read records. Include records which blur_at >= start and focus_at <= end,
+    /// which means if only need records focus_at >= start and blur_at <= end,
+    /// you need to crop the return data.
+    pub(crate) fn read_by_time(&self, start: Millisecond, end: Millisecond) -> Vec<FocusRecord> {
+        let start_index: CursorPosition = self.file_index.query_index(start.as_days() as u64);
+        let end_index = self.file_index.query_index((end.as_days() + 1) as u64);
+        match (start_index, end_index) {
+            (_, CursorPosition::Start) => vec![],
+            (CursorPosition::End, _) => vec![],
+            (CursorPosition::Start, CursorPosition::Middle(end)) => self.file_record.read(0, end),
+            (CursorPosition::Start, CursorPosition::End) => self.file_record.read_to_end(0),
+            (CursorPosition::Middle(start), CursorPosition::Middle(end)) => {
+                self.file_record.read(start, end)
+            }
+            (CursorPosition::Middle(start), CursorPosition::End) => {
+                self.file_record.read_to_end(start)
+            }
+        }.into_iter()
+            .map(|x| x.into())
+            .collect()
+    }
+
+    /// Reads a batch of data starting from the given cursor position in the specified direction.
+    ///
+    /// # Arguments 
+    ///
+    /// * `cursor`: An optional cursor position to start reading from. If `None`, starts from the end.
+    /// * `count`: The number of records to read.
+    /// * `direction`: The direction to read, either forward or backward.
+    ///
+    /// # Returns
+    ///
+    /// A tuple containing:
+    /// - A vector of `FocusRecord` instances.
+    /// - A `u64` representing the new cursor position.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// // Example usage
+    /// ```
+    pub(crate) fn read_by_cursor(&self, cursor: CursorPosition, count: u64, direction: ReadDirection) -> (Vec<FocusRecord>, CursorPosition) {
+        let (records, ret_cursor) = self.file_record.read_by_cursor(cursor, count, direction);
         (records.into_iter().map(|x| x.into()).collect(), ret_cursor)
     }
 
@@ -95,47 +135,17 @@ impl Engine for PigeonEngine {
         for sub_record in record.split_record() {
             let index = self.file_record.write(sub_record.unsafe_to_byte());
             self.file_index
-                .update_index(sub_record.focus_at.as_days(), index as i64)
+                .update_index(sub_record.focus_at.as_days() as u64, index)
         }
     }
-}
 
-impl Debug for PigeonEngine {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Engine").finish()
-    }
-}
-
-impl PigeonEngine {
     pub fn get_id_by_path(&self, path: &str) -> AppId {
         self.file_app.get_id_by_path(path)
     }
 
-    /// Read records. Both start day and end day are included.
-    /// The records may beyond the required range. Need cropped.
-    pub fn read_rough_records(&self, start_day: i64, end_day: i64) -> Vec<FocusRecord> {
-        let start_index: IndexValue = self.file_index.query_index(start_day).offset(-1);
-        let end_index = self.file_index.query_index(end_day + 1);
-        log::info!(
-            "read_rough_records start_day:{:?}. end_day{:?}, start_index{:?}, end_index{:?}",
-            start_day, end_day, start_index, end_index
-        );
-        match (start_index, end_index) {
-            (_, IndexValue::Before) => vec![],
-            (IndexValue::After, _) => vec![],
-            (IndexValue::Before, IndexValue::In(end)) => self.file_record.read(0, end as u64),
-            (IndexValue::Before, IndexValue::After) => self.file_record.read_to_end(0),
-            (IndexValue::In(start), IndexValue::In(end)) => {
-                self.file_record.read(start as u64, end as u64)
-            }
-            (IndexValue::In(start), IndexValue::After) => {
-                self.file_record.read_to_end(start as u64)
-            }
-        }.into_iter()
-            .map(|x| x.into())
-            .collect()
+    pub fn get_path_by_id(&self, id: AppId) -> Result<String, EngineError> {
+        Ok(self.file_app.get_path_by_id(id).to_owned())
     }
-
     fn add_record_to_queue(&self, process_path: &str) {
         let focus_at = Millisecond::now();
         SENDER
@@ -153,7 +163,7 @@ pub fn start(data_dir: &PathBuf) {
     let channel = channel::<FocusEvent>();
     let (sender, receiver) = channel;
     SENDER.set(sender).unwrap();
-    let engine = PigeonEngine::new(data_dir);
+    let engine = Engine::new(data_dir);
     ENGINE.set(engine).expect("Engine init failed.");
     thread::spawn(move || {
         let mut last_focus = FocusEvent {

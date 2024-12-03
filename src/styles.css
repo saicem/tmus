@@ -1,4 +1,4 @@
-/* :root {
+:root {
   font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
   font-size: 16px;
   line-height: 24px;
@@ -34,10 +34,10 @@
   --base-color-3: #2b2b2b;
 }
 
-* {
+{
   margin: 0;
   box-sizing: border-box;
-} */
+}
 
 * {
   -webkit-user-select: none;

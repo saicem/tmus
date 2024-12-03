@@ -6,7 +6,8 @@ use std::{
 };
 
 /// Millisecond is a wrapper of i64, which represents the number of milliseconds since the Unix epoch.
-/// It is used because two defects, [std::time::Duration], cannot represent negative time periods, [std::time::Duration] Missing some methods, such as as_days
+/// It is used because two defects, [std::time::Duration], cannot represent negative time periods,
+/// [std::time::Duration] Missing some methods, such as as_days.
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord)]
 pub struct Millisecond(i64);
 

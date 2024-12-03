@@ -1,3 +1,5 @@
+import { Duration, Moment } from "moment-timezone"
+
 export interface FileVersion {
   comments?: string
   internalName?: string
@@ -24,4 +26,11 @@ export interface FocusRecord {
   id: number
   focusAt: number
   blurAt: number
+}
+
+export interface FocusData {
+  id: number
+  start: Moment
+  end: Moment
+  duration: Duration
 }

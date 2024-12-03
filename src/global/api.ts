@@ -1,8 +1,13 @@
-import moment, { Duration, Moment } from "moment-timezone"
+import moment, { Duration } from "moment-timezone"
 import cmd from "./cmd"
-import { FileDetail, FocusRecord } from "./data"
+import { FileDetail, FocusData, FocusRecord } from "./data"
 
-async function readReverse(cursor: number | null, count: number): Promise<[FocusData[], number]> {
+const fileDetailCache: Record<number, FileDetail> = {}
+
+async function readReverse(
+  cursor: number | null,
+  count: number
+): Promise<[FocusData[], number | null]> {
   const [rawRecords, newCursor] = await cmd.readReverse(cursor, count)
   const ret = await Promise.all(rawRecords.map((x) => refreshAppDetail(x.id)))
   console.log("detail", ret)
@@ -23,8 +28,6 @@ async function todayAppGeneral() {
   })
   return Promise.all(result)
 }
-
-const fileDetailCache: Record<number, FileDetail> = {}
 
 async function refreshAppDetail(id: number) {
   if (fileDetailCache[id]) {
@@ -57,13 +60,6 @@ async function durationByDayInThisYear() {
     ret[Number.parseInt(k) - startDay + 1] = moment.duration(v)
   })
   return ret
-}
-
-export interface FocusData {
-  id: number
-  start: Moment
-  end: Moment
-  duration: Duration
 }
 
 function convertFocusData(data: FocusRecord): FocusData {

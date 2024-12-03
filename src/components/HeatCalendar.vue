@@ -35,6 +35,7 @@ const monthList = [
 function dayOfYear(week: number, dow: number) {
   return week * 7 + dow + 1 - emptyCellCount
 }
+
 function showCell(week: number, dow: number) {
   const doy = dayOfYear(week, dow)
   return doy > 0 && doy <= daysInYearCount
@@ -62,9 +63,9 @@ function showCell(week: number, dow: number) {
     </thead>
     <tbody>
       <tr v-for="(_, dow) in 7" :key="dow">
-        <div class="week-label">
+        <th class="week-label">
           {{ dow % 2 == 1 ? dayOfWeekList[dow] : "" }}
-        </div>
+        </th>
         <td
           v-for="(_, week) in weekCount"
           :key="week"
@@ -87,8 +88,9 @@ function showCell(week: number, dow: number) {
   user-select: none;
   color: var(--font-color-bold);
 }
+
 .month-label {
-  -select: none;
+  user-select: none;
   color: var(--font-color-bold);
 }
 

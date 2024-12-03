@@ -1,5 +1,4 @@
 use crate::engine::data::Millisecond;
-use crate::engine::Engine;
 use crate::engine::{FocusRecord, ENGINE};
 use file_detail::FileDetail;
 use log::info;
@@ -22,7 +21,7 @@ pub fn raw_record(
 }
 
 #[tauri::command]
-pub fn read_reverse(cursor: Option<u64>, count: u64) -> Result<(Vec<FocusRecord>, u64), String> {
+pub fn read_reverse(cursor: Option<u64>, count: u64) -> Result<(Vec<FocusRecord>, Option<u64>), String> {
     Ok(read::read_reverse(cursor, count))
 }
 
@@ -78,7 +77,7 @@ pub fn duration_by_day(
 
 #[tauri::command]
 pub fn file_detail(id: usize) -> Result<FileDetail, String> {
-    let path = ENGINE.get().unwrap().app_path(id).unwrap();
+    let path = ENGINE.get().unwrap().get_path_by_id(id).unwrap();
     let version = file_version::query_file_version(&path);
     let name = version
         .as_ref()
@@ -100,9 +99,8 @@ pub fn file_detail(id: usize) -> Result<FileDetail, String> {
 /// Calculate duration based on app_id.
 pub fn duration_by_id(records: Vec<FocusRecord>) -> HashMap<usize, Millisecond> {
     let mut map = HashMap::new();
-
     for record in records.iter() {
         *map.entry(record.id).or_insert(Millisecond::ZERO) += record.duration();
     }
-    return map;
+    map
 }

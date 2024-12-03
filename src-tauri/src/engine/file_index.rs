@@ -1,4 +1,3 @@
-use std::cmp::max;
 use std::fs::{File, OpenOptions};
 use std::io::{Read, Write};
 use std::os::windows::prelude::OpenOptionsExt;
@@ -6,27 +5,10 @@ use std::path::PathBuf;
 use std::sync::Mutex;
 use windows::Win32::Storage::FileSystem::FILE_SHARE_READ;
 
-use super::data::Millisecond;
+use super::data::{CursorPosition, Millisecond};
 
 type IndexUnitByte = [u8; 8];
-type IndexUnit = i64;
-
-#[derive(Debug)]
-pub enum IndexValue {
-    Before,
-    In(IndexUnit),
-    After,
-}
-
-impl IndexValue {
-    pub fn offset(self, value: i64) -> IndexValue {
-        match self {
-            IndexValue::Before => IndexValue::Before,
-            IndexValue::After => IndexValue::After,
-            IndexValue::In(v) => IndexValue::In(max(0, v + value)),
-        }
-    }
-}
+type IndexUnit = u64;
 
 /// 2.85kB one year.
 ///
@@ -35,7 +17,7 @@ impl IndexValue {
 /// Each value is the record file index of specific day.
 pub struct FileIndex {
     file: Mutex<File>,
-    base_day: i64,
+    base_day: IndexUnit,
     record_index_vec: Mutex<Vec<IndexUnit>>,
 }
 
@@ -67,18 +49,19 @@ impl FileIndex {
         }
     }
 
-    pub fn query_index(&self, day: i64) -> IndexValue {
+    pub fn query_index(&self, day: IndexUnit) -> CursorPosition {
         let index = self.record_index_vec.lock().unwrap();
         let size = index.len();
-        match day - self.base_day {
-            n if n < 0 => IndexValue::Before,
-            n if n >= size as i64 => IndexValue::After,
-            n => IndexValue::In(index[n as usize]),
-        }
+        day.checked_sub(self.base_day)
+            .map(|n| if n >= size as IndexUnit {
+                CursorPosition::End
+            } else {
+                CursorPosition::Middle(n)
+            }).unwrap_or(CursorPosition::Start)
     }
 
     /// If the record start time is later than the last day, write the index to the file.
-    pub fn update_index(&self, day: i64, index: IndexUnit) {
+    pub fn update_index(&self, day: IndexUnit, index: IndexUnit) {
         let last_day = self.last_day();
         if day <= last_day {
             return;
@@ -96,8 +79,8 @@ impl FileIndex {
         file.write(&value.to_le_bytes()).unwrap();
     }
 
-    fn last_day(&self) -> i64 {
-        self.base_day + self.record_index_vec.lock().unwrap().len() as i64 - 1
+    fn last_day(&self) -> IndexUnit {
+        self.base_day + self.record_index_vec.lock().unwrap().len() as IndexUnit - 1
     }
 
     fn read_index(file: &mut File) -> Vec<IndexUnit> {

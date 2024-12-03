@@ -2,7 +2,6 @@ use serde::Serialize;
 
 use super::data::Millisecond;
 
-
 const DURATION_MAX: Millisecond = Millisecond::from_secs(u16::MAX as i64);
 
 pub type RecordByte = [u8; 8];
@@ -56,17 +55,52 @@ impl FocusRecord {
         }
     }
 
-    /// Split record into multiple records. Ensure that the duration of each record is less than 0.76 day(The maximum time that can be represented).
+    /// Split record into multiple records.
+    /// Ensure that the duration of each record is less than 0.76 day(The maximum time that can be represented)
+    /// and not span across one day which could make index easier.
+    /// TODO: Optimizing with iterators
+    /// TODO: Add test
     pub fn split_record(&self) -> Vec<FocusRecord> {
-        let mut ret = Vec::<FocusRecord>::new();
+        assert!(self.blur_at >= self.focus_at);
+        self.split_by_not_across_day()
+            .iter().map(|x| x.split_by_max_duration())
+            .flatten()
+            .collect()
+    }
+
+    fn split_by_max_duration(&self) -> Vec<FocusRecord> {
         let mut focus_at = self.focus_at;
-        let mut duration = self.blur_at - self.focus_at;
-        while duration > DURATION_MAX {
-            ret.push(FocusRecord::new(self.id, focus_at, focus_at + DURATION_MAX));
-            focus_at += DURATION_MAX;
-            duration -= DURATION_MAX;
+        let mut duration = self.duration();
+        let mut ret = Vec::new();
+        loop {
+            if duration > DURATION_MAX {
+                let blur_at = focus_at + DURATION_MAX;
+                ret.push(FocusRecord::new(self.id, focus_at, blur_at));
+                focus_at = blur_at;
+                duration -= DURATION_MAX;
+            } else {
+                let blur_at = focus_at + duration;
+                ret.push(FocusRecord::new(self.id, focus_at, blur_at));
+                break;
+            }
         }
-        ret.push(FocusRecord::new(self.id, focus_at, focus_at + duration));
+        ret
+    }
+
+    fn split_by_not_across_day(&self) -> Vec<FocusRecord> {
+        let mut focus_at = self.focus_at;
+        let mut blur_at = self.blur_at;
+        let mut ret = Vec::new();
+        loop {
+            if focus_at.as_days() == blur_at.as_days() {
+                ret.push(FocusRecord::new(self.id, focus_at, blur_at));
+                break
+            } else {
+                let blur_at = Millisecond::from_days(focus_at.as_days() + 1);
+                ret.push(FocusRecord::new(self.id, focus_at, blur_at));
+                focus_at = blur_at;
+            }
+        }
         ret
     }
 }
