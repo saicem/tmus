@@ -1,22 +1,19 @@
 use tauri::AppHandle;
 use tauri::Manager;
-use tauri::Window;
 
 pub fn focus_main_window(app: &AppHandle) {
-    let main_window = app.get_window("main");
+    let main_window = app.get_webview_window("main");
     if main_window.is_none() {
-        let window =
-            tauri::WindowBuilder::new(app, "main", tauri::WindowUrl::App("index.html".into()))
-                .inner_size(1200_f64, 680_f64)
-                .build()
-                .unwrap();
-        init_window_style(&window);
+        let window = tauri::WebviewWindowBuilder::new(
+            app,
+            "main",
+            tauri::WebviewUrl::App("index.html".into()),
+        )
+        .inner_size(1200_f64, 680_f64)
+        .build()
+        .unwrap();
+        window.set_decorations(false).unwrap();
     } else {
         main_window.unwrap().set_focus().unwrap();
     }
-}
-
-pub fn init_window_style(window: &Window) {
-    window.set_decorations(false).unwrap();
-    window_shadows::set_shadow(&window, true).unwrap()
 }

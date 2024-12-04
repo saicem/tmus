@@ -24,14 +24,18 @@ pub fn read_by_timestamp(start_millis: Millisecond, end_millis: Millisecond) -> 
 ///   1. A vector of `FocusRecord` instances, representing the set of records retrieved in reverse order.
 ///   2. An `u64` value representing the cursor position for the next query. If there are no more records to retrieve, this value will be `None`.
 pub fn read_reverse(cursor: Option<u64>, count: u64) -> (Vec<FocusRecord>, Option<u64>) {
-    let (records, new_cursor) = ENGINE.get().unwrap().read_by_cursor(match cursor {
-        None => { CursorPosition::End }
-        Some(idx) => { CursorPosition::Middle(idx) }
-    }, count, ReadDirection::Backward);
+    let (records, new_cursor) = ENGINE.get().unwrap().read_by_cursor(
+        match cursor {
+            None => CursorPosition::End,
+            Some(idx) => CursorPosition::Middle(idx),
+        },
+        count,
+        ReadDirection::Backward,
+    );
     let ret_cursor = match new_cursor {
-        CursorPosition::Start => { None }
-        CursorPosition::End => { None }
-        CursorPosition::Middle(idx) => { Some(idx) }
+        CursorPosition::Start => None,
+        CursorPosition::End => None,
+        CursorPosition::Middle(idx) => Some(idx),
     };
     (records, ret_cursor)
 }

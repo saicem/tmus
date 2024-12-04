@@ -1,13 +1,13 @@
 pub mod data;
+mod engine;
 mod file_app;
 mod file_index;
+mod file_record;
 mod focus_record;
 mod monitor;
-mod engine;
-mod file_record;
 
-pub use focus_record::FocusRecord;
 pub use engine::ENGINE;
+pub use focus_record::FocusRecord;
 use std::path::PathBuf;
 
 pub fn init(data_dir: &PathBuf) {

@@ -53,11 +53,14 @@ impl FileIndex {
         let index = self.record_index_vec.lock().unwrap();
         let size = index.len();
         day.checked_sub(self.base_day)
-            .map(|n| if n >= size as IndexUnit {
-                CursorPosition::End
-            } else {
-                CursorPosition::Middle(n)
-            }).unwrap_or(CursorPosition::Start)
+            .map(|n| {
+                if n >= size as IndexUnit {
+                    CursorPosition::End
+                } else {
+                    CursorPosition::Middle(n)
+                }
+            })
+            .unwrap_or(CursorPosition::Start)
     }
 
     /// If the record start time is later than the last day, write the index to the file.

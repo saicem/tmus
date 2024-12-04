@@ -3,11 +3,8 @@
 
 use std::path::PathBuf;
 
-use app::tray;
-use app::window::init_window_style;
-use app::{constant, singleton::force_singleton};
-use env_logger::Builder;
-use log::info;
+use app::constant;
+use app::tray::tray;
 use tauri::{AppHandle, Manager, RunEvent};
 
 mod app;
@@ -15,12 +12,10 @@ mod cmd;
 mod engine;
 
 fn main() {
-    init_logger();
-    info!("Application started");
-    tauri::Builder::default()
+    let app = tauri::Builder::default()
+        .plugin(tauri_plugin_log::Builder::new().build())
+        .plugin(tauri_plugin_shell::init())
         .setup(setup)
-        .system_tray(tray::menu())
-        .on_system_tray_event(tray::handler)
         .invoke_handler(tauri::generate_handler![
             cmd::file_detail,
             cmd::duration_aggregate,
@@ -29,14 +24,14 @@ fn main() {
             cmd::read_reverse,
         ])
         .build(tauri::generate_context!())
-        .expect("Error while running tauri application")
-        .run(event_callback)
+        .expect("Error while building application");
+    log::info!("Application started");
+    app.run(event_callback);
 }
 
 fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     constant::init();
-    force_singleton();
-    init_window_style(&app.get_window("main").unwrap());
+    tray(app.app_handle()).expect("Error while initializing tray");
     engine::init(&PathBuf::from(constant::DATA_DIR.get().unwrap().to_owned()));
     Ok(())
 }
@@ -48,19 +43,4 @@ fn event_callback(_: &AppHandle, event: RunEvent) {
         }
         _ => {}
     }
-}
-
-#[cfg(not(target_env = "production"))]
-fn init_logger() {
-    std::env::set_var("RUST_LOG", "debug");
-    Builder::from_default_env()
-        .target(env_logger::Target::Stderr)
-        .init();
-}
-
-#[cfg(target_env = "production")]
-fn init_logger() {
-    let mut builder = Builder::from_default_env();
-    builder.target(env_logger::Target::Pipe(()));
-    todo!()
 }

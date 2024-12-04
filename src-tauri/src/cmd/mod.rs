@@ -21,7 +21,10 @@ pub fn raw_record(
 }
 
 #[tauri::command]
-pub fn read_reverse(cursor: Option<u64>, count: u64) -> Result<(Vec<FocusRecord>, Option<u64>), String> {
+pub fn read_reverse(
+    cursor: Option<u64>,
+    count: u64,
+) -> Result<(Vec<FocusRecord>, Option<u64>), String> {
     Ok(read::read_reverse(cursor, count))
 }
 

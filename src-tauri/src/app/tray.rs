@@ -1,65 +1,104 @@
 use crate::app::window::focus_main_window;
-use tauri::AppHandle;
-use tauri::CustomMenuItem;
-use tauri::Manager;
-use tauri::SystemTray;
-use tauri::SystemTrayEvent;
-use tauri::SystemTrayMenu;
-use tauri::SystemTrayMenuItem;
-use tauri::SystemTraySubmenu;
+use std::error::Error;
+use tauri::menu::{CheckMenuItem, Menu, MenuBuilder, MenuEvent, MenuItemBuilder, SubmenuBuilder};
+use tauri::{AppHandle, Wry};
 
-pub fn menu() -> SystemTray {
-    SystemTray::new().with_menu(
-        SystemTrayMenu::new()
-            .add_submenu(SystemTraySubmenu::new(
-                "Language",
-                SystemTrayMenu::new()
-                    .add_item(CustomMenuItem::new("lang_en", "English"))
-                    .add_item(CustomMenuItem::new("lang_zhs", "简体中文"))
-                    .add_item(CustomMenuItem::new("lang_zht", "繁體中文")),
-            ))
-            .add_native_item(SystemTrayMenuItem::Separator)
-            .add_submenu(SystemTraySubmenu::new(
-                "Theme",
-                SystemTrayMenu::new()
-                    .add_item(CustomMenuItem::new("theme_light", "Light"))
-                    .add_item(CustomMenuItem::new("theme_dark", "Dark")),
-            ))
-            .add_item(CustomMenuItem::new("quit", "Quit")),
-    )
+use tauri::tray::{MouseButton, MouseButtonState, TrayIcon, TrayIconEvent, TrayIconId};
+
+pub fn tray(app_handle: &AppHandle) -> Result<(), Box<dyn Error>> {
+    let menu = build_menu(
+        app_handle,
+        MenuConfig {
+            lang: "lang_zh".into(),
+            theme: "theme_light".into(),
+        },
+    )?;
+    let tray_icon_id = TrayIconId::new("main");
+    let tray = app_handle.tray_by_id(&tray_icon_id).unwrap();
+    tray.set_menu(Some(menu))?;
+    tray.on_tray_icon_event(on_tray_icon_event);
+    tray.on_menu_event(on_menu_event);
+    Ok(())
 }
 
-pub fn handler(app: &AppHandle, event: SystemTrayEvent) {
-    match event {
-        SystemTrayEvent::MenuItemClick { id, .. } => {
-            app.emit_all("menuItemClick", id.to_string()).unwrap();
-            menu_item_click(&app, id);
-        }
-        SystemTrayEvent::LeftClick { .. } => {
-            focus_main_window(&app);
-        }
-        _ => {}
+pub struct MenuConfig {
+    lang: String,
+    theme: String,
+}
+
+fn build_menu(app_handle: &AppHandle, config: MenuConfig) -> Result<Menu<Wry>, Box<dyn Error>> {
+    let lang_menu = SubmenuBuilder::new(app_handle, "Language")
+        .items(&[
+            &CheckMenuItem::with_id(
+                app_handle,
+                "lang_en",
+                "English",
+                true,
+                config.lang == "lang_en",
+                None::<&str>,
+            )?,
+            &CheckMenuItem::with_id(
+                app_handle,
+                "lang_zh",
+                "简体中文",
+                true,
+                config.lang == "lang_zh",
+                None::<&str>,
+            )?,
+        ])
+        .separator()
+        .build()?;
+    let theme_menu = SubmenuBuilder::new(app_handle, "Theme")
+        .items(&[
+            &CheckMenuItem::with_id(
+                app_handle,
+                "theme_light",
+                "Light",
+                true,
+                config.theme == "theme_light",
+                None::<&str>,
+            )?,
+            &CheckMenuItem::with_id(
+                app_handle,
+                "theme_dark",
+                "Dark",
+                true,
+                config.theme == "theme_dark",
+                None::<&str>,
+            )?,
+        ])
+        .build()?;
+    let menu = MenuBuilder::new(app_handle)
+        .items(&[
+            &lang_menu,
+            &theme_menu,
+            &MenuItemBuilder::with_id("quit", "Quit").build(app_handle)?,
+        ])
+        .build()?;
+    Ok(menu)
+}
+
+fn on_tray_icon_event(tray: &TrayIcon, event: TrayIconEvent) {
+    if let TrayIconEvent::Click {
+        button: MouseButton::Left,
+        button_state: MouseButtonState::Down,
+        ..
+    } = event
+    {
+        focus_main_window(tray.app_handle())
     }
 }
 
-fn menu_item_click(app: &AppHandle, id: String) {
-    match id.as_str() {
-        lang if lang.starts_with("lang_") => {
-            chose_one(app, &id, ["lang_en", "lang_zhs", "lang_zht"]);
-        }
-        theme if theme.starts_with("theme_") => {
-            chose_one(app, &id, ["theme_light", "theme_dark"]);
-        }
+fn on_menu_event(app: &AppHandle, event: MenuEvent) {
+    // app.emit_all("menuItemClick", event.id.0).unwrap();
+    match event.id().as_ref() {
+        lang if lang.starts_with("lang_") => {}
+        theme if theme.starts_with("theme_") => {}
         "quit" => {
             std::process::exit(0);
         }
         _ => {}
     }
-}
-
-fn chose_one<const N: usize>(app: &AppHandle, chosen_id: &str, ids: [&str; N]) {
-    ids.into_iter().for_each(|id| {
-        let handle = app.tray_handle().get_item(id);
-        handle.set_selected(id == chosen_id).unwrap();
-    })
+    // update every time
+    // app.tray_by_id("main")?.set_menu(build_menu());
 }

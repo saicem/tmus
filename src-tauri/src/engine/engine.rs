@@ -1,5 +1,5 @@
-use std::path::PathBuf;
 use std::fmt::Debug;
+use std::path::PathBuf;
 use std::sync::mpsc::channel;
 use std::sync::mpsc::Sender;
 use std::sync::OnceLock;
@@ -7,18 +7,17 @@ use std::thread;
 
 use log;
 
-use crate::engine::data::{CursorPosition, EngineState, FocusEvent, Millisecond, ReadDirection};
-use crate::engine::file_record::FileRecord;
-use super::file_app::FileApp;
 use super::data::AppId;
 use super::data::EngineError;
 use super::data::OptimizeStorageOptions;
+use super::file_app::FileApp;
 use super::file_index::FileIndex;
 use super::FocusRecord;
+use crate::engine::data::{CursorPosition, EngineState, FocusEvent, Millisecond, ReadDirection};
+use crate::engine::file_record::FileRecord;
 
 pub static ENGINE: OnceLock<Engine> = OnceLock::new();
 static SENDER: OnceLock<Sender<FocusEvent>> = OnceLock::new();
-
 
 /// This engine is designed to allow for accuracy loss.
 /// The record with duration less than threshold (set in start function) will be discarded.
@@ -67,14 +66,13 @@ impl Engine {
 
     pub(crate) fn on_focus(&self, process_path: &str) {
         match &self.status {
-            EngineState::Running => {
-                self.add_record_to_queue(process_path)
-            }
-            EngineState::Busy => {
-                self.add_record_to_queue(process_path)
-            }
+            EngineState::Running => self.add_record_to_queue(process_path),
+            EngineState::Busy => self.add_record_to_queue(process_path),
             EngineState::Suspended => {
-                log::info!("Receive focus event when suspended, process path: {}", process_path);
+                log::info!(
+                    "Receive focus event when suspended, process path: {}",
+                    process_path
+                );
             }
         }
     }
@@ -96,14 +94,15 @@ impl Engine {
             (CursorPosition::Middle(start), CursorPosition::End) => {
                 self.file_record.read_to_end(start)
             }
-        }.into_iter()
-            .map(|x| x.into())
-            .collect()
+        }
+        .into_iter()
+        .map(|x| x.into())
+        .collect()
     }
 
     /// Reads a batch of data starting from the given cursor position in the specified direction.
     ///
-    /// # Arguments 
+    /// # Arguments
     ///
     /// * `cursor`: An optional cursor position to start reading from. If `None`, starts from the end.
     /// * `count`: The number of records to read.
@@ -120,7 +119,12 @@ impl Engine {
     /// ```
     /// // Example usage
     /// ```
-    pub(crate) fn read_by_cursor(&self, cursor: CursorPosition, count: u64, direction: ReadDirection) -> (Vec<FocusRecord>, CursorPosition) {
+    pub(crate) fn read_by_cursor(
+        &self,
+        cursor: CursorPosition,
+        count: u64,
+        direction: ReadDirection,
+    ) -> (Vec<FocusRecord>, CursorPosition) {
         let (records, ret_cursor) = self.file_record.read_by_cursor(cursor, count, direction);
         (records.into_iter().map(|x| x.into()).collect(), ret_cursor)
     }
@@ -151,11 +155,13 @@ impl Engine {
         SENDER
             .get()
             .unwrap()
-            .send(FocusEvent { app_path: process_path.to_owned(), focus_at })
+            .send(FocusEvent {
+                app_path: process_path.to_owned(),
+                focus_at,
+            })
             .unwrap();
     }
 }
-
 
 /// Can only call once. Return sender, use for sending windows foreground change event.
 pub fn start(data_dir: &PathBuf) {
@@ -172,13 +178,23 @@ pub fn start(data_dir: &PathBuf) {
         };
         loop {
             let cur_focus = receiver.recv().unwrap();
-            log::info!("Receive focus event, last: {:?}, current: {:?}", last_focus, cur_focus);
+            log::info!(
+                "Receive focus event, last: {:?}, current: {:?}",
+                last_focus,
+                cur_focus
+            );
             if cur_focus.app_path == last_focus.app_path {
                 continue;
             }
             // Only record beyond threshold can be storied.
-            if last_focus.app_path != String::default() && cur_focus.focus_at - THRESHOLD > last_focus.focus_at {
-                ENGINE.get().unwrap().write_record(&last_focus.app_path, last_focus.focus_at, cur_focus.focus_at);
+            if last_focus.app_path != String::default()
+                && cur_focus.focus_at - THRESHOLD > last_focus.focus_at
+            {
+                ENGINE.get().unwrap().write_record(
+                    &last_focus.app_path,
+                    last_focus.focus_at,
+                    cur_focus.focus_at,
+                );
             }
             last_focus = cur_focus;
         }

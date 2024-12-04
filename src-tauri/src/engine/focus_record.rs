@@ -63,7 +63,8 @@ impl FocusRecord {
     pub fn split_record(&self) -> Vec<FocusRecord> {
         assert!(self.blur_at >= self.focus_at);
         self.split_by_not_across_day()
-            .iter().map(|x| x.split_by_max_duration())
+            .iter()
+            .map(|x| x.split_by_max_duration())
             .flatten()
             .collect()
     }
@@ -94,7 +95,7 @@ impl FocusRecord {
         loop {
             if focus_at.as_days() == blur_at.as_days() {
                 ret.push(FocusRecord::new(self.id, focus_at, blur_at));
-                break
+                break;
             } else {
                 let blur_at = Millisecond::from_days(focus_at.as_days() + 1);
                 ret.push(FocusRecord::new(self.id, focus_at, blur_at));

@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { appWindow } from "@tauri-apps/api/window"
+import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow"
 import minimize from "@/assets/title-bar/minimize.svg"
 import maximize from "@/assets/title-bar/maximize.svg"
 import close from "@/assets/title-bar/close.svg"
-import { useDark, useToggle } from "@vueuse/core"
+
+const appWindow = getCurrentWebviewWindow()
 </script>
 
 <template>
@@ -24,24 +25,6 @@ import { useDark, useToggle } from "@vueuse/core"
 </template>
 
 <style scoped>
-.nav {
-  margin-left: 20px;
-  justify-content: start;
-}
-
-.nav-item {
-  margin: 10px;
-}
-
-.search-box {
-  height: 20px;
-  width: 200px;
-  line-height: 20px;
-  font-size: small;
-  text-align: center;
-  color: var(--font-color);
-}
-
 .title-bar {
   height: 32px;
   user-select: none;
