@@ -2,12 +2,13 @@ import { listen } from "@tauri-apps/api/event"
 import { useColorMode } from "@vueuse/core"
 import { reactive } from "vue"
 
-export const languageStore = reactive({
-  language: "zh-CN",
-  setLanguage(language: string) {
-    this.language = language
-  },
+export type LanguageType = "en" | "zh"
+
+export const languageStore = reactive<{ language: LanguageType }>({
+  language: "en",
 })
+
+export type ColorModeType = "dark" | "light"
 
 export const colorMode = useColorMode({
   selector: "html",
@@ -22,8 +23,8 @@ await listen("menuItemClick", (e: { payload: string }) => {
   console.log("menuItemClick", e.payload)
   const id = e.payload
   if (id.startsWith("lang")) {
-    console.log("Language change.")
+    languageStore.language = id.substring("lang_".length) as LanguageType
   } else if (id.startsWith("theme")) {
-    colorMode.value = id.substring("theme-".length) as "dark" | "light"
+    colorMode.value = id.substring("theme_".length) as ColorModeType
   }
 })

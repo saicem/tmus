@@ -187,19 +187,11 @@ fn bgra_to_rgba(data: &mut [u8]) {
 #[cfg(test)]
 mod tests {
     use crate::util::icon::extract_icon;
-    use std::path::PathBuf;
 
     #[test]
     fn test_convert_hicon_to_rgba_image() {
         let exe_path = r"D:\app\mpv\mpv.exe";
-
         let image = extract_icon(exe_path).unwrap();
-
-        let path = PathBuf::from("target");
-
-        let mut icon_path = path.clone();
-        println!("{:?}", &icon_path);
-        icon_path.push("exe.png");
-        image.save(icon_path).unwrap();
+        image.save("target/icon.png").unwrap();
     }
 }

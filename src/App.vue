@@ -1,5 +1,10 @@
 <script setup lang="ts">
 import TitleBar from "@/components/TitleBar.vue"
+import { computed } from "vue"
+import { messages } from "@/global/i18n.ts"
+import { languageStore } from "@/global/state.ts"
+
+const msg = computed(() => messages[languageStore.language].tab)
 </script>
 
 <template>
@@ -12,16 +17,16 @@ import TitleBar from "@/components/TitleBar.vue"
         <el-scrollbar>
           <el-menu default-active="'1'">
             <RouterLink to="/">
-              <el-menu-item index="1">Home</el-menu-item>
+              <el-menu-item index="1">{{ msg.home }}</el-menu-item>
             </RouterLink>
             <RouterLink to="/timeline">
-              <el-menu-item index="2">Timeline</el-menu-item>
+              <el-menu-item index="2">{{ msg.timeline }}</el-menu-item>
             </RouterLink>
             <RouterLink to="/statistic">
-              <el-menu-item index="3">Statistic</el-menu-item>
+              <el-menu-item index="3">{{ msg.statistic }}</el-menu-item>
             </RouterLink>
             <RouterLink to="/setting">
-              <el-menu-item index="4">Setting</el-menu-item>
+              <el-menu-item index="4">{{ msg.setting }}</el-menu-item>
             </RouterLink>
           </el-menu>
         </el-scrollbar>

@@ -1,10 +1,10 @@
 <script setup lang="ts">
-
 import { ref } from "vue"
 
-const appShowStyleSelectValue = ref<'Card'|'Bar'>('Card')
+const appShowStyleSelectValue = ref<"Card" | "Bar">("Card")
 const datetimeRange = ref()
 const queryData = () => {
+
 
 }
 const shortcuts = [

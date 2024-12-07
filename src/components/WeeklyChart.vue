@@ -1,49 +1,52 @@
 <script setup lang="ts">
 import { Chart } from "@antv/g2"
-import { onMounted, ref, onUpdated } from "vue"
+import { onMounted, ref, watch, computed } from "vue"
 import { Duration } from "moment"
+import { colorMode, languageStore } from "@/global/state.ts"
+import { messages } from "@/global/i18n.ts"
 
 const props = defineProps<{
   /**
    * 14 days duration, last week and this week.
    */
   durations: Duration[]
-  theme: string
 }>()
 const root = ref<HTMLDivElement | null>(null)
 let plot: Chart | null = null
 
-const dayOfWeekName = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"]
-const data = ((durations) => {
+const msg = computed(() => messages[languageStore.language].weeklyChart)
+
+function convertData(durations: Duration[]) {
   let lastWeek = durations.slice(0, 7)
   let thisWeek = durations.slice(7, 14)
   return thisWeek
     .map((d, i) => {
       return {
-        week: "本周",
-        dayOfWeek: dayOfWeekName[i % 7],
+        week: msg.value.thisWeek,
+        dayOfWeek: msg.value.dayOfWeekNames[i % 7],
         duration: Number(d.asHours().toFixed(2)),
       }
     })
     .concat(
       lastWeek.map((d, i) => {
         return {
-          week: "上周",
-          dayOfWeek: dayOfWeekName[i % 7],
+          week: msg.value.lastWeek,
+          dayOfWeek: msg.value.dayOfWeekNames[i % 7],
           duration: Number(d.asHours().toFixed(2)),
         }
       })
     )
-})(props.durations)
+}
 
 function renderBarChart(container: HTMLElement) {
+  console.log("renderBarChart")
   const chart = new Chart({ container })
-  chart.theme({ type: props.theme })
+  chart.theme({ type: colorMode.value })
   chart.options({
-    title: "周使用时长",
+    title: msg.value.title,
     type: "interval",
     autoFit: true,
-    data: data,
+    data: convertData(props.durations),
     encode: { x: "dayOfWeek", y: "duration", color: "week" },
     transform: [{ type: "dodgeX" }],
     axis: {
@@ -69,16 +72,17 @@ function renderBarChart(container: HTMLElement) {
   plot.render()
 }
 
+watch(
+  [languageStore, colorMode],
+  (_old, _new) => {
+    renderBarChart(root.value!)
+  },
+  { deep: true }
+)
+
 onMounted(() => {
   if (root?.value) {
     renderBarChart(root.value)
-  }
-})
-
-onUpdated(() => {
-  if (root?.value) {
-    plot?.theme({ type: props.theme })
-    plot?.render()
   }
 })
 </script>

@@ -1,4 +1,3 @@
-use crate::app::constant;
 use crate::app::constant::{config_file_path, data_dir};
 use crate::app::tray::tray;
 use crate::config::Config;
