@@ -33,20 +33,20 @@ pub struct Config {
 }
 
 impl Config {
-    fn singleton<'a>() -> MutexGuard<'a, Config> {
+    pub fn get_mut<'a>() -> MutexGuard<'a, Config> {
         static CONFIG: OnceLock<Mutex<Config>> = OnceLock::new();
         CONFIG
             .get_or_init(|| Mutex::new(Config::default()))
             .lock()
             .unwrap()
     }
-
+    
     pub fn get() -> Config {
-        Self::singleton().clone()
+        Self::get_mut().clone()
     }
 
     pub fn set(config: Config) {
-        *Self::singleton() = config;
+        *Self::get_mut() = config;
     }
 
     pub fn load<P: AsRef<Path>>(file_path: P) -> Config {

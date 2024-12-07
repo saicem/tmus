@@ -7,6 +7,7 @@ mod app;
 mod cmd;
 mod engine;
 mod util;
+mod config;
 
 fn main() {
     let app = tauri::Builder::default()

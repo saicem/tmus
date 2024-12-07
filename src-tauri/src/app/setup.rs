@@ -1,7 +1,7 @@
-use crate::app::config::Config;
 use crate::app::constant;
-use crate::app::constant::{data_dir, CONFIG_FILE_NAME};
+use crate::app::constant::{config_file_path, data_dir};
 use crate::app::tray::tray;
+use crate::config::Config;
 use crate::engine;
 use std::fs;
 use std::path::PathBuf;
@@ -15,11 +15,10 @@ fn init_data_dir() {
 }
 
 fn init_config() {
-    let config_path = PathBuf::from(data_dir()).join(CONFIG_FILE_NAME);
-    let config = Config::load(config_path);
+    let config = Config::load(config_file_path());
     log::debug!("config: {:#?}", config);
     Config::set(config);
-    log::debug!("config: {:#?}", Config::get());
+    log::debug!("config: {:#?}", Config::get_mut());
 }
 
 pub fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
@@ -27,6 +26,6 @@ pub fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     init_data_dir();
     init_config();
     tray(app_handle).expect("Error while initializing tray");
-    engine::init(&PathBuf::from(constant::data_dir()));
+    engine::init(&PathBuf::from(data_dir()));
     Ok(())
 }

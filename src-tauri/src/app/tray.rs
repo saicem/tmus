@@ -1,22 +1,25 @@
-use crate::app::config::{Config, LangConfig, ThemeConfig};
+use crate::app::constant::config_file_path;
 use crate::app::window::focus_main_window;
+use crate::config::{Config, I18n, LangConfig, ThemeConfig};
 use std::error::Error;
+use std::sync::LazyLock;
 use tauri::menu::{CheckMenuItem, Menu, MenuBuilder, MenuEvent, MenuItemBuilder, SubmenuBuilder};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIcon, TrayIconEvent, TrayIconId};
-use tauri::{AppHandle, Wry};
+use tauri::{AppHandle, Emitter, Wry};
+
+static TRAY_ICON_ID: LazyLock<TrayIconId> = LazyLock::new(|| TrayIconId::new("main"));
 
 pub fn tray(app_handle: &AppHandle) -> Result<(), Box<dyn Error>> {
-    let menu = build_menu(app_handle, Config::get())?;
-    let tray_icon_id = TrayIconId::new("main");
-    let tray = app_handle.tray_by_id(&tray_icon_id).unwrap();
+    let menu = build_menu(app_handle, &Config::get())?;
+    let tray = app_handle.tray_by_id(&*TRAY_ICON_ID).unwrap();
     tray.set_menu(Some(menu))?;
     tray.on_tray_icon_event(on_tray_icon_event);
     tray.on_menu_event(on_menu_event);
     Ok(())
 }
 
-fn build_menu(app_handle: &AppHandle, config: Config) -> Result<Menu<Wry>, Box<dyn Error>> {
-    let lang_menu = SubmenuBuilder::new(app_handle, "Language")
+fn build_menu(app_handle: &AppHandle, config: &Config) -> Result<Menu<Wry>, Box<dyn Error>> {
+    let lang_menu = SubmenuBuilder::new(app_handle, I18n::get().language)
         .items(&[
             &CheckMenuItem::with_id(
                 app_handle,
@@ -35,14 +38,13 @@ fn build_menu(app_handle: &AppHandle, config: Config) -> Result<Menu<Wry>, Box<d
                 None::<&str>,
             )?,
         ])
-        .separator()
         .build()?;
-    let theme_menu = SubmenuBuilder::new(app_handle, "Theme")
+    let theme_menu = SubmenuBuilder::new(app_handle, I18n::get().theme)
         .items(&[
             &CheckMenuItem::with_id(
                 app_handle,
                 "theme_light",
-                "Light",
+                I18n::get().theme_light,
                 true,
                 config.theme == ThemeConfig::Light,
                 None::<&str>,
@@ -50,7 +52,7 @@ fn build_menu(app_handle: &AppHandle, config: Config) -> Result<Menu<Wry>, Box<d
             &CheckMenuItem::with_id(
                 app_handle,
                 "theme_dark",
-                "Dark",
+                I18n::get().theme_dark,
                 true,
                 config.theme == ThemeConfig::Dark,
                 None::<&str>,
@@ -61,7 +63,7 @@ fn build_menu(app_handle: &AppHandle, config: Config) -> Result<Menu<Wry>, Box<d
         .items(&[
             &lang_menu,
             &theme_menu,
-            &MenuItemBuilder::with_id("quit", "Quit").build(app_handle)?,
+            &MenuItemBuilder::with_id("quit", I18n::get().exit).build(app_handle)?,
         ])
         .build()?;
     Ok(menu)
@@ -78,16 +80,37 @@ fn on_tray_icon_event(tray: &TrayIcon, event: TrayIconEvent) {
     }
 }
 
-fn on_menu_event(app: &AppHandle, event: MenuEvent) {
-    // app.emit_all("menuItemClick", event.id.0).unwrap();
-    match event.id().as_ref() {
-        lang if lang.starts_with("lang_") => {}
-        theme if theme.starts_with("theme_") => {}
+fn on_menu_event(app_handle: &AppHandle, event: MenuEvent) {
+    let event_id = event.id.as_ref();
+    app_handle.emit("menuItemClick", event_id).unwrap();
+    match event_id {
         "quit" => {
             std::process::exit(0);
         }
-        _ => {}
+        _ => {
+            match event_id {
+                "lang_en" => {
+                    Config::get_mut().lang = LangConfig::En;
+                }
+                "lang_zh" => {
+                    Config::get_mut().lang = LangConfig::Zh;
+                }
+                "theme_light" => {
+                    Config::get_mut().theme = ThemeConfig::Light;
+                }
+                "theme_dark" => {
+                    Config::get_mut().theme = ThemeConfig::Dark;
+                }
+                _ => {}
+            }
+            let config = Config::get();
+            let menu = build_menu(app_handle, &config).unwrap();
+            app_handle
+                .tray_by_id(&*TRAY_ICON_ID)
+                .unwrap()
+                .set_menu(Some(menu))
+                .unwrap();
+            config.dump(config_file_path())
+        }
     }
-    // update every time
-    // app.tray_by_id("main")?.set_menu(build_menu());
 }
