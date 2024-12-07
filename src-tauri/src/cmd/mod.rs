@@ -1,15 +1,13 @@
 use crate::engine::data::Millisecond;
-use crate::engine::{FocusRecord, ENGINE};
+use crate::engine::{Engine, FocusRecord};
 use file_detail::FileDetail;
 use log::info;
 use read::read_by_timestamp;
 use std::collections::HashMap;
 use std::path::Path;
+use crate::util::file_version;
 
-mod bg;
-mod exe_icon;
 mod file_detail;
-mod file_version;
 mod read;
 
 #[tauri::command]
@@ -80,7 +78,7 @@ pub fn duration_by_day(
 
 #[tauri::command]
 pub fn file_detail(id: usize) -> Result<FileDetail, String> {
-    let path = ENGINE.get().unwrap().get_path_by_id(id).unwrap();
+    let path = Engine::get_path_by_id(id).unwrap();
     let version = file_version::query_file_version(&path);
     let name = version
         .as_ref()

@@ -1,5 +1,5 @@
 use crate::engine::data::{CursorPosition, ReadDirection};
-use crate::engine::{data::Millisecond, FocusRecord, ENGINE};
+use crate::engine::{data::Millisecond, Engine, FocusRecord};
 use std::cmp::{max, min};
 
 #[tauri::command]
@@ -7,7 +7,7 @@ pub fn read_by_timestamp(start_millis: Millisecond, end_millis: Millisecond) -> 
     if start_millis >= end_millis {
         return vec![];
     }
-    let rough_records = ENGINE.get().unwrap().read_by_time(start_millis, end_millis);
+    let rough_records = Engine::read_by_time(start_millis, end_millis);
     trim_focus_records(rough_records, start_millis, end_millis)
 }
 
@@ -24,7 +24,7 @@ pub fn read_by_timestamp(start_millis: Millisecond, end_millis: Millisecond) -> 
 ///   1. A vector of `FocusRecord` instances, representing the set of records retrieved in reverse order.
 ///   2. An `u64` value representing the cursor position for the next query. If there are no more records to retrieve, this value will be `None`.
 pub fn read_reverse(cursor: Option<u64>, count: u64) -> (Vec<FocusRecord>, Option<u64>) {
-    let (records, new_cursor) = ENGINE.get().unwrap().read_by_cursor(
+    let (records, new_cursor) = Engine::read_by_cursor(
         match cursor {
             None => CursorPosition::End,
             Some(idx) => CursorPosition::Middle(idx),

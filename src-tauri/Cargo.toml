@@ -1,8 +1,9 @@
 [package]
 name = "tmus"
 version = "0.0.0"
-description = "An app records your usage time"
+description = "tmus"
 authors = ["saicem"]
+repository = "https://github.com/saicem/tmus.git"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -33,6 +34,7 @@ image = "0.25.2"
 itertools = "0.13.0"
 tauri-plugin-shell = "2"
 tauri-plugin-log = "2"
+zip = "2.2.1"
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem

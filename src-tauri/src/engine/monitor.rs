@@ -6,6 +6,7 @@ use windows::Win32::System::Threading::*;
 use windows::Win32::UI::Accessibility::SetWinEventHook;
 use windows::Win32::UI::Accessibility::HWINEVENTHOOK;
 use windows::Win32::UI::WindowsAndMessaging::*;
+use crate::engine::engine::Engine;
 
 pub fn set_event_hook() {
     log::info!("Set foreground change event hook");
@@ -32,12 +33,11 @@ unsafe extern "system" fn on_foreground_changed(
     _: u32,
     _: u32,
 ) {
-    use crate::engine::engine::ENGINE;
 
     match process_path(&hwnd) {
         Ok(process_path) => {
             log::info!("foreground change: {}", &process_path);
-            ENGINE.get().unwrap().on_focus(&process_path);
+            Engine::on_focus(&process_path);
         }
         Err(e) => {
             log::error!("Error getting process path: {}", e);

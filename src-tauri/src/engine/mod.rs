@@ -6,11 +6,12 @@ mod file_record;
 mod focus_record;
 mod monitor;
 
-pub use engine::ENGINE;
+pub use engine::Engine;
 pub use focus_record::FocusRecord;
 use std::path::PathBuf;
 
 pub fn init(data_dir: &PathBuf) {
-    engine::start(data_dir);
+    Engine::init(data_dir);
+    Engine::start();
     monitor::set_event_hook();
 }

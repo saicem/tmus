@@ -1,46 +1,68 @@
 use serde::{Deserialize, Serialize};
-use std::{
-    fs::{self, OpenOptions},
-    io::Read,
-    path::PathBuf,
-};
+use std::fs;
+use std::fs::OpenOptions;
+use std::io::Read;
+use std::path::Path;
+use std::sync::{Mutex, MutexGuard, OnceLock};
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Config {
-    pub lang: String,
-    pub theme: String,
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
+#[serde(rename_all = "camelCase")]
+pub enum LangConfig {
+    Zh,
+    #[default]
+    #[serde(other)]
+    En,
 }
 
-impl Default for Config {
-    fn default() -> Self {
-        Self {
-            lang: "lang_zhs".to_string(),
-            theme: "theme_light".to_string(),
-        }
-    }
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
+#[serde(rename_all = "camelCase")]
+pub enum ThemeConfig {
+    Dark,
+    #[default]
+    #[serde(other)]
+    Light,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct Config {
+    #[serde(default)]
+    pub lang: LangConfig,
+    #[serde(default)]
+    pub theme: ThemeConfig,
 }
 
 impl Config {
-    pub fn load(data_dir: &str) -> Config {
-        let config_path = Self::config_path(data_dir);
-        println!("config_path: {:?}", config_path.clone());
+    fn singleton<'a>() -> MutexGuard<'a, Config> {
+        static CONFIG: OnceLock<Mutex<Config>> = OnceLock::new();
+        CONFIG
+            .get_or_init(|| Mutex::new(Config::default()))
+            .lock()
+            .unwrap()
+    }
+
+    pub fn get() -> Config {
+        Self::singleton().clone()
+    }
+
+    pub fn set(config: Config) {
+        *Self::singleton() = config;
+    }
+
+    pub fn load<P: AsRef<Path>>(file_path: P) -> Config {
         let mut file = OpenOptions::new()
             .write(true)
             .read(true)
             .create(true)
-            .open(config_path)
-            .expect("Read config.json fail");
+            .open(file_path)
+            .unwrap();
         let mut buf = String::new();
         file.read_to_string(&mut buf).unwrap();
-        serde_json::from_str(&buf).unwrap_or_default()
+        serde_json::from_str(&buf).unwrap()
     }
 
-    pub fn dump(&self, data_dir: &str) {
+    pub fn dump<P: AsRef<Path>>(&self, file_path: P) {
         let str = serde_json::to_string_pretty(self).unwrap();
-        fs::write(Self::config_path(data_dir), str).unwrap()
-    }
-
-    fn config_path(data_dir: &str) -> PathBuf {
-        PathBuf::from(data_dir).join("config.json")
+        fs::write(file_path, str).unwrap()
     }
 }

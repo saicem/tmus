@@ -1,5 +1,8 @@
-pub mod config;
+mod config;
 pub mod constant;
-pub mod singleton;
-pub mod tray;
-pub mod window;
+mod setup;
+mod tray;
+mod window;
+
+pub use config::Config;
+pub use setup::setup;

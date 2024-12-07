@@ -5,19 +5,16 @@ use std::sync::mpsc::Sender;
 use std::sync::OnceLock;
 use std::thread;
 
-use log;
-
 use super::data::AppId;
 use super::data::EngineError;
 use super::data::OptimizeStorageOptions;
 use super::file_app::FileApp;
 use super::file_index::FileIndex;
 use super::FocusRecord;
+use crate::app::constant::THRESHOLD;
 use crate::engine::data::{CursorPosition, EngineState, FocusEvent, Millisecond, ReadDirection};
 use crate::engine::file_record::FileRecord;
-
-pub static ENGINE: OnceLock<Engine> = OnceLock::new();
-static SENDER: OnceLock<Sender<FocusEvent>> = OnceLock::new();
+use log;
 
 /// This engine is designed to allow for accuracy loss.
 /// The record with duration less than threshold (set in start function) will be discarded.
@@ -36,7 +33,51 @@ impl Debug for Engine {
     }
 }
 
+static ENGINE: OnceLock<Engine> = OnceLock::new();
+static SENDER: OnceLock<Sender<FocusEvent>> = OnceLock::new();
+
 impl Engine {
+    pub fn init(data_dir: &PathBuf) {
+        let engine = Engine::new(data_dir);
+        ENGINE.set(engine).expect("Engine init failed.");
+    }
+
+    /// Can only call once. Return sender, use for sending windows foreground change event.
+    pub fn start() {
+        let channel = channel::<FocusEvent>();
+        let (sender, receiver) = channel;
+        SENDER.set(sender).unwrap();
+
+        thread::spawn(move || {
+            let mut last_focus = FocusEvent {
+                app_path: String::default(),
+                focus_at: Millisecond::MAX,
+            };
+            loop {
+                let cur_focus = receiver.recv().unwrap();
+                log::info!(
+                    "Receive focus event, last: {:?}, current: {:?}",
+                    last_focus,
+                    cur_focus
+                );
+                if cur_focus.app_path == last_focus.app_path {
+                    continue;
+                }
+                // Only record beyond threshold can be storied.
+                if last_focus.app_path != String::default()
+                    && cur_focus.focus_at - THRESHOLD > last_focus.focus_at
+                {
+                    Engine::write_record(
+                        &last_focus.app_path,
+                        last_focus.focus_at,
+                        cur_focus.focus_at,
+                    );
+                }
+                last_focus = cur_focus;
+            }
+        });
+    }
+
     fn new(data_dir: &PathBuf) -> Engine {
         Self {
             file_app: FileApp::new(data_dir),
@@ -64,10 +105,11 @@ impl Engine {
         self.resume();
     }
 
-    pub(crate) fn on_focus(&self, process_path: &str) {
-        match &self.status {
-            EngineState::Running => self.add_record_to_queue(process_path),
-            EngineState::Busy => self.add_record_to_queue(process_path),
+    pub(crate) fn on_focus(process_path: &str) {
+        let engine = ENGINE.get().unwrap();
+        match engine.status {
+            EngineState::Running => engine.add_record_to_queue(process_path),
+            EngineState::Busy => engine.add_record_to_queue(process_path),
             EngineState::Suspended => {
                 log::info!(
                     "Receive focus event when suspended, process path: {}",
@@ -80,19 +122,20 @@ impl Engine {
     /// Read records. Include records which blur_at >= start and focus_at <= end,
     /// which means if only need records focus_at >= start and blur_at <= end,
     /// you need to crop the return data.
-    pub(crate) fn read_by_time(&self, start: Millisecond, end: Millisecond) -> Vec<FocusRecord> {
-        let start_index: CursorPosition = self.file_index.query_index(start.as_days() as u64);
-        let end_index = self.file_index.query_index((end.as_days() + 1) as u64);
+    pub(crate) fn read_by_time(start: Millisecond, end: Millisecond) -> Vec<FocusRecord> {
+        let engine = ENGINE.get().unwrap();
+        let start_index: CursorPosition = engine.file_index.query_index(start.as_days() as u64);
+        let end_index = engine.file_index.query_index((end.as_days() + 1) as u64);
         match (start_index, end_index) {
             (_, CursorPosition::Start) => vec![],
             (CursorPosition::End, _) => vec![],
-            (CursorPosition::Start, CursorPosition::Middle(end)) => self.file_record.read(0, end),
-            (CursorPosition::Start, CursorPosition::End) => self.file_record.read_to_end(0),
+            (CursorPosition::Start, CursorPosition::Middle(end)) => engine.file_record.read(0, end),
+            (CursorPosition::Start, CursorPosition::End) => engine.file_record.read_to_end(0),
             (CursorPosition::Middle(start), CursorPosition::Middle(end)) => {
-                self.file_record.read(start, end)
+                engine.file_record.read(start, end)
             }
             (CursorPosition::Middle(start), CursorPosition::End) => {
-                self.file_record.read_to_end(start)
+                engine.file_record.read_to_end(start)
             }
         }
         .into_iter()
@@ -120,35 +163,40 @@ impl Engine {
     /// // Example usage
     /// ```
     pub(crate) fn read_by_cursor(
-        &self,
         cursor: CursorPosition,
         count: u64,
         direction: ReadDirection,
     ) -> (Vec<FocusRecord>, CursorPosition) {
-        let (records, ret_cursor) = self.file_record.read_by_cursor(cursor, count, direction);
+        let engine = ENGINE.get().unwrap();
+        let (records, ret_cursor) = engine.file_record.read_by_cursor(cursor, count, direction);
         (records.into_iter().map(|x| x.into()).collect(), ret_cursor)
     }
 
-    fn write_record(&self, process_path: &str, focus_at: Millisecond, blur_at: Millisecond) {
-        let app_id = self.get_id_by_path(&process_path);
+    fn write_record(process_path: &str, focus_at: Millisecond, blur_at: Millisecond) {
+        let app_id = Engine::get_id_by_path(&process_path);
         let record = FocusRecord {
             id: app_id,
             focus_at,
             blur_at,
         };
+
+        let engine = ENGINE.get().unwrap();
         for sub_record in record.split_record() {
-            let index = self.file_record.write(sub_record.unsafe_to_byte());
-            self.file_index
+            let index = engine.file_record.write(sub_record.unsafe_to_byte());
+            engine
+                .file_index
                 .update_index(sub_record.focus_at.as_days() as u64, index)
         }
     }
 
-    pub fn get_id_by_path(&self, path: &str) -> AppId {
-        self.file_app.get_id_by_path(path)
+    pub fn get_id_by_path(path: &str) -> AppId {
+        let engine = ENGINE.get().unwrap();
+        engine.file_app.get_id_by_path(path)
     }
 
-    pub fn get_path_by_id(&self, id: AppId) -> Result<String, EngineError> {
-        Ok(self.file_app.get_path_by_id(id).to_owned())
+    pub fn get_path_by_id(id: AppId) -> Result<String, EngineError> {
+        let engine = ENGINE.get().unwrap();
+        Ok(engine.file_app.get_path_by_id(id).to_owned())
     }
     fn add_record_to_queue(&self, process_path: &str) {
         let focus_at = Millisecond::now();
@@ -161,42 +209,4 @@ impl Engine {
             })
             .unwrap();
     }
-}
-
-/// Can only call once. Return sender, use for sending windows foreground change event.
-pub fn start(data_dir: &PathBuf) {
-    const THRESHOLD: Millisecond = Millisecond::from_secs(1);
-    let channel = channel::<FocusEvent>();
-    let (sender, receiver) = channel;
-    SENDER.set(sender).unwrap();
-    let engine = Engine::new(data_dir);
-    ENGINE.set(engine).expect("Engine init failed.");
-    thread::spawn(move || {
-        let mut last_focus = FocusEvent {
-            app_path: String::default(),
-            focus_at: Millisecond::MAX,
-        };
-        loop {
-            let cur_focus = receiver.recv().unwrap();
-            log::info!(
-                "Receive focus event, last: {:?}, current: {:?}",
-                last_focus,
-                cur_focus
-            );
-            if cur_focus.app_path == last_focus.app_path {
-                continue;
-            }
-            // Only record beyond threshold can be storied.
-            if last_focus.app_path != String::default()
-                && cur_focus.focus_at - THRESHOLD > last_focus.focus_at
-            {
-                ENGINE.get().unwrap().write_record(
-                    &last_focus.app_path,
-                    last_focus.focus_at,
-                    cur_focus.focus_at,
-                );
-            }
-            last_focus = cur_focus;
-        }
-    });
 }

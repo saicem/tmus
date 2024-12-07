@@ -1,26 +1,20 @@
-use std::{fs, path::PathBuf, sync::OnceLock};
-
-use super::config::Config;
+use crate::engine::data::Millisecond;
+use std::sync::OnceLock;
 
 pub static APP_NAME: &str = "tmus";
-pub static DATA_DIR: OnceLock<String> = OnceLock::new();
-pub static CONFIG: OnceLock<Config> = OnceLock::new();
 
-pub fn init() {
-    let data_dir = dirs_next::data_dir()
-        .map(|dir| dir.join(&APP_NAME))
-        .unwrap()
-        .to_str()
-        .unwrap()
-        .to_string();
-    init_data_dir(&data_dir);
-    DATA_DIR.set(data_dir.clone()).unwrap();
-    CONFIG.set(Config::load(&data_dir)).unwrap();
-}
+pub static CONFIG_FILE_NAME: &str = "config.json";
 
-fn init_data_dir(data_dir: &str) {
-    let data_dir = PathBuf::from(data_dir);
-    if !data_dir.is_dir() {
-        fs::create_dir_all(data_dir.clone()).expect("create date directory failed.");
-    }
+pub static THRESHOLD: Millisecond = Millisecond::from_secs(1);
+
+pub fn data_dir() -> &'static str {
+    static DATA_DIR: OnceLock<String> = OnceLock::new();
+    DATA_DIR.get_or_init(|| {
+        dirs_next::data_dir()
+            .map(|dir| dir.join(&APP_NAME))
+            .unwrap()
+            .to_str()
+            .unwrap()
+            .to_string()
+    })
 }

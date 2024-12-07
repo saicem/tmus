@@ -1,18 +1,12 @@
+use crate::app::config::{Config, LangConfig, ThemeConfig};
 use crate::app::window::focus_main_window;
 use std::error::Error;
 use tauri::menu::{CheckMenuItem, Menu, MenuBuilder, MenuEvent, MenuItemBuilder, SubmenuBuilder};
+use tauri::tray::{MouseButton, MouseButtonState, TrayIcon, TrayIconEvent, TrayIconId};
 use tauri::{AppHandle, Wry};
 
-use tauri::tray::{MouseButton, MouseButtonState, TrayIcon, TrayIconEvent, TrayIconId};
-
 pub fn tray(app_handle: &AppHandle) -> Result<(), Box<dyn Error>> {
-    let menu = build_menu(
-        app_handle,
-        MenuConfig {
-            lang: "lang_zh".into(),
-            theme: "theme_light".into(),
-        },
-    )?;
+    let menu = build_menu(app_handle, Config::get())?;
     let tray_icon_id = TrayIconId::new("main");
     let tray = app_handle.tray_by_id(&tray_icon_id).unwrap();
     tray.set_menu(Some(menu))?;
@@ -21,12 +15,7 @@ pub fn tray(app_handle: &AppHandle) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-pub struct MenuConfig {
-    lang: String,
-    theme: String,
-}
-
-fn build_menu(app_handle: &AppHandle, config: MenuConfig) -> Result<Menu<Wry>, Box<dyn Error>> {
+fn build_menu(app_handle: &AppHandle, config: Config) -> Result<Menu<Wry>, Box<dyn Error>> {
     let lang_menu = SubmenuBuilder::new(app_handle, "Language")
         .items(&[
             &CheckMenuItem::with_id(
@@ -34,7 +23,7 @@ fn build_menu(app_handle: &AppHandle, config: MenuConfig) -> Result<Menu<Wry>, B
                 "lang_en",
                 "English",
                 true,
-                config.lang == "lang_en",
+                config.lang == LangConfig::En,
                 None::<&str>,
             )?,
             &CheckMenuItem::with_id(
@@ -42,7 +31,7 @@ fn build_menu(app_handle: &AppHandle, config: MenuConfig) -> Result<Menu<Wry>, B
                 "lang_zh",
                 "简体中文",
                 true,
-                config.lang == "lang_zh",
+                config.lang == LangConfig::Zh,
                 None::<&str>,
             )?,
         ])
@@ -55,7 +44,7 @@ fn build_menu(app_handle: &AppHandle, config: MenuConfig) -> Result<Menu<Wry>, B
                 "theme_light",
                 "Light",
                 true,
-                config.theme == "theme_light",
+                config.theme == ThemeConfig::Light,
                 None::<&str>,
             )?,
             &CheckMenuItem::with_id(
@@ -63,7 +52,7 @@ fn build_menu(app_handle: &AppHandle, config: MenuConfig) -> Result<Menu<Wry>, B
                 "theme_dark",
                 "Dark",
                 true,
-                config.theme == "theme_dark",
+                config.theme == ThemeConfig::Dark,
                 None::<&str>,
             )?,
         ])

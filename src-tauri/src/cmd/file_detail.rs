@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use super::file_version::FileVersion;
+use crate::util::file_version::FileVersion;
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
