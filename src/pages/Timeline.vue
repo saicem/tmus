@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import api from "@/global/api"
 import { computed, ref } from "vue"
 import { FocusData } from "@/global/data.ts"
+import { appDetail, readReverse } from "@/global/api.ts"
 
 const records = ref<FocusData[]>([])
 const cursor = ref<number | null>(null)
@@ -12,7 +12,7 @@ const loading = ref(false)
 const load = async () => {
   loading.value = true
   console.log("cursor.value", cursor.value)
-  const [newRecords, newCursor] = await api.readReverse(cursor.value, 30)
+  const [newRecords, newCursor] = await readReverse(cursor.value, 30)
   if (newCursor === null) {
     console.log("no more data")
     noMore.value = true
@@ -41,7 +41,7 @@ const load = async () => {
       <RouterLink to="/detail">
         <el-card>
           <h4>
-            {{ api.appDetail(record.id).name }}
+            {{ appDetail(record.id).name }}
           </h4>
           <p>{{ record.duration.toISOString() }}</p>
         </el-card>

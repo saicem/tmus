@@ -1,14 +1,18 @@
 import { listen } from "@tauri-apps/api/event"
 import { useColorMode } from "@vueuse/core"
-import { reactive } from "vue"
+import { ref } from "vue"
 
-export type LanguageType = "en" | "zh"
+export type LanguageConfig = "en" | "zh"
+export type ThemeConfig = "dark" | "light"
+export type Config = {
+  lang: LanguageConfig
+  theme: ThemeConfig
+}
 
-export const languageStore = reactive<{ language: LanguageType }>({
-  language: "en",
+export const config = ref<Config>({
+  lang: "en",
+  theme: "light",
 })
-
-export type ColorModeType = "dark" | "light"
 
 export const colorMode = useColorMode({
   selector: "html",
@@ -23,8 +27,9 @@ await listen("menuItemClick", (e: { payload: string }) => {
   console.log("menuItemClick", e.payload)
   const id = e.payload
   if (id.startsWith("lang")) {
-    languageStore.language = id.substring("lang_".length) as LanguageType
+    config.value.lang = id.substring("lang_".length) as LanguageConfig
   } else if (id.startsWith("theme")) {
-    colorMode.value = id.substring("theme_".length) as ColorModeType
+    config.value.theme = id.substring("theme_".length) as ThemeConfig
+    colorMode.value = id.substring("theme_".length) as ThemeConfig
   }
 })

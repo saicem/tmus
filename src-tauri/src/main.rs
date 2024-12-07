@@ -5,9 +5,9 @@ use tauri::{AppHandle, RunEvent};
 
 mod app;
 mod cmd;
+mod config;
 mod engine;
 mod util;
-mod config;
 
 fn main() {
     let app = tauri::Builder::default()
@@ -20,6 +20,7 @@ fn main() {
             cmd::duration_by_day,
             cmd::raw_record,
             cmd::read_reverse,
+            cmd::get_app_config,
         ])
         .build(tauri::generate_context!())
         .expect("Error while building application");

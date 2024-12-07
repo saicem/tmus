@@ -1,11 +1,12 @@
+use crate::config::Config;
 use crate::engine::data::Millisecond;
 use crate::engine::{Engine, FocusRecord};
+use crate::util::file_version;
 use file_detail::FileDetail;
 use log::info;
 use read::read_by_timestamp;
 use std::collections::HashMap;
 use std::path::Path;
-use crate::util::file_version;
 
 mod file_detail;
 mod read;
@@ -95,6 +96,11 @@ pub fn file_detail(id: usize) -> Result<FileDetail, String> {
         version,
         path,
     })
+}
+
+#[tauri::command]
+pub fn get_app_config() -> Config {
+    Config::get()
 }
 
 /// Calculate duration based on app_id.

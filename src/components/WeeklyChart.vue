@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { Chart } from "@antv/g2"
-import { onMounted, ref, watch, computed } from "vue"
+import { onMounted, ref, watch } from "vue"
 import { Duration } from "moment"
-import { colorMode, languageStore } from "@/global/state.ts"
-import { messages } from "@/global/i18n.ts"
+import { colorMode, config } from "@/global/state.ts"
+import { msg } from "@/global/i18n.ts"
 
 const props = defineProps<{
   /**
@@ -14,24 +14,22 @@ const props = defineProps<{
 const root = ref<HTMLDivElement | null>(null)
 let plot: Chart | null = null
 
-const msg = computed(() => messages[languageStore.language].weeklyChart)
-
 function convertData(durations: Duration[]) {
   let lastWeek = durations.slice(0, 7)
   let thisWeek = durations.slice(7, 14)
   return thisWeek
     .map((d, i) => {
       return {
-        week: msg.value.thisWeek,
-        dayOfWeek: msg.value.dayOfWeekNames[i % 7],
+        week: msg.value.weeklyChart.thisWeek,
+        dayOfWeek: msg.value.weeklyChart.dayOfWeekNames[i % 7],
         duration: Number(d.asHours().toFixed(2)),
       }
     })
     .concat(
       lastWeek.map((d, i) => {
         return {
-          week: msg.value.lastWeek,
-          dayOfWeek: msg.value.dayOfWeekNames[i % 7],
+          week: msg.value.weeklyChart.lastWeek,
+          dayOfWeek: msg.value.weeklyChart.dayOfWeekNames[i % 7],
           duration: Number(d.asHours().toFixed(2)),
         }
       })
@@ -43,7 +41,7 @@ function renderBarChart(container: HTMLElement) {
   const chart = new Chart({ container })
   chart.theme({ type: colorMode.value })
   chart.options({
-    title: msg.value.title,
+    title: msg.value.weeklyChart.title,
     type: "interval",
     autoFit: true,
     data: convertData(props.durations),
@@ -73,7 +71,7 @@ function renderBarChart(container: HTMLElement) {
 }
 
 watch(
-  [languageStore, colorMode],
+  config,
   (_old, _new) => {
     renderBarChart(root.value!)
   },

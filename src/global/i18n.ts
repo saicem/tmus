@@ -1,4 +1,9 @@
-import { LanguageType } from "@/global/state.ts"
+import { config, LanguageConfig } from "@/global/state.ts"
+import { computed } from "vue"
+
+export const msg = computed(() => {
+  return messages[config.value.lang]
+})
 
 type I18nMessageType = {
   tab: {
@@ -24,7 +29,7 @@ type I18nMessageType = {
   }
 }
 
-export const messages: Record<LanguageType, I18nMessageType> = {
+const messages: Record<LanguageConfig, I18nMessageType> = {
   en: {
     tab: {
       home: "Home",

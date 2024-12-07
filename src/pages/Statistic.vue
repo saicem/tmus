@@ -3,10 +3,7 @@ import { ref } from "vue"
 
 const appShowStyleSelectValue = ref<"Card" | "Bar">("Card")
 const datetimeRange = ref()
-const queryData = () => {
 
-
-}
 const shortcuts = [
   {
     text: "Last 1 day",

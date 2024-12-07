@@ -2,20 +2,18 @@
 import app from "@/assets/general-card/app.svg"
 import usage from "@/assets/general-card/usage.svg"
 import up from "@/assets/general-card/up.svg"
-import api from "@/global/api"
-import { computed, ref } from "vue"
+import { ref } from "vue"
 import moment, { Duration } from "moment"
-import { languageStore } from "@/global/state"
-import { messages } from "@/global/i18n.ts"
+import { msg } from "@/global/i18n.ts"
+import { durationByDayInThisYear, todayAppGeneral } from "@/global/api.ts"
 
-const msg = computed(() => messages[languageStore.language].homePage)
 const duration = ref<Record<number, Duration>>()
 const weeklyDurations = ref<Duration[]>()
 const appCount = ref("0")
 const totalUse = ref("0")
 const mostUse = ref("0")
 
-api.durationByDayInThisYear().then((res) => {
+durationByDayInThisYear().then((res) => {
   console.log("durationByDayInThisYear", res)
   duration.value = res
   let startDayOfYear = moment().startOf("week").subtract(1, "week").dayOfYear()
@@ -24,7 +22,7 @@ api.durationByDayInThisYear().then((res) => {
   })
 })
 
-api.todayAppGeneral().then((res) => {
+todayAppGeneral().then((res) => {
   console.log("todayAppGeneral", res)
   if (res.length == 0) {
     return
@@ -44,20 +42,20 @@ api.todayAppGeneral().then((res) => {
       <GeneralCard
         :icon="app"
         :value="appCount"
-        :unit="msg.appsUnit"
-        :illustration="msg.apps"
+        :unit="msg.homePage.appsUnit"
+        :illustration="msg.homePage.apps"
       />
       <GeneralCard
         :icon="usage"
         :value="totalUse"
-        :unit="msg.totalUseUnit"
-        :illustration="msg.totalUse"
+        :unit="msg.homePage.totalUseUnit"
+        :illustration="msg.homePage.totalUse"
       />
       <GeneralCard
         :icon="up"
         :value="mostUse"
-        :unit="msg.mostUseUnit"
-        :illustration="msg.mostUse"
+        :unit="msg.homePage.mostUseUnit"
+        :illustration="msg.homePage.mostUse"
       />
     </div>
     <el-card>

@@ -1,5 +1,6 @@
 import { invoke } from "@tauri-apps/api/core"
 import { FileDetail, FocusRecord } from "./data"
+import { Config } from "@/global/state.ts"
 
 async function rawRecord(
   startMillis: number,
@@ -38,10 +39,15 @@ async function fileDetail(id: number): Promise<FileDetail> {
   return await invoke("file_detail", { id: id })
 }
 
+async function getAppConfig(): Promise<Config> {
+  return await invoke("get_app_config")
+}
+
 export default {
   rawRecord,
   readReverse,
   durationAggregate,
   durationByDay,
   fileDetail,
+  getAppConfig,
 }
