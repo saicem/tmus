@@ -3,7 +3,7 @@ import { useColorMode } from "@vueuse/core"
 import { ref, watch } from "vue"
 
 export type LanguageConfig = "en" | "zh"
-export type ThemeConfig = "dark" | "light"
+export type ThemeConfig = "dark" | "light" | "auto"
 export type Config = {
   lang: LanguageConfig
   theme: ThemeConfig
@@ -11,13 +11,27 @@ export type Config = {
 
 export const config = ref<Config>({
   lang: "en",
-  theme: "light",
+  theme: "auto",
 })
+
+export function setThemeListener() {
+  const themeMedia = window.matchMedia("(prefers-color-scheme: light)")
+  themeMedia.addEventListener("change", (e) => {
+    if (config.value.theme === "auto") {
+      colorMode.value = e.matches ? "light" : "dark"
+    }
+  })
+}
 
 watch(
   () => config.value.theme,
   () => {
-    colorMode.value = config.value.theme
+    if (config.value.theme === "auto") {
+      const themeMedia = window.matchMedia("(prefers-color-scheme: light)")
+      colorMode.value = themeMedia.matches ? "light" : "dark"
+    } else {
+      colorMode.value = config.value.theme
+    }
   }
 )
 

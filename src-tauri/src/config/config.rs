@@ -18,9 +18,10 @@ pub enum LangConfig {
 #[serde(rename_all = "camelCase")]
 pub enum ThemeConfig {
     Dark,
+    Light,
     #[default]
     #[serde(other)]
-    Light,
+    Auto,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
@@ -40,7 +41,7 @@ impl Config {
             .lock()
             .unwrap()
     }
-    
+
     pub fn get() -> Config {
         Self::get_mut().clone()
     }

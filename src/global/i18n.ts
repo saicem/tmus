@@ -30,6 +30,7 @@ type I18nMessageType = {
   configPage: {
     language: string
     theme: string
+    themeAuto: string
     themeLight: string
     themeDark: string
   }
@@ -69,6 +70,7 @@ const messages: Record<LanguageConfig, I18nMessageType> = {
     configPage: {
       language: "Language",
       theme: "Theme",
+      themeAuto: "Auto",
       themeLight: "Light",
       themeDark: "Dark",
     },
@@ -98,6 +100,7 @@ const messages: Record<LanguageConfig, I18nMessageType> = {
     configPage: {
       language: "语言",
       theme: "主题",
+      themeAuto: "自动",
       themeLight: "浅色",
       themeDark: "深色",
     },
