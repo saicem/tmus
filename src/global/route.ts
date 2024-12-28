@@ -33,9 +33,12 @@ const routes = [
     component: Setting,
   },
   {
-    path: "/detail",
+    path: "/detail/:id",
     name: "detail",
     component: Detail,
+    props: (route: { params: { id: string } }) => ({
+      id: +route.params.id,
+    }),
   },
 ]
 

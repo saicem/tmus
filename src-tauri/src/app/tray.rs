@@ -10,7 +10,7 @@ use tauri::{AppHandle, Emitter, Wry};
 static TRAY_ICON_ID: LazyLock<TrayIconId> = LazyLock::new(|| TrayIconId::new("main"));
 
 pub fn tray(app_handle: &AppHandle) -> Result<(), Box<dyn Error>> {
-    let menu = build_menu(app_handle, &Config::get())?;
+    let menu = build_menu(app_handle)?;
     let tray = app_handle.tray_by_id(&*TRAY_ICON_ID).unwrap();
     tray.set_menu(Some(menu))?;
     tray.on_tray_icon_event(on_tray_icon_event);
@@ -18,7 +18,17 @@ pub fn tray(app_handle: &AppHandle) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn build_menu(app_handle: &AppHandle, config: &Config) -> Result<Menu<Wry>, Box<dyn Error>> {
+pub fn refresh_tray_menu(app_handle: &AppHandle) {
+    let menu = build_menu(app_handle).unwrap();
+    app_handle
+        .tray_by_id(&*TRAY_ICON_ID)
+        .unwrap()
+        .set_menu(Some(menu))
+        .unwrap();
+}
+
+fn build_menu(app_handle: &AppHandle) -> Result<Menu<Wry>, Box<dyn Error>> {
+    let config = Config::get();
     let lang_menu = SubmenuBuilder::new(app_handle, I18n::get().language)
         .items(&[
             &CheckMenuItem::with_id(
@@ -104,12 +114,7 @@ fn on_menu_event(app_handle: &AppHandle, event: MenuEvent) {
                 _ => {}
             }
             let config = Config::get();
-            let menu = build_menu(app_handle, &config).unwrap();
-            app_handle
-                .tray_by_id(&*TRAY_ICON_ID)
-                .unwrap()
-                .set_menu(Some(menu))
-                .unwrap();
+            refresh_tray_menu(app_handle);
             config.dump(config_file_path())
         }
     }

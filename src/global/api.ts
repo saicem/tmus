@@ -3,15 +3,16 @@ import cmd from "./cmd"
 import { FileDetail, FocusData, FocusRecord } from "./data"
 import { config } from "@/global/state.ts"
 
-const fileDetailCache: Record<number, FileDetail> = {}
+const exeDetailCache: Map<number, Promise<FileDetail>> = new Map<
+  number,
+  Promise<FileDetail>
+>()
 
 export async function readReverse(
   cursor: number | null,
   count: number
 ): Promise<[FocusData[], number | null]> {
   const [rawRecords, newCursor] = await cmd.readReverse(cursor, count)
-  const ret = await Promise.all(rawRecords.map((x) => refreshAppDetail(x.id)))
-  console.log("detail", ret)
   console.log("readReverse", rawRecords, newCursor)
   const records = rawRecords.map((x) => convertFocusData(x))
   return [records, newCursor]
@@ -30,15 +31,13 @@ export async function todayAppGeneral() {
   return Promise.all(result)
 }
 
-export async function refreshAppDetail(id: number) {
-  if (fileDetailCache[id]) {
-    return fileDetailCache[id]
+export async function appDetail(id: number): Promise<FileDetail> {
+  if (!exeDetailCache.has(id)) {
+    const promise = cmd.fileDetail(id)
+    exeDetailCache.set(id, promise)
+    console.log("appDetail", await promise)
   }
-  return (fileDetailCache[id] = await cmd.fileDetail(id))
-}
-
-export function appDetail(id: number): FileDetail {
-  return fileDetailCache[id]
+  return await exeDetailCache.get(id)!
 }
 
 export async function durationByDayInThisYear() {

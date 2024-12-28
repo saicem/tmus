@@ -3,7 +3,7 @@ import { Chart } from "@antv/g2"
 import { onMounted, ref, watch } from "vue"
 import { Duration } from "moment"
 import { colorMode, config } from "@/global/state.ts"
-import { msg } from "@/global/i18n.ts"
+import { i18n } from "@/global/i18n.ts"
 
 const props = defineProps<{
   /**
@@ -11,6 +11,10 @@ const props = defineProps<{
    */
   durations: Duration[]
 }>()
+console.log(
+  "props.durations",
+  props.durations.map((d) => d.asHours())
+)
 const root = ref<HTMLDivElement | null>(null)
 let plot: Chart | null = null
 
@@ -20,16 +24,16 @@ function convertData(durations: Duration[]) {
   return thisWeek
     .map((d, i) => {
       return {
-        week: msg.value.weeklyChart.thisWeek,
-        dayOfWeek: msg.value.weeklyChart.dayOfWeekNames[i % 7],
+        week: i18n.value.weeklyChart.thisWeek,
+        dayOfWeek: i18n.value.weeklyChart.dayOfWeekNames[i % 7],
         duration: Number(d.asHours().toFixed(2)),
       }
     })
     .concat(
       lastWeek.map((d, i) => {
         return {
-          week: msg.value.weeklyChart.lastWeek,
-          dayOfWeek: msg.value.weeklyChart.dayOfWeekNames[i % 7],
+          week: i18n.value.weeklyChart.lastWeek,
+          dayOfWeek: i18n.value.weeklyChart.dayOfWeekNames[i % 7],
           duration: Number(d.asHours().toFixed(2)),
         }
       })
@@ -41,7 +45,7 @@ function renderBarChart(container: HTMLElement) {
   const chart = new Chart({ container })
   chart.theme({ type: colorMode.value })
   chart.options({
-    title: msg.value.weeklyChart.title,
+    title: i18n.value.weeklyChart.title,
     type: "interval",
     autoFit: true,
     data: convertData(props.durations),

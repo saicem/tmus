@@ -1,11 +1,18 @@
+use crate::app::constant::config_file_path;
+use crate::app::refresh_tray_menu;
 use crate::config::Config;
 use crate::engine::data::Millisecond;
 use crate::engine::{Engine, FocusRecord};
 use crate::util::file_version;
+use crate::util::icon::extract_icon;
+use base64::engine::general_purpose;
+use base64::Engine as OtherEngine;
 use file_detail::FileDetail;
+use image::ImageFormat;
 use log::info;
 use read::read_by_timestamp;
 use std::collections::HashMap;
+use std::io::Cursor;
 use std::path::Path;
 
 mod file_detail;
@@ -65,7 +72,7 @@ pub fn duration_by_day(
         record.focus_at += time_zone_offset;
         record.blur_at += time_zone_offset;
         let start_day = record.focus_at.as_days();
-        let end_day = record.focus_at.as_days();
+        let end_day = record.blur_at.as_days();
         if start_day == end_day {
             *ret.entry(start_day).or_insert(Millisecond::ZERO) += record.duration();
         } else {
@@ -90,17 +97,35 @@ pub fn file_detail(id: usize) -> Result<FileDetail, String> {
             .map(|x| x.to_str().map(|x| x.to_owned()))
             .flatten())
         .unwrap_or(path.to_owned());
+    log::debug!("file path: {}", &path);
+    let icon = extract_icon(&path).map(|x| {
+        let mut buf = Vec::new();
+        x.write_to(&mut Cursor::new(&mut buf), ImageFormat::Png)
+            .unwrap();
+        format!(
+            "data:image/png;base64,{}",
+            general_purpose::STANDARD.encode(&buf)
+        )
+    });
     Ok(FileDetail {
         name,
         id,
-        version,
         path,
+        icon,
+        version,
     })
 }
 
 #[tauri::command]
 pub fn get_app_config() -> Config {
     Config::get()
+}
+
+#[tauri::command]
+pub async fn set_app_config(config: Config, app_handle: tauri::AppHandle) {
+    config.dump(config_file_path());
+    Config::set(config);
+    refresh_tray_menu(&app_handle);
 }
 
 /// Calculate duration based on app_id.

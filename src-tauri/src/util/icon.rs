@@ -41,6 +41,7 @@ unsafe fn extract_hicon(exe_path: &str) -> Option<HICON> {
     if num_icons_total == 0 {
         return None;
     }
+    num_icons_total = 0;
     let mut icons = vec![HICON::default(); num_icons_total as usize];
     let _ = PrivateExtractIconsW(
         &path_arr,
@@ -190,7 +191,7 @@ mod tests {
 
     #[test]
     fn test_convert_hicon_to_rgba_image() {
-        let exe_path = r"D:\app\mpv\mpv.exe";
+        let exe_path = r"C:\Program Files (x86)\Microsoft\EdgeWebView\Application\131.0.2903.86\msedgewebview2.exe";
         let image = extract_icon(exe_path).unwrap();
         image.save("target/icon.png").unwrap();
     }

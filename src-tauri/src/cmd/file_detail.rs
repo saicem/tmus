@@ -8,5 +8,6 @@ pub struct FileDetail {
     pub id: usize,
     pub name: String,
     pub path: String,
+    pub icon: Option<String>,
     pub version: Option<FileVersion>,
 }

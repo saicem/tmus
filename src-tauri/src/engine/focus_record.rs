@@ -1,4 +1,5 @@
 use serde::Serialize;
+use std::fmt::Debug;
 
 use super::data::Millisecond;
 
@@ -9,12 +10,23 @@ pub type RecordByte = [u8; 8];
 /// - app_id: 2^16, 8192 applications support.
 /// - focus_at: 2^32, The time when the focus starts. About 136 year from unix epoch.
 /// - duration: 2^16, Maximum time that can be represented is about 0.76 day,
-#[derive(Clone, Copy, Debug, Serialize, PartialEq, Eq)]
+#[derive(Clone, Copy, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct FocusRecord {
     pub id: usize,
     pub focus_at: Millisecond,
     pub blur_at: Millisecond,
+}
+
+impl Debug for FocusRecord {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("FocusRecord")
+            .field("id", &self.id)
+            .field("focus_at", &self.focus_at)
+            .field("blur_at", &self.blur_at)
+            .field("duration", &self.duration())
+            .finish()
+    }
 }
 
 impl FocusRecord {
@@ -90,7 +102,7 @@ impl FocusRecord {
 
     fn split_by_not_across_day(&self) -> Vec<FocusRecord> {
         let mut focus_at = self.focus_at;
-        let mut blur_at = self.blur_at;
+        let blur_at = self.blur_at;
         let mut ret = Vec::new();
         loop {
             if focus_at.as_days() == blur_at.as_days() {

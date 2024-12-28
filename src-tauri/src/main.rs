@@ -21,6 +21,7 @@ fn main() {
             cmd::raw_record,
             cmd::read_reverse,
             cmd::get_app_config,
+            cmd::set_app_config,
         ])
         .build(tauri::generate_context!())
         .expect("Error while building application");

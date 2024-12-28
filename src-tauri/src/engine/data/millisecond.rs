@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::fmt::Debug;
 use std::{
     fmt::Display,
     ops::{Add, AddAssign, Sub, SubAssign},
@@ -8,8 +9,24 @@ use std::{
 /// Millisecond is a wrapper of i64, which represents the number of milliseconds since the Unix epoch.
 /// It is used because two defects, [std::time::Duration], cannot represent negative time periods,
 /// [std::time::Duration] Missing some methods, such as as_days.
-#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord)]
+#[derive(Clone, Copy, PartialEq, PartialOrd, Eq, Ord)]
 pub struct Millisecond(i64);
+
+impl Debug for Millisecond {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let seconds = self.as_secs();
+        let minutes = seconds / 60;
+        let hours = minutes / 60;
+        let days = hours / 24;
+        let seconds = seconds % 60;
+        let minutes = minutes % 60;
+        let hours = hours % 24;
+        f.debug_tuple("Millisecond")
+            .field(&self.0)
+            .field(&format!("{}d{}h{}m{}s", days, hours, minutes, seconds))
+            .finish()
+    }
+}
 
 impl Millisecond {
     pub fn now() -> Millisecond {

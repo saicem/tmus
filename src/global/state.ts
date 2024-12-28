@@ -1,6 +1,6 @@
 import { listen } from "@tauri-apps/api/event"
 import { useColorMode } from "@vueuse/core"
-import { ref } from "vue"
+import { ref, watch } from "vue"
 
 export type LanguageConfig = "en" | "zh"
 export type ThemeConfig = "dark" | "light"
@@ -13,6 +13,13 @@ export const config = ref<Config>({
   lang: "en",
   theme: "light",
 })
+
+watch(
+  () => config.value.theme,
+  () => {
+    colorMode.value = config.value.theme
+  }
+)
 
 export const colorMode = useColorMode({
   selector: "html",
@@ -30,6 +37,5 @@ await listen("menuItemClick", (e: { payload: string }) => {
     config.value.lang = id.substring("lang_".length) as LanguageConfig
   } else if (id.startsWith("theme")) {
     config.value.theme = id.substring("theme_".length) as ThemeConfig
-    colorMode.value = id.substring("theme_".length) as ThemeConfig
   }
 })

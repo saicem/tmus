@@ -43,6 +43,10 @@ async function getAppConfig(): Promise<Config> {
   return await invoke("get_app_config")
 }
 
+export async function setAppConfig(config: Config): Promise<void> {
+  return await invoke("set_app_config", { config })
+}
+
 export default {
   rawRecord,
   readReverse,
@@ -50,4 +54,5 @@ export default {
   durationByDay,
   fileDetail,
   getAppConfig,
+  setAppConfig
 }

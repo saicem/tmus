@@ -4,8 +4,11 @@ import usage from "@/assets/general-card/usage.svg"
 import up from "@/assets/general-card/up.svg"
 import { ref } from "vue"
 import moment, { Duration } from "moment"
-import { msg } from "@/global/i18n.ts"
+import { i18n } from "@/global/i18n.ts"
 import { durationByDayInThisYear, todayAppGeneral } from "@/global/api.ts"
+import GeneralCard from "@/components/GeneralCard.vue"
+import HeatCalendar from "@/components/HeatCalendar.vue"
+import WeeklyChart from "@/components/WeeklyChart.vue"
 
 const duration = ref<Record<number, Duration>>()
 const weeklyDurations = ref<Duration[]>()
@@ -17,7 +20,13 @@ durationByDayInThisYear().then((res) => {
   console.log("durationByDayInThisYear", res)
   duration.value = res
   let startDayOfYear = moment().startOf("week").subtract(1, "week").dayOfYear()
-  weeklyDurations.value = new Array(14).fill(null).map((_, idx) => {
+  weeklyDurations.value = new Array(14).fill(0).map((_, idx) => {
+    console.log(
+      "idx",
+      startDayOfYear + idx,
+      res[startDayOfYear + idx],
+      res[startDayOfYear + idx]?.asHours()
+    )
     return res[startDayOfYear + idx] ?? moment.duration(0)
   })
 })
@@ -42,20 +51,20 @@ todayAppGeneral().then((res) => {
       <GeneralCard
         :icon="app"
         :value="appCount"
-        :unit="msg.homePage.appsUnit"
-        :illustration="msg.homePage.apps"
+        :unit="i18n.homePage.appsUnit"
+        :illustration="i18n.homePage.apps"
       />
       <GeneralCard
         :icon="usage"
         :value="totalUse"
-        :unit="msg.homePage.totalUseUnit"
-        :illustration="msg.homePage.totalUse"
+        :unit="i18n.homePage.totalUseUnit"
+        :illustration="i18n.homePage.totalUse"
       />
       <GeneralCard
         :icon="up"
         :value="mostUse"
-        :unit="msg.homePage.mostUseUnit"
-        :illustration="msg.homePage.mostUse"
+        :unit="i18n.homePage.mostUseUnit"
+        :illustration="i18n.homePage.mostUse"
       />
     </div>
     <el-card>

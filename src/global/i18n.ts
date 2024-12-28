@@ -1,12 +1,12 @@
 import { config, LanguageConfig } from "@/global/state.ts"
 import { computed } from "vue"
 
-export const msg = computed(() => {
+export const i18n = computed(() => {
   return messages[config.value.lang]
 })
 
 type I18nMessageType = {
-  tab: {
+  navigateMenu: {
     home: string
     timeline: string
     tags: string
@@ -27,11 +27,17 @@ type I18nMessageType = {
     lastWeek: string
     dayOfWeekNames: [string, string, string, string, string, string, string]
   }
+  configPage: {
+    language: string
+    theme: string
+    themeLight: string
+    themeDark: string
+  }
 }
 
 const messages: Record<LanguageConfig, I18nMessageType> = {
   en: {
-    tab: {
+    navigateMenu: {
       home: "Home",
       timeline: "Timeline",
       tags: "Tags",
@@ -60,9 +66,15 @@ const messages: Record<LanguageConfig, I18nMessageType> = {
         "Saturday",
       ],
     },
+    configPage: {
+      language: "Language",
+      theme: "Theme",
+      themeLight: "Light",
+      themeDark: "Dark",
+    },
   },
   zh: {
-    tab: {
+    navigateMenu: {
       home: "主页",
       timeline: "时间线",
       tags: "标签",
@@ -82,6 +94,12 @@ const messages: Record<LanguageConfig, I18nMessageType> = {
       thisWeek: "本周",
       lastWeek: "上周",
       dayOfWeekNames: ["周日", "周一", "周二", "周三", "周四", "周五", "周六"],
+    },
+    configPage: {
+      language: "语言",
+      theme: "主题",
+      themeLight: "浅色",
+      themeDark: "深色",
     },
   },
 }

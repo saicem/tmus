@@ -19,6 +19,10 @@ export interface FileDetail {
   id: number
   name: string
   path: string
+  /**
+   * Base64 png
+   */
+  icon: string
   version?: FileVersion
 }
 

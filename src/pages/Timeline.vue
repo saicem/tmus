@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, ref } from "vue"
 import { FocusData } from "@/global/data.ts"
-import { appDetail, readReverse } from "@/global/api.ts"
+import { readReverse } from "@/global/api.ts"
+import TimelineItem from "@/components/TimelineItem.vue"
 
 const records = ref<FocusData[]>([])
 const cursor = ref<number | null>(null)
@@ -23,6 +24,7 @@ const load = async () => {
   cursor.value = newCursor
   loading.value = false
 }
+
 </script>
 
 <template>
@@ -38,13 +40,8 @@ const load = async () => {
       placement="top"
       :timestamp="record.start.format()"
     >
-      <RouterLink to="/detail">
-        <el-card>
-          <h4>
-            {{ appDetail(record.id).name }}
-          </h4>
-          <p>{{ record.duration.toISOString() }}</p>
-        </el-card>
+      <RouterLink :to="'/detail/' + record.id">
+        <TimelineItem :data="record" />
       </RouterLink>
     </el-timeline-item>
   </el-timeline>

@@ -44,15 +44,14 @@ const appWindow = getCurrentWebviewWindow()
   display: flex;
   flex-direction: row;
   gap: 2px;
-  margin-right: 6px;
 }
 
 .title-bar-button {
   display: inline-flex;
   justify-content: center;
   align-items: center;
-  width: 30px;
-  height: 30px;
+  width: 40px;
+  height: 32px;
 }
 
 .title-bar-button:hover {
