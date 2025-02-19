@@ -54,5 +54,5 @@ export default {
   durationByDay,
   fileDetail,
   getAppConfig,
-  setAppConfig
+  setAppConfig,
 }

@@ -1,8 +1,7 @@
 <script setup lang="ts">
 const props = defineProps<{
   icon: string
-  value: string
-  unit: string
+  content: string
   illustration: string
 }>()
 </script>
@@ -16,7 +15,7 @@ const props = defineProps<{
           {{ props.illustration }}
         </h3>
         <p style="margin: 0; color: #888; font-size: 14px">
-          {{ props.value + props.unit }}
+          {{ props.content }}
         </p>
       </div>
     </div>

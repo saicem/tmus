@@ -54,9 +54,9 @@ fn build_menu(app_handle: &AppHandle) -> Result<Menu<Wry>, Box<dyn Error>> {
             &CheckMenuItem::with_id(
                 app_handle,
                 "theme_auto",
-                I18n::get().theme_auto,
+                I18n::get().theme_system,
                 true,
-                config.theme == ThemeConfig::Auto,
+                config.theme == ThemeConfig::System,
                 None::<&str>,
             )?,
             &CheckMenuItem::with_id(
@@ -114,7 +114,7 @@ fn on_menu_event(app_handle: &AppHandle, event: MenuEvent) {
                     Config::get_mut().lang = LangConfig::Zh;
                 }
                 "theme_auto" => {
-                    Config::get_mut().theme = ThemeConfig::Auto;
+                    Config::get_mut().theme = ThemeConfig::System;
                 }
                 "theme_light" => {
                     Config::get_mut().theme = ThemeConfig::Light;

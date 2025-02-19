@@ -25,7 +25,7 @@ function configChange() {
       @change="configChange"
       style="width: 240px"
     >
-      <el-option :label="i18n.configPage.themeAuto" value="auto" />
+      <el-option :label="i18n.configPage.themeSystem" value="system" />
       <el-option :label="i18n.configPage.themeLight" value="light" />
       <el-option :label="i18n.configPage.themeDark" value="dark" />
     </el-select>

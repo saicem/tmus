@@ -2,7 +2,6 @@ use crate::engine::data::{CursorPosition, ReadDirection};
 use crate::engine::{data::Millisecond, Engine, FocusRecord};
 use std::cmp::{max, min};
 
-#[tauri::command]
 pub fn read_by_timestamp(start_millis: Millisecond, end_millis: Millisecond) -> Vec<FocusRecord> {
     if start_millis >= end_millis {
         return vec![];

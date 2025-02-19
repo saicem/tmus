@@ -21,7 +21,7 @@ pub enum ThemeConfig {
     Light,
     #[default]
     #[serde(other)]
-    Auto,
+    System,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]

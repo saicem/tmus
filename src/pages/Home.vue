@@ -16,6 +16,12 @@ const appCount = ref("0")
 const totalUse = ref("0")
 const mostUse = ref("0")
 
+function formatDuration(duration: Duration): string {
+  let h = duration.hours()
+  let m = duration.minutes()
+  return h > 0 ? `${h}h${m}m` : `${m}m`
+}
+
 durationByDayInThisYear().then((res) => {
   console.log("durationByDayInThisYear", res)
   duration.value = res
@@ -37,11 +43,14 @@ todayAppGeneral().then((res) => {
     return
   }
   appCount.value = res.length.toString()
-  mostUse.value = Math.max(...res.map((x) => x.duration.asHours())).toFixed(2)
-  totalUse.value = res
-    .map((x) => x.duration.asHours())
-    .reduce((acc, x) => acc + x)
-    .toFixed(2)
+  const durations = res.map((x) => x.duration)
+  mostUse.value = formatDuration(
+    moment.duration(
+      Math.max(...durations.map((x) => x.asMilliseconds())),
+      "milliseconds"
+    )
+  )
+  totalUse.value = formatDuration(durations.reduce((x, y) => x.add(y)))
 })
 </script>
 
@@ -50,20 +59,17 @@ todayAppGeneral().then((res) => {
     <div class="cards">
       <GeneralCard
         :icon="app"
-        :value="appCount"
-        :unit="i18n.homePage.appsUnit"
+        :content="appCount + i18n.homePage.appsUnit"
         :illustration="i18n.homePage.apps"
       />
       <GeneralCard
         :icon="usage"
-        :value="totalUse"
-        :unit="i18n.homePage.totalUseUnit"
+        :content="totalUse"
         :illustration="i18n.homePage.totalUse"
       />
       <GeneralCard
         :icon="up"
-        :value="mostUse"
-        :unit="i18n.homePage.mostUseUnit"
+        :content="mostUse"
         :illustration="i18n.homePage.mostUse"
       />
     </div>

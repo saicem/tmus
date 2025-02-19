@@ -17,9 +17,7 @@ type I18nMessageType = {
     apps: string
     appsUnit: string
     totalUse: string
-    totalUseUnit: string
     mostUse: string
-    mostUseUnit: string
   }
   weeklyChart: {
     title: string
@@ -30,7 +28,7 @@ type I18nMessageType = {
   configPage: {
     language: string
     theme: string
-    themeAuto: string
+    themeSystem: string
     themeLight: string
     themeDark: string
   }
@@ -49,9 +47,7 @@ const messages: Record<LanguageConfig, I18nMessageType> = {
       apps: "App Count",
       appsUnit: "",
       totalUse: "Total Use",
-      totalUseUnit: " hrs",
       mostUse: "Most Use",
-      mostUseUnit: " hrs",
     },
     weeklyChart: {
       title: "Weekly Usage",
@@ -70,7 +66,7 @@ const messages: Record<LanguageConfig, I18nMessageType> = {
     configPage: {
       language: "Language",
       theme: "Theme",
-      themeAuto: "Auto",
+      themeSystem: "System",
       themeLight: "Light",
       themeDark: "Dark",
     },
@@ -87,9 +83,7 @@ const messages: Record<LanguageConfig, I18nMessageType> = {
       apps: "应用",
       appsUnit: "个",
       totalUse: "使用量",
-      totalUseUnit: "小时",
       mostUse: "最常使用",
-      mostUseUnit: "小时",
     },
     weeklyChart: {
       title: "周使用量",
@@ -100,7 +94,7 @@ const messages: Record<LanguageConfig, I18nMessageType> = {
     configPage: {
       language: "语言",
       theme: "主题",
-      themeAuto: "自动",
+      themeSystem: "系统",
       themeLight: "浅色",
       themeDark: "深色",
     },
