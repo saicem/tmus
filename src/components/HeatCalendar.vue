@@ -11,9 +11,9 @@ const emptyCellCount = now.clone().startOf("year").day()
 const daysInYearCount = now.clone().month(11).date(31).dayOfYear()
 const weekCount = Math.ceil((emptyCellCount + daysInYearCount) / 7)
 const monthWeeks = new Array(12).fill(null).map((_, idx) => {
-  const monthFirstDay =
-    now.clone().month(idx).date(1).dayOfYear() + emptyCellCount - 1
-  return Math.ceil((monthFirstDay - 1) / 7)
+  const monthFirstDayCellNum =
+    now.clone().month(idx).date(1).dayOfYear() + emptyCellCount
+  return Math.floor((monthFirstDayCellNum - 1) / 7)
 })
 
 const dayOfWeekList = ["Sun", "Mon", "Tues", "Wed", "Thur", "Fri", "Sat"]
