@@ -22,6 +22,7 @@
     "core:window:allow-unmaximize",
     "core:window:allow-minimize",
     "core:window:allow-unminimize",
+    "core:window:allow-toggle-maximize",
     "core:window:allow-show",
     "core:window:allow-hide",
     "core:window:allow-close",
