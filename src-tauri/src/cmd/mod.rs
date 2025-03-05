@@ -1,7 +1,8 @@
 use crate::app::constant::config_file_path;
 use crate::app::refresh_tray_menu;
+use crate::cmd::duration_calculate_helper::{group_by_day, group_by_day_id, group_by_id};
 use crate::config::Config;
-use crate::engine::data::Millisecond;
+use crate::engine::data::{AppId, Millisecond};
 use crate::engine::{Engine, FocusRecord};
 use crate::util::file_version;
 use crate::util::icon::extract_icon;
@@ -11,10 +12,11 @@ use file_detail::FileDetail;
 use image::ImageFormat;
 use log::info;
 use read::read_by_timestamp;
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use std::io::Cursor;
 use std::path::Path;
 
+mod duration_calculate_helper;
 mod file_detail;
 mod read;
 
@@ -35,12 +37,12 @@ pub fn read_reverse(
 }
 
 #[tauri::command]
-pub fn duration_aggregate(
+pub fn duration_by_id(
     start_millis: Millisecond,
     end_millis: Millisecond,
 ) -> Result<HashMap<usize, Millisecond>, String> {
     let records = read_by_timestamp(start_millis, end_millis);
-    Ok(duration_by_id(records.into_iter().collect()))
+    Ok(group_by_id(records.into_iter().collect()))
 }
 
 /// Calculates the duration per day given a time range and timezone offset.
@@ -67,27 +69,61 @@ pub fn duration_by_day(
         start_millis,
         end_millis
     );
-    let mut ret = HashMap::new();
-    for mut record in records.into_iter() {
-        record.focus_at += time_zone_offset;
-        record.blur_at += time_zone_offset;
-        let start_day = record.focus_at.as_days();
-        let end_day = record.blur_at.as_days();
-        if start_day == end_day {
-            *ret.entry(start_day).or_insert(Millisecond::ZERO) += record.duration();
-        } else {
-            *ret.entry(start_day).or_insert(Millisecond::ZERO) +=
-                Millisecond::ONE_DAY - record.focus_at.get_day_offset();
-            *ret.entry(end_day).or_insert(Millisecond::ZERO) += record.blur_at.get_day_offset();
-        }
-    }
-    Ok(ret)
+    Ok(group_by_day(records, time_zone_offset))
 }
 
 #[tauri::command]
+pub fn duration_by_day_id(
+    start_millis: Millisecond,
+    end_millis: Millisecond,
+    time_zone_offset: Millisecond,
+) -> Result<HashMap<i64, BTreeMap<AppId, Millisecond>>, String> {
+    let records = read_by_timestamp(start_millis, end_millis);
+    info!(
+        "records len: {:?}, start: {:?}, end: {:?}",
+        records.len(),
+        start_millis,
+        end_millis
+    );
+    Ok(group_by_day_id(records, time_zone_offset))
+}
+
+/// Retrieves detailed information about an exe file given its application ID.
+///
+/// # Parameters
+/// - `id`: The application ID for which to retrieve the file details.
+///
+/// # Returns
+/// A `Result` containing either:
+/// - A `FileDetail` struct with the file's name, id, path, icon, and version information.
+/// - A `String` containing an error message if the file details cannot be retrieved.
+#[tauri::command]
 pub fn file_detail(id: usize) -> Result<FileDetail, String> {
     let path = Engine::get_path_by_id(id).unwrap();
+    if !Path::new(&path).exists() {
+        return Ok(FileDetail {
+            name: Path::new(&path)
+                .file_name()
+                .map(|x| x.to_str().map(|x| x.to_owned()))
+                .flatten()
+                .unwrap_or(path.to_owned()),
+            id,
+            path,
+            exist: false,
+            icon: None,
+            version: None,
+        });
+    }
     let version = file_version::query_file_version(&path);
+    let icon = extract_icon(&path).map(|x| {
+        let mut buf = Vec::new();
+        x.write_to(&mut Cursor::new(&mut buf), ImageFormat::Png)
+            .unwrap();
+        format!(
+            "data:image/png;base64,{}",
+            general_purpose::STANDARD.encode(&buf)
+        )
+    });
     let name = version
         .as_ref()
         .map(|x| x.product_name.to_owned())
@@ -98,19 +134,11 @@ pub fn file_detail(id: usize) -> Result<FileDetail, String> {
             .flatten())
         .unwrap_or(path.to_owned());
     log::debug!("file path: {}", &path);
-    let icon = extract_icon(&path).map(|x| {
-        let mut buf = Vec::new();
-        x.write_to(&mut Cursor::new(&mut buf), ImageFormat::Png)
-            .unwrap();
-        format!(
-            "data:image/png;base64,{}",
-            general_purpose::STANDARD.encode(&buf)
-        )
-    });
     Ok(FileDetail {
         name,
         id,
         path,
+        exist: true,
         icon,
         version,
     })
@@ -126,13 +154,4 @@ pub async fn set_app_config(config: Config, app_handle: tauri::AppHandle) {
     config.dump(config_file_path());
     Config::set(config);
     refresh_tray_menu(&app_handle);
-}
-
-/// Calculate duration based on app_id.
-pub fn duration_by_id(records: Vec<FocusRecord>) -> HashMap<usize, Millisecond> {
-    let mut map = HashMap::new();
-    for record in records.iter() {
-        *map.entry(record.id).or_insert(Millisecond::ZERO) += record.duration();
-    }
-    map
 }

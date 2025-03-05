@@ -16,11 +16,11 @@ async function readReverse(
   return await invoke("read_reverse", { cursor, count })
 }
 
-async function durationAggregate(
+async function durationById(
   startMillis: number,
   endMillis: number
 ): Promise<Record<number, number>> {
-  return await invoke("duration_aggregate", { startMillis, endMillis })
+  return await invoke("duration_by_id", { startMillis, endMillis })
 }
 
 async function durationByDay(
@@ -29,6 +29,18 @@ async function durationByDay(
   timeZoneOffset: number
 ): Promise<Record<number, number>> {
   return await invoke("duration_by_day", {
+    startMillis,
+    endMillis,
+    timeZoneOffset,
+  })
+}
+
+async function durationByDayId(
+  startMillis: number,
+  endMillis: number,
+  timeZoneOffset: number
+): Promise<Record<number, Record<number, number>>> {
+  return await invoke("duration_by_day_id", {
     startMillis,
     endMillis,
     timeZoneOffset,
@@ -50,8 +62,9 @@ export async function setAppConfig(config: Config): Promise<void> {
 export default {
   rawRecord,
   readReverse,
-  durationAggregate,
+  durationById,
   durationByDay,
+  durationByDayId,
   fileDetail,
   getAppConfig,
   setAppConfig,

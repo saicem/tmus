@@ -19,6 +19,7 @@ export interface FileDetail {
   id: number
   name: string
   path: string
+  exist: boolean
   /**
    * Base64 png
    */

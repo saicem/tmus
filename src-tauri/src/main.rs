@@ -16,8 +16,9 @@ fn main() {
         .setup(app::setup)
         .invoke_handler(tauri::generate_handler![
             cmd::file_detail,
-            cmd::duration_aggregate,
+            cmd::duration_by_id,
             cmd::duration_by_day,
+            cmd::duration_by_day_id,
             cmd::raw_record,
             cmd::read_reverse,
             cmd::get_app_config,

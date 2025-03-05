@@ -12,10 +12,30 @@ appDetail(props.id).then((res) => (detail.value = res))
 
 <template>
   <el-card>
-    <img :src="detail?.icon" alt="" />
-    <h4>
-      {{ detail?.name }}
-    </h4>
+    <el-descriptions :title="detail?.name" border>
+      <el-descriptions-item :rowspan="2" label="Icon" align="center">
+        <el-image :src="detail?.icon" />
+      </el-descriptions-item>
+      <el-descriptions-item label="Id">{{ detail?.id }}</el-descriptions-item>
+      <el-descriptions-item label="Name"
+        >{{ detail?.name }}
+      </el-descriptions-item>
+      <el-descriptions-item label="exist">
+        {{ detail?.exist }}
+      </el-descriptions-item>
+      <el-descriptions-item label="Path"
+        >{{ detail?.path }}
+      </el-descriptions-item>
+      <el-descriptions-item label="productName">
+        {{ detail?.version?.productName }}
+      </el-descriptions-item>
+      <el-descriptions-item label="fileDescription">
+        {{ detail?.version?.fileDescription }}
+      </el-descriptions-item>
+      <el-descriptions-item label="companyName">
+        {{ detail?.version?.companyName }}
+      </el-descriptions-item>
+    </el-descriptions>
   </el-card>
 </template>
 

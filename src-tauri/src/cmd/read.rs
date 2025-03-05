@@ -2,6 +2,15 @@ use crate::engine::data::{CursorPosition, ReadDirection};
 use crate::engine::{data::Millisecond, Engine, FocusRecord};
 use std::cmp::{max, min};
 
+/// Reads all focus records that fall within the specified time range.
+/// If a record not entirely falls inside the time range, it will be trimmed to fit.
+///
+/// # Arguments
+/// - `start_millis`: The start of the time range, inclusive.
+/// - `end_millis`: The end of the time range, inclusive.
+///
+/// # Returns
+/// A vector of `FocusRecord` instances.
 pub fn read_by_timestamp(start_millis: Millisecond, end_millis: Millisecond) -> Vec<FocusRecord> {
     if start_millis >= end_millis {
         return vec![];

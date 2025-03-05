@@ -1,5 +1,5 @@
-import moment, { Duration } from "moment-timezone"
-import cmd from "./cmd"
+import moment, { Duration, Moment } from "moment-timezone"
+import cmd from "@/global/cmd.ts"
 import { FileDetail, FocusData, FocusRecord } from "./data"
 import { config } from "@/global/state.ts"
 
@@ -7,6 +7,9 @@ const exeDetailCache: Map<number, Promise<FileDetail>> = new Map<
   number,
   Promise<FileDetail>
 >()
+
+const minMillis = moment.duration(1, "minute").asMilliseconds()
+const dayMillis = moment.duration(1, "day").asMilliseconds()
 
 export async function readReverse(
   cursor: number | null,
@@ -21,7 +24,7 @@ export async function readReverse(
 export async function todayAppGeneral() {
   const end = moment()
   const start = end.clone().startOf("day")
-  const records = await cmd.durationAggregate(start.valueOf(), end.valueOf())
+  const records = await cmd.durationById(start.valueOf(), end.valueOf())
   const result = Object.entries(records).map(async ([k, v]) => {
     return {
       file: await appDetail(Number.parseInt(k)),
@@ -41,8 +44,6 @@ export async function appDetail(id: number): Promise<FileDetail> {
 }
 
 export async function durationByDayInThisYear() {
-  const dayMillis = moment.duration(1, "day").asMilliseconds()
-  const minMillis = moment.duration(1, "minute").asMilliseconds()
   const end = moment()
   const start = end.clone().startOf("year")
   const offset = end.utcOffset() * minMillis
@@ -60,6 +61,14 @@ export async function durationByDayInThisYear() {
     ret[Number.parseInt(k) - startDay + 1] = moment.duration(v)
   })
   return ret
+}
+
+export async function durationByDayId(start: Moment, end: Moment) {
+  return await cmd.durationByDayId(
+    start.valueOf(),
+    end.valueOf(),
+    end.utcOffset() * minMillis
+  )
 }
 
 export function convertFocusData(data: FocusRecord): FocusData {

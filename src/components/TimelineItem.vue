@@ -1,22 +1,25 @@
 <script setup lang="ts">
-import { FileDetail, FocusData } from "@/global/data.ts"
+import { FileDetail } from "@/global/data.ts"
 import { appDetail } from "@/global/api.ts"
 import { ref } from "vue"
 
+import { Duration } from "moment-timezone"
+
 const props = defineProps<{
-  data: FocusData
+  appId: number
+  duration: Duration
 }>()
 const detail = ref<FileDetail | null>(null)
-appDetail(props.data.id).then((res) => (detail.value = res))
+appDetail(props.appId).then((res) => (detail.value = res))
 </script>
 
 <template>
-  <el-card>
+  <el-card style="height: 100%">
     <img :src="detail?.icon" alt="" />
     <h4>
       {{ detail?.name }}
     </h4>
-    <p>{{ props.data.duration.toISOString() }}</p>
+    <p>{{ props.duration.humanize() }}</p>
   </el-card>
 </template>
 
