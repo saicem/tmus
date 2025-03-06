@@ -21,7 +21,6 @@ defineProps<{
   border-radius: 8px;
   padding: 16px;
   width: fit-content;
-  background: var(--card-bg-color);
   gap: 16px;
   color: var(--font-color);
 }

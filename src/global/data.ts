@@ -39,3 +39,13 @@ export interface FocusData {
   end: Moment
   duration: Duration
 }
+
+export interface DateGroup<T> {
+  moment: Moment
+  data: T[]
+}
+
+export interface AppDuration {
+  app: FileDetail
+  duration: Duration
+}

@@ -1,8 +1,28 @@
 <script setup lang="ts">
-import { ref } from "vue"
+import { ref, watch } from "vue"
+import { AppDuration } from "@/global/data.ts"
+import AppCardGroup from "@/components/AppCardGroup.vue"
+import moment, { Moment } from "moment-timezone"
+import { appDetail, durationById } from "@/global/api.ts"
 
 const appShowStyleSelectValue = ref<"Card" | "Bar">("Card")
 const datetimeRange = ref()
+const data = ref<AppDuration[]>([])
+
+const load = async (startDate: Moment, endDate: Moment) => {
+  console.log("load", startDate, endDate)
+  let result = await durationById(startDate, endDate)
+  data.value = await Promise.all(
+    Object.entries(result).map(async ([k, v]) => {
+      return {
+        app: await appDetail(+k),
+        duration: moment.duration(v),
+      }
+    })
+  )
+}
+
+watch(datetimeRange, ([startDate, endDate]) => load(startDate, endDate))
 
 const shortcuts = [
   {
@@ -79,8 +99,8 @@ const shortcuts = [
       range-separator="To"
       start-placeholder="Start date"
       end-placeholder="End date"
-      onchange="queryData()"
     />
+    <app-card-group v-if="appShowStyleSelectValue == 'Card'" :data="data" />
   </div>
 </template>
 

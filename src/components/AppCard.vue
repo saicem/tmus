@@ -1,16 +1,12 @@
 <script setup lang="ts">
 import { FileDetail } from "@/global/data.ts"
-import { appDetail } from "@/global/api.ts"
-import { ref } from "vue"
-
 import { Duration } from "moment-timezone"
+import { formatDuration } from "@/global/time-util.ts"
 
-const props = defineProps<{
-  appId: number
+defineProps<{
   duration: Duration
+  detail: FileDetail
 }>()
-const detail = ref<FileDetail | null>(null)
-appDetail(props.appId).then((res) => (detail.value = res))
 </script>
 
 <template>
@@ -19,7 +15,7 @@ appDetail(props.appId).then((res) => (detail.value = res))
     <h4>
       {{ detail?.name }}
     </h4>
-    <p>{{ props.duration.humanize() }}</p>
+    <p>{{ formatDuration(duration) }}</p>
   </el-card>
 </template>
 

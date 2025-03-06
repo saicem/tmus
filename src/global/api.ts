@@ -63,6 +63,13 @@ export async function durationByDayInThisYear() {
   return ret
 }
 
+export async function durationById(start: Moment, end: Moment) {
+  return await cmd.durationById(
+    start.valueOf(),
+    end.valueOf()
+  )
+}
+
 export async function durationByDayId(start: Moment, end: Moment) {
   return await cmd.durationByDayId(
     start.valueOf(),

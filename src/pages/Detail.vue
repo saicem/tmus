@@ -16,23 +16,25 @@ appDetail(props.id).then((res) => (detail.value = res))
       <el-descriptions-item :rowspan="2" label="Icon" align="center">
         <el-image :src="detail?.icon" />
       </el-descriptions-item>
-      <el-descriptions-item label="Id">{{ detail?.id }}</el-descriptions-item>
-      <el-descriptions-item label="Name"
-        >{{ detail?.name }}
+      <el-descriptions-item label="Id">
+        {{ detail?.id }}
       </el-descriptions-item>
-      <el-descriptions-item label="exist">
+      <el-descriptions-item label="Name">
+        {{ detail?.name }}
+      </el-descriptions-item>
+      <el-descriptions-item label="Exist">
         {{ detail?.exist }}
       </el-descriptions-item>
-      <el-descriptions-item label="Path"
-        >{{ detail?.path }}
+      <el-descriptions-item label="Path">
+        <el-link> {{ detail?.path }}</el-link>
       </el-descriptions-item>
-      <el-descriptions-item label="productName">
+      <el-descriptions-item label="ProductName">
         {{ detail?.version?.productName }}
       </el-descriptions-item>
-      <el-descriptions-item label="fileDescription">
+      <el-descriptions-item label="FileDescription">
         {{ detail?.version?.fileDescription }}
       </el-descriptions-item>
-      <el-descriptions-item label="companyName">
+      <el-descriptions-item label="CompanyName">
         {{ detail?.version?.companyName }}
       </el-descriptions-item>
     </el-descriptions>

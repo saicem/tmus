@@ -9,18 +9,13 @@ import { durationByDayInThisYear, todayAppGeneral } from "@/global/api.ts"
 import GeneralCard from "@/components/GeneralCard.vue"
 import HeatCalendar from "@/components/HeatCalendar.vue"
 import WeeklyChart from "@/components/WeeklyChart.vue"
+import { formatDuration } from "@/global/time-util.ts"
 
 const duration = ref<Record<number, Duration>>()
 const weeklyDurations = ref<Duration[]>()
 const appCount = ref("0")
 const totalUse = ref("0")
 const mostUse = ref("0")
-
-function formatDuration(duration: Duration): string {
-  let h = duration.hours()
-  let m = duration.minutes()
-  return h > 0 ? `${h}h${m}m` : `${m}m`
-}
 
 durationByDayInThisYear().then((res) => {
   console.log("durationByDayInThisYear", res)

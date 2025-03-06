@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import { computed, ref } from "vue"
-import { durationByDayId } from "@/global/api.ts"
-import TimelineItem from "@/components/TimelineItem.vue"
+import { appDetail, durationByDayId } from "@/global/api.ts"
 import moment, { Moment } from "moment-timezone"
+import { AppDuration, DateGroup } from "@/global/data.ts"
+import AppCardGroup from "@/components/AppCardGroup.vue"
 
 const scrollDisable = computed(() => loading.value || noMore.value)
 const noMore = ref(false)
 const loading = ref(false)
 const nextDate = ref<Moment>(moment())
-const data = ref<{ date: Moment; data: Record<number, number> }[]>([])
+const data = ref<DateGroup<AppDuration>[]>([])
 const millisInDay = 1000 * 60 * 60 * 24
 
 const load = async () => {
@@ -17,16 +18,25 @@ const load = async () => {
   const endDate = nextDate.value
   const startDate = endDate.clone().subtract(1, "week")
   const result = await durationByDayId(startDate, endDate)
-  const ripeResult = Object.entries(result)
-    .sort((a, b) => {
-      return +b[0] - +a[0]
-    })
-    .map(([k, v]) => {
-      return {
-        date: moment(millisInDay * +k),
-        data: v,
-      }
-    })
+  const ripeResult = await Promise.all(
+    Object.entries(result)
+      .sort((a, b) => {
+        return +b[0] - +a[0]
+      })
+      .map(async ([k, v]) => {
+        return {
+          moment: moment(millisInDay * +k),
+          data: await Promise.all(
+            Object.entries(v).map(async ([id, duration]) => {
+              return {
+                app: await appDetail(+id),
+                duration: moment.duration(duration),
+              }
+            })
+          ),
+        }
+      })
+  )
   data.value.push(...ripeResult)
   console.log("data", data)
   // TODO judge no more
@@ -49,20 +59,12 @@ const load = async () => {
   >
     <div>
       <el-timeline-item
-        v-for="({ date: date, data: data }, i) in data"
+        v-for="({ moment: date, data: appData }, i) in data"
         :key="i"
         placement="top"
         :timestamp="date.format('YYYY-MM-DD')"
       >
-        <div style="display: flex; flex-wrap: wrap; gap: 16px">
-          <RouterLink
-            v-for="[id, duration] in Object.entries(data)"
-            :key="id"
-            :to="'/detail/' + id"
-          >
-            <TimelineItem :app-id="+id" :duration="moment.duration(duration)" />
-          </RouterLink>
-        </div>
+        <app-card-group :data="appData" />
       </el-timeline-item>
     </div>
   </el-timeline>
