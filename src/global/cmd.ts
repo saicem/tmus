@@ -51,12 +51,17 @@ async function fileDetail(id: number): Promise<FileDetail> {
   return await invoke("file_detail", { id: id })
 }
 
-async function getAppConfig(): Promise<Config> {
+export async function getAppConfig(): Promise<Config> {
   return await invoke("get_app_config")
 }
 
 export async function setAppConfig(config: Config): Promise<void> {
   return await invoke("set_app_config", { config })
+}
+
+export async function showInFolder(path: string | undefined) {
+  if (!path) return
+  return await invoke("show_in_folder", { path })
 }
 
 export default {
@@ -66,6 +71,4 @@ export default {
   durationByDay,
   durationByDayId,
   fileDetail,
-  getAppConfig,
-  setAppConfig,
 }

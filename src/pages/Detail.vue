@@ -2,6 +2,7 @@
 import { FileDetail } from "@/global/data.ts"
 import { appDetail } from "@/global/api.ts"
 import { ref } from "vue"
+import { showInFolder } from "@/global/cmd.ts"
 
 const props = defineProps<{
   id: number
@@ -26,7 +27,9 @@ appDetail(props.id).then((res) => (detail.value = res))
         {{ detail?.exist }}
       </el-descriptions-item>
       <el-descriptions-item label="Path">
-        <el-link> {{ detail?.path }}</el-link>
+        <el-link @click="showInFolder(detail?.path)">
+          {{ detail?.path }}
+        </el-link>
       </el-descriptions-item>
       <el-descriptions-item label="ProductName">
         {{ detail?.version?.productName }}

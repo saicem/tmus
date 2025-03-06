@@ -1,5 +1,5 @@
 import moment, { Duration, Moment } from "moment-timezone"
-import cmd from "@/global/cmd.ts"
+import cmd, { getAppConfig } from "@/global/cmd.ts"
 import { FileDetail, FocusData, FocusRecord } from "./data"
 import { config } from "@/global/state.ts"
 
@@ -64,10 +64,7 @@ export async function durationByDayInThisYear() {
 }
 
 export async function durationById(start: Moment, end: Moment) {
-  return await cmd.durationById(
-    start.valueOf(),
-    end.valueOf()
-  )
+  return await cmd.durationById(start.valueOf(), end.valueOf())
 }
 
 export async function durationByDayId(start: Moment, end: Moment) {
@@ -88,5 +85,5 @@ export function convertFocusData(data: FocusRecord): FocusData {
 }
 
 export async function reloadConfig() {
-  config.value = await cmd.getAppConfig()
+  config.value = await getAppConfig()
 }
