@@ -4,7 +4,6 @@ use super::data::OptimizeStorageOptions;
 use super::file_app::FileApp;
 use super::file_index::FileIndex;
 use super::FocusRecord;
-use crate::app::constant::THRESHOLD;
 use crate::engine::data::{CursorPosition, EngineState, FocusEvent, Millisecond, ReadDirection};
 use crate::engine::file_record::FileRecord;
 use crate::engine::monitor::regularly_get_current_window;
@@ -69,6 +68,11 @@ impl Engine {
                 );
 
                 if cur_focus.focus_at - last_receive > INVALID_INTERVAL_BOUND {
+                    Engine::write_record(
+                        &last_focus.app_path,
+                        last_focus.focus_at,
+                        last_receive,
+                    );
                     last_receive = cur_focus.focus_at;
                     last_focus = cur_focus;
                     log::info!("Ignore invalid foreground change event. {:?}", last_focus);
@@ -79,16 +83,12 @@ impl Engine {
                 if cur_focus.app_path == last_focus.app_path {
                     continue;
                 }
-                // Only record beyond threshold can be storied.
-                if last_focus.app_path != String::default()
-                    && cur_focus.focus_at - THRESHOLD > last_focus.focus_at
-                {
-                    Engine::write_record(
-                        &last_focus.app_path,
-                        last_focus.focus_at,
-                        cur_focus.focus_at,
-                    );
-                }
+
+                Engine::write_record(
+                    &last_focus.app_path,
+                    last_focus.focus_at,
+                    cur_focus.focus_at,
+                );
                 last_focus = cur_focus;
             }
         });
@@ -125,8 +125,8 @@ impl Engine {
     pub(crate) fn on_focus(process_path: &str) {
         let engine = ENGINE.get().unwrap();
         match engine.status {
-            EngineState::Running => engine.add_record_to_queue(process_path),
-            EngineState::Busy => engine.add_record_to_queue(process_path),
+            EngineState::Running => engine.push_record(process_path),
+            EngineState::Busy => engine.push_record(process_path),
             EngineState::Suspended => {
                 log::info!(
                     "Receive focus event when suspended, process path: {}",
@@ -189,7 +189,33 @@ impl Engine {
         (records.into_iter().map(|x| x.into()).collect(), ret_cursor)
     }
 
+    pub fn get_id_by_path(path: &str) -> AppId {
+        let engine = ENGINE.get().unwrap();
+        engine.file_app.get_id_by_path(path)
+    }
+
+    pub fn get_path_by_id(id: AppId) -> Result<String, EngineError> {
+        let engine = ENGINE.get().unwrap();
+        Ok(engine.file_app.get_path_by_id(id).to_owned())
+    }
+
+    fn push_record(&self, process_path: &str) {
+        let focus_at = Millisecond::now();
+        SENDER
+            .get()
+            .unwrap()
+            .send(FocusEvent {
+                app_path: process_path.to_owned(),
+                focus_at,
+            })
+            .unwrap();
+    }
+
     fn write_record(process_path: &str, focus_at: Millisecond, blur_at: Millisecond) {
+        if process_path == String::default() || focus_at >= blur_at {
+            return;
+        }
+
         let app_id = Engine::get_id_by_path(&process_path);
         let record = FocusRecord {
             id: app_id,
@@ -204,27 +230,5 @@ impl Engine {
                 .file_index
                 .update_index(sub_record.focus_at.as_days() as u64, index)
         }
-    }
-
-    pub fn get_id_by_path(path: &str) -> AppId {
-        let engine = ENGINE.get().unwrap();
-        engine.file_app.get_id_by_path(path)
-    }
-
-    pub fn get_path_by_id(id: AppId) -> Result<String, EngineError> {
-        let engine = ENGINE.get().unwrap();
-        Ok(engine.file_app.get_path_by_id(id).to_owned())
-    }
-
-    fn add_record_to_queue(&self, process_path: &str) {
-        let focus_at = Millisecond::now();
-        SENDER
-            .get()
-            .unwrap()
-            .send(FocusEvent {
-                app_path: process_path.to_owned(),
-                focus_at,
-            })
-            .unwrap();
     }
 }
