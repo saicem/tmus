@@ -1,10 +1,3 @@
-use std::fmt::Debug;
-use std::path::PathBuf;
-use std::sync::mpsc::channel;
-use std::sync::mpsc::Sender;
-use std::sync::OnceLock;
-use std::thread;
-
 use super::data::AppId;
 use super::data::EngineError;
 use super::data::OptimizeStorageOptions;
@@ -14,7 +7,15 @@ use super::FocusRecord;
 use crate::app::constant::THRESHOLD;
 use crate::engine::data::{CursorPosition, EngineState, FocusEvent, Millisecond, ReadDirection};
 use crate::engine::file_record::FileRecord;
+use crate::engine::monitor::regularly_get_current_window;
 use log;
+use std::fmt::Debug;
+use std::path::PathBuf;
+use std::sync::mpsc::channel;
+use std::sync::mpsc::Sender;
+use std::sync::OnceLock;
+use std::thread;
+use std::time::Duration;
 
 /// This engine is designed to allow for accuracy loss.
 /// The record with duration less than threshold (set in start function) will be discarded.
@@ -36,6 +37,11 @@ impl Debug for Engine {
 static ENGINE: OnceLock<Engine> = OnceLock::new();
 static SENDER: OnceLock<Sender<FocusEvent>> = OnceLock::new();
 
+/// Check the current window every 1 minute
+static REGULARLY_GET_CURRENT_WINDOW_INTERVAL: Duration = Duration::from_secs(1 * 60);
+/// If foreground change event interval above this threshold, it's invalid.
+static INVALID_INTERVAL_BOUND: Millisecond = Millisecond::from_secs(3 * 60);
+
 impl Engine {
     pub fn init(data_dir: &PathBuf) {
         let engine = Engine::new(data_dir);
@@ -49,6 +55,7 @@ impl Engine {
         SENDER.set(sender).unwrap();
 
         thread::spawn(move || {
+            let mut last_receive = Millisecond::ZERO;
             let mut last_focus = FocusEvent {
                 app_path: String::default(),
                 focus_at: Millisecond::MAX,
@@ -60,6 +67,15 @@ impl Engine {
                     last_focus,
                     cur_focus
                 );
+
+                if cur_focus.focus_at - last_receive > INVALID_INTERVAL_BOUND {
+                    last_receive = cur_focus.focus_at;
+                    last_focus = cur_focus;
+                    log::info!("Ignore invalid foreground change event. {:?}", last_focus);
+                    continue;
+                }
+                last_receive = cur_focus.focus_at;
+
                 if cur_focus.app_path == last_focus.app_path {
                     continue;
                 }
@@ -76,6 +92,7 @@ impl Engine {
                 last_focus = cur_focus;
             }
         });
+        regularly_get_current_window(REGULARLY_GET_CURRENT_WINDOW_INTERVAL);
     }
 
     fn new(data_dir: &PathBuf) -> Engine {
@@ -198,6 +215,7 @@ impl Engine {
         let engine = ENGINE.get().unwrap();
         Ok(engine.file_app.get_path_by_id(id).to_owned())
     }
+
     fn add_record_to_queue(&self, process_path: &str) {
         let focus_at = Millisecond::now();
         SENDER

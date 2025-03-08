@@ -1,4 +1,7 @@
+use crate::engine::engine::Engine;
 use log;
+use std::time::Duration;
+use tokio::time;
 use windows::core::Result;
 use windows::core::PWSTR;
 use windows::Win32::Foundation::*;
@@ -6,7 +9,17 @@ use windows::Win32::System::Threading::*;
 use windows::Win32::UI::Accessibility::SetWinEventHook;
 use windows::Win32::UI::Accessibility::HWINEVENTHOOK;
 use windows::Win32::UI::WindowsAndMessaging::*;
-use crate::engine::engine::Engine;
+
+pub fn regularly_get_current_window(interval: Duration) {
+    tauri::async_runtime::spawn(async move {
+        let mut interval = time::interval(interval);
+        loop {
+            interval.tick().await;
+            let hwnd = unsafe { GetForegroundWindow() };
+            on_window_focus(&hwnd);
+        }
+    });
+}
 
 pub fn set_event_hook() {
     log::info!("Set foreground change event hook");
@@ -33,10 +46,13 @@ unsafe extern "system" fn on_foreground_changed(
     _: u32,
     _: u32,
 ) {
+    on_window_focus(&hwnd);
+}
 
-    match process_path(&hwnd) {
+fn on_window_focus(hwnd: &HWND) {
+    match get_process_path_from_hwnd(&hwnd) {
         Ok(process_path) => {
-            log::info!("foreground change: {}", &process_path);
+            log::info!("On window focus: {}", &process_path);
             Engine::on_focus(&process_path);
         }
         Err(e) => {
@@ -48,7 +64,7 @@ unsafe extern "system" fn on_foreground_changed(
 /// Get the path of the process.
 /// Here are some probabilities of failure:
 /// - The process just exited, couldn't open the process.
-pub fn process_path(hwnd: &HWND) -> Result<String> {
+pub fn get_process_path_from_hwnd(hwnd: &HWND) -> Result<String> {
     let mut text: [u16; 1024] = [0; 1024];
     let mut process_name_length: u32 = 1024;
     let mut process_id: u32 = 0;
