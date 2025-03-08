@@ -10,7 +10,7 @@ use windows::Win32::UI::Accessibility::SetWinEventHook;
 use windows::Win32::UI::Accessibility::HWINEVENTHOOK;
 use windows::Win32::UI::WindowsAndMessaging::*;
 
-pub fn regularly_get_current_window(interval: Duration) {
+pub fn loop_get_current_window(interval: Duration) {
     tauri::async_runtime::spawn(async move {
         let mut interval = time::interval(interval);
         loop {
@@ -56,7 +56,7 @@ fn on_window_focus(hwnd: &HWND) {
             Engine::on_focus(&process_path);
         }
         Err(e) => {
-            log::error!("Error getting process path: {}", e);
+            log::error!("Error, can't get process path: {}", e);
         }
     }
 }

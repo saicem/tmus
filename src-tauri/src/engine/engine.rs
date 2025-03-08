@@ -1,12 +1,12 @@
 use super::data::AppId;
 use super::data::EngineError;
-use super::data::OptimizeStorageOptions;
+use super::data::OptimizeStorageOption;
 use super::file_app::FileApp;
 use super::file_index::FileIndex;
 use super::FocusRecord;
 use crate::engine::data::{CursorPosition, EngineState, FocusEvent, Millisecond, ReadDirection};
 use crate::engine::file_record::FileRecord;
-use crate::engine::monitor::regularly_get_current_window;
+use crate::engine::monitor::loop_get_current_window;
 use log;
 use std::fmt::Debug;
 use std::path::PathBuf;
@@ -37,7 +37,7 @@ static ENGINE: OnceLock<Engine> = OnceLock::new();
 static SENDER: OnceLock<Sender<FocusEvent>> = OnceLock::new();
 
 /// Check the current window every 1 minute
-static REGULARLY_GET_CURRENT_WINDOW_INTERVAL: Duration = Duration::from_secs(1 * 60);
+static LOOP_GET_CURRENT_WINDOW_INTERVAL: Duration = Duration::from_secs(1 * 60);
 /// If foreground change event interval above this threshold, it's invalid.
 static INVALID_INTERVAL_BOUND: Millisecond = Millisecond::from_secs(3 * 60);
 
@@ -68,14 +68,13 @@ impl Engine {
                 );
 
                 if cur_focus.focus_at - last_receive > INVALID_INTERVAL_BOUND {
-                    Engine::write_record(
-                        &last_focus.app_path,
-                        last_focus.focus_at,
-                        last_receive,
-                    );
+                    Engine::write_record(&last_focus.app_path, last_focus.focus_at, last_receive);
                     last_receive = cur_focus.focus_at;
                     last_focus = cur_focus;
-                    log::info!("Ignore invalid foreground change event. {:?}", last_focus);
+                    log::info!(
+                        "New window focus event timeout. Last receive at {:?}",
+                        last_receive
+                    );
                     continue;
                 }
                 last_receive = cur_focus.focus_at;
@@ -92,7 +91,7 @@ impl Engine {
                 last_focus = cur_focus;
             }
         });
-        regularly_get_current_window(REGULARLY_GET_CURRENT_WINDOW_INTERVAL);
+        loop_get_current_window(LOOP_GET_CURRENT_WINDOW_INTERVAL);
     }
 
     fn new(data_dir: &PathBuf) -> Engine {
@@ -116,7 +115,7 @@ impl Engine {
     }
 
     /// Not implement
-    fn optimize_storage(&mut self, config: OptimizeStorageOptions) {
+    fn optimize_storage(&mut self, config: OptimizeStorageOption) {
         self.suspend();
         let _ = config;
         self.resume();

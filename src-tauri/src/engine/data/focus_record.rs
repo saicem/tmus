@@ -1,7 +1,7 @@
 use serde::Serialize;
 use std::fmt::Debug;
 
-use super::data::Millisecond;
+use crate::engine::data::Millisecond;
 
 const DURATION_MAX: Millisecond = Millisecond::from_secs(u16::MAX as i64);
 

@@ -8,7 +8,7 @@ use super::millisecond::Millisecond;
 /// * `remove_apps`: The ids of apps which records should be removed.
 /// * `start_time`: The start time of the time period which records should be kept.
 /// * `end_time`: The end time of the time period which records should be kept.
-pub struct OptimizeStorageOptions {
+pub struct OptimizeStorageOption {
     keep_apps: Vec<usize>,
     remove_apps: Vec<usize>,
     start_time: Millisecond,

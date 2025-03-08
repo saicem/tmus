@@ -25,7 +25,7 @@ use windows::Win32::UI::WindowsAndMessaging::ICONINFOEXW;
 use windows::Win32::UI::WindowsAndMessaging::{DestroyIcon, PrivateExtractIconsW};
 
 pub fn extract_icon(exe_path: &str) -> Option<RgbaImage> {
-    let hicon = unsafe { extract_hicon(exe_path) };
+    let hicon = extract_hicon(exe_path);
     if hicon.is_none() {
         extract_icon_classic(exe_path)
     } else {
@@ -33,64 +33,67 @@ pub fn extract_icon(exe_path: &str) -> Option<RgbaImage> {
     }
 }
 
-unsafe fn extract_hicon(exe_path: &str) -> Option<HICON> {
+fn extract_hicon(exe_path: &str) -> Option<HICON> {
     let mut path_vec: Vec<u16> = exe_path.encode_utf16().collect();
     path_vec.resize_with(260, || 0);
     let path_arr: [u16; 260] = path_vec.try_into().unwrap();
-    let mut num_icons_total = PrivateExtractIconsW(&path_arr, -1, 256, 256, None, None, 0);
+    let mut num_icons_total =
+        unsafe { PrivateExtractIconsW(&path_arr, -1, 256, 256, None, None, 0) };
     if num_icons_total == 0 {
         return None;
     }
     num_icons_total = 0;
     let mut icons = vec![HICON::default(); num_icons_total as usize];
-    let _ = PrivateExtractIconsW(
-        &path_arr,
-        0,
-        256,
-        256,
-        Some(&mut icons),
-        Some(&mut num_icons_total),
-        0,
-    );
+    let _ = unsafe {
+        PrivateExtractIconsW(
+            &path_arr,
+            0,
+            256,
+            256,
+            Some(&mut icons),
+            Some(&mut num_icons_total),
+            0,
+        )
+    };
     icons.into_iter().next()
 }
 
 fn extract_icon_classic(exe_path: &str) -> Option<RgbaImage> {
-    unsafe {
-        let path = &HSTRING::from(exe_path);
-        let num_icons_total = ExtractIconExW(path, -1, None, None, 0);
-        if num_icons_total == 0 {
-            return None;
-        }
-        let mut large_icons = vec![HICON::default(); num_icons_total as usize];
-        let mut small_icons = vec![HICON::default(); num_icons_total as usize];
-        let num_icons_fetched = ExtractIconExW(
+    let path = &HSTRING::from(exe_path);
+    let num_icons_total = unsafe { ExtractIconExW(path, -1, None, None, 0) };
+    if num_icons_total == 0 {
+        return None;
+    }
+    let mut large_icons = vec![HICON::default(); num_icons_total as usize];
+    let mut small_icons = vec![HICON::default(); num_icons_total as usize];
+    let num_icons_fetched = unsafe {
+        ExtractIconExW(
             path,
             0,
             Some(large_icons.as_mut_ptr()),
             Some(small_icons.as_mut_ptr()),
             num_icons_total,
-        );
+        )
+    };
 
-        if num_icons_fetched == 0 {
-            return None;
-        }
-
-        let images = large_icons
-            .iter()
-            .chain(small_icons.iter())
-            .map(|icon| hicon_to_image(icon))
-            .filter_map(|r| match r {
-                Ok(img) => Some(img),
-                Err(e) => {
-                    eprintln!("Failed to convert HICON to RgbaImage: {:?}", e);
-                    None
-                }
-            })
-            .collect_vec();
-
-        images.into_iter().next()
+    if num_icons_fetched == 0 {
+        return None;
     }
+
+    let images = large_icons
+        .iter()
+        .chain(small_icons.iter())
+        .map(|icon| hicon_to_image(icon))
+        .filter_map(|r| match r {
+            Ok(img) => Some(img),
+            Err(e) => {
+                eprintln!("Failed to convert HICON to RgbaImage: {:?}", e);
+                None
+            }
+        })
+        .collect_vec();
+
+    images.into_iter().next()
 }
 
 fn hicon_to_image(hicon: &HICON) -> Result<RgbaImage, String> {
@@ -187,7 +190,7 @@ fn bgra_to_rgba(data: &mut [u8]) {
 
 #[cfg(test)]
 mod tests {
-    use crate::util::icon::extract_icon;
+    use crate::util::extract_icon::extract_icon;
 
     #[test]
     fn test_convert_hicon_to_rgba_image() {

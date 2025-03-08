@@ -24,7 +24,7 @@ pub struct FileVersion {
     pub special_build: Option<String>,
 }
 
-pub fn query_file_version(path: &str) -> Option<FileVersion> {
+pub fn get_file_version(path: &str) -> Option<FileVersion> {
     unsafe {
         let size = GetFileVersionInfoSizeW(&HSTRING::from(path), None) as usize;
         if size == 0 {

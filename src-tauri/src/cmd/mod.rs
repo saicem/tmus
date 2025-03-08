@@ -1,24 +1,23 @@
 use crate::app::constant::config_file_path;
 use crate::app::refresh_tray_menu;
+use crate::cmd::data::FileDetail;
 use crate::cmd::duration_calculate_helper::{group_by_day, group_by_day_id, group_by_id};
 use crate::config::Config;
 use crate::engine::data::{AppId, Millisecond};
 use crate::engine::{Engine, FocusRecord};
-use crate::util::file_version;
-use crate::util::icon::extract_icon;
+use crate::util;
 use base64::engine::general_purpose;
 use base64::Engine as OtherEngine;
-use file_detail::FileDetail;
 use image::ImageFormat;
 use log::info;
-use read::read_by_timestamp;
+use read_helper::read_by_timestamp;
 use std::collections::{BTreeMap, HashMap};
 use std::io::Cursor;
 use std::path::Path;
 
+mod data;
 mod duration_calculate_helper;
-mod file_detail;
-mod read;
+mod read_helper;
 
 #[tauri::command]
 pub fn raw_record(
@@ -33,7 +32,7 @@ pub fn read_reverse(
     cursor: Option<u64>,
     count: u64,
 ) -> Result<(Vec<FocusRecord>, Option<u64>), String> {
-    Ok(read::read_reverse(cursor, count))
+    Ok(read_helper::read_reverse(cursor, count))
 }
 
 #[tauri::command]
@@ -114,8 +113,8 @@ pub fn file_detail(id: usize) -> Result<FileDetail, String> {
             version: None,
         });
     }
-    let version = file_version::query_file_version(&path);
-    let icon = extract_icon(&path).map(|x| {
+    let version = util::get_file_version(&path);
+    let icon = util::extract_icon(&path).map(|x| {
         let mut buf = Vec::new();
         x.write_to(&mut Cursor::new(&mut buf), ImageFormat::Png)
             .unwrap();
@@ -154,4 +153,9 @@ pub async fn set_app_config(config: Config, app_handle: tauri::AppHandle) {
     config.dump(config_file_path());
     Config::set(config);
     refresh_tray_menu(&app_handle);
+}
+
+#[tauri::command]
+pub async fn show_in_folder(path: String) -> Result<(), String> {
+    Ok(util::show_in_folder(path))
 }

@@ -11,9 +11,9 @@ use std::os::windows::fs::OpenOptionsExt;
 use std::path::PathBuf;
 use std::sync::Mutex;
 
+use crate::engine::data::focus_record::RecordByte;
 use crate::engine::data::{CursorPosition, ReadDirection};
-use crate::engine::focus_record::RecordByte;
-use log::debug;
+use log;
 use windows::Win32::Storage::FileSystem::FILE_SHARE_READ;
 
 const RECORD_SIZE: usize = size_of::<RecordByte>();
@@ -40,7 +40,7 @@ impl FileRecord {
         let mut file = self.file.lock().unwrap();
         file.write(&record).unwrap();
         file.flush().unwrap();
-        debug!(
+        log::debug!(
             "write record:{}",
             record
                 .iter()
@@ -61,9 +61,11 @@ impl FileRecord {
         }
         let mut file = self.file.lock().unwrap();
         let (start, end) = compute_read_range(&mut file, cursor, quantity, direction);
-        debug!(
+        log::debug!(
             "Read by cursor, start:{}, end:{}, count:{}",
-            start, end, quantity
+            start,
+            end,
+            quantity
         );
         let mut ret = read(&mut file, start, end);
         if direction == ReadDirection::Backward {

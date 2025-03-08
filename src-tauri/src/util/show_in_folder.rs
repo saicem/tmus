@@ -3,9 +3,7 @@ use fork::{daemon, Fork};
 use std::process::Command;
 #[cfg(target_os = "linux")]
 use std::{fs::metadata, path::PathBuf};
-// dep: fork = "0.1"
 
-#[tauri::command]
 pub fn show_in_folder(path: String) {
     #[cfg(target_os = "windows")]
     {

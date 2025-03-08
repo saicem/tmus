@@ -23,7 +23,7 @@ fn main() {
             cmd::read_reverse,
             cmd::get_app_config,
             cmd::set_app_config,
-            util::show_in_folder::show_in_folder
+            cmd::show_in_folder,
         ])
         .build(tauri::generate_context!())
         .expect("Error while building application");
