@@ -1,30 +1,23 @@
 <script setup lang="ts">
 import moment, { Duration } from "moment"
-import { computed } from "vue"
+import { formatDuration } from "../global/time-util.ts"
 
-const props = defineProps<{
+defineProps<{
   dayOfYear: number
   duration: Duration
 }>()
-
-const hours = computed(() => {
-  return props.duration.hours()
-})
-const minutes = computed(() => {
-  return props.duration.minutes()
-})
 </script>
 
 <template>
   <el-tooltip :show-after="200" :hide-after="200">
     <template #content>
       <div style="text-align: center">
-        {{ `${moment().dayOfYear(props.dayOfYear).format("yyyy-MM-DD")} ` }}
-        <br />{{ `${hours > 0 ? `${hours}h ${minutes}min` : `${minutes}min`}` }}
+        {{ `${moment().dayOfYear(dayOfYear).format("yyyy-MM-DD")} ` }}
+        <br />{{ formatDuration(duration) }}
       </div>
     </template>
     <div
-      :data-tag="Math.min(4, Math.ceil(props.duration.asHours() / 4))"
+      :data-tag="Math.min(4, Math.ceil(duration.asHours() / 4))"
       class="block-unit"
     ></div>
   </el-tooltip>

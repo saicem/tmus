@@ -59,7 +59,7 @@ impl Config {
             .unwrap();
         let mut buf = String::new();
         file.read_to_string(&mut buf).unwrap();
-        serde_json::from_str(&buf).unwrap()
+        serde_json::from_str(&buf).unwrap_or(Config::default())
     }
 
     pub fn dump<P: AsRef<Path>>(&self, file_path: P) {

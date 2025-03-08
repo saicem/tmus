@@ -40,11 +40,11 @@ const load = async () => {
   data.value.push(...ripeResult)
   console.log("data", data)
   // TODO judge no more
-  // if (newCursor === null) {
-  //   console.log("no more data")
-  //   noMore.value = true
-  //   return
-  // }
+  if (!ripeResult || ripeResult.length == 0) {
+    console.log("no more data")
+    noMore.value = true
+    return
+  }
   nextDate.value = startDate.clone().subtract(1, "day")
   loading.value = false
 }
