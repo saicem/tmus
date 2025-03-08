@@ -51,7 +51,7 @@ todayAppGeneral().then((res) => {
 
 <template>
   <div style="display: flex; flex-direction: column; row-gap: 16px">
-    <div class="cards">
+    <div class="cards no-select">
       <GeneralCard
         :icon="app"
         :content="appCount + i18n.homePage.appsUnit"

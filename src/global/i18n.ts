@@ -32,6 +32,15 @@ type I18nMessageType = {
     themeLight: string
     themeDark: string
   }
+  detailPage: {
+    icon: string
+    exist: string
+    name: string
+    filePath: string
+    productName: string
+    fileDescription: string
+    companyName: string
+  }
 }
 
 const messages: Record<LanguageConfig, I18nMessageType> = {
@@ -70,6 +79,15 @@ const messages: Record<LanguageConfig, I18nMessageType> = {
       themeLight: "Light",
       themeDark: "Dark",
     },
+    detailPage: {
+      icon: "Icon",
+      exist: "Exist",
+      name: "Name",
+      filePath: "FilePath",
+      productName: "ProductName",
+      fileDescription: "FileDescription",
+      companyName: "CompanyName",
+    },
   },
   zh: {
     navigateMenu: {
@@ -97,6 +115,15 @@ const messages: Record<LanguageConfig, I18nMessageType> = {
       themeSystem: "系统",
       themeLight: "浅色",
       themeDark: "深色",
+    },
+    detailPage: {
+      icon: "图标",
+      exist: "文件存在",
+      name: "名称",
+      filePath: "文件路径",
+      productName: "产品名称",
+      fileDescription: "文件描述",
+      companyName: "公司名称",
     },
   },
 }

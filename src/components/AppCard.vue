@@ -10,12 +10,35 @@ defineProps<{
 </script>
 
 <template>
-  <el-card style="height: 100%">
-    <img :src="detail?.icon" alt="" />
-    <h4>
-      {{ detail?.name }}
-    </h4>
-    <p>{{ formatDuration(duration) }}</p>
+  <el-card>
+    <div
+      style="
+        height: 140px;
+        width: 140px;
+        flex: auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+      "
+    >
+      <div>
+        <el-image style="width: 64px; height: 64px" :src="detail?.icon ?? ''" />
+      </div>
+      <p
+        style="
+          overflow: hidden;
+          white-space: nowrap;
+          text-overflow: ellipsis;
+          width: 100%;
+          font-weight: bold;
+          text-align: center;
+        "
+      >
+        {{ detail?.name }}
+      </p>
+      <p style="color: var(--accent-color-1)">{{ formatDuration(duration) }}</p>
+    </div>
   </el-card>
 </template>
 

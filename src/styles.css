@@ -34,7 +34,7 @@
   --base-color-3: #2b2b2b;
 }
 
-* {
+.no-select {
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
