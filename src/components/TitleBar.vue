@@ -1,8 +1,5 @@
 <script setup lang="ts">
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow"
-import minimize from "@/assets/title-bar/minimize.svg"
-import maximize from "@/assets/title-bar/maximize.svg"
-import close from "@/assets/title-bar/close.svg"
 
 const appWindow = getCurrentWebviewWindow()
 </script>
@@ -12,19 +9,47 @@ const appWindow = getCurrentWebviewWindow()
     <span></span>
     <div class="title-bar-button-box">
       <div class="title-bar-button" @click="appWindow.minimize">
-        <img :src="minimize" alt="minimize" />
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="1em"
+          height="1em"
+          viewBox="0 0 24 24"
+        >
+          <path class="title-bar-icon" d="M20 14H4v-4h16" />
+        </svg>
       </div>
       <div class="title-bar-button" @click="appWindow.toggleMaximize">
-        <img :src="maximize" alt="maximize" />
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="1em"
+          height="1em"
+          viewBox="0 0 24 24"
+        >
+          <path class="title-bar-icon" d="M4 4h16v16H4zm2 4v10h12V8z" />
+        </svg>
       </div>
       <div class="title-bar-button" @click="appWindow.close">
-        <img :src="close" alt="close" />
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="1em"
+          height="1em"
+          viewBox="0 0 24 24"
+        >
+          <path
+            class="title-bar-icon"
+            d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12z"
+          />
+        </svg>
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
+.title-bar-icon {
+  fill: var(--font-color-bold);
+}
+
 .title-bar {
   height: 32px;
   user-select: none;
