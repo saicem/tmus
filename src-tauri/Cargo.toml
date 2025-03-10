@@ -1,6 +1,6 @@
 [package]
 name = "tmus"
-version = "0.0.0"
+version = "0.1.0"
 description = "tmus"
 authors = ["saicem"]
 repository = "https://github.com/saicem/tmus.git"
@@ -15,18 +15,20 @@ tauri-build = { version = "2", features = [] }
 tauri = { version = "2", features = ["tray-icon"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-windows = { version = "0.58.0", features = [
+windows = { version = "0.60.0", features = [
     "Win32",
-    "Win32_UI_Shell",
     "Win32_Foundation",
     "Win32_Graphics_Gdi",
-    "Win32_UI_WindowsAndMessaging",
-    "Win32_UI_Accessibility",
-    "Win32_System_SystemServices",
     "Win32_System_LibraryLoader",
-    "Win32_Storage_FileSystem",
+    "Win32_System_SystemServices",
     "Win32_System_Threading",
+    "Win32_System_Pipes",
+    "Win32_System_IO",
     "Win32_Security",
+    "Win32_Storage_FileSystem",
+    "Win32_UI_Accessibility",
+    "Win32_UI_Shell",
+    "Win32_UI_WindowsAndMessaging",
 ] }
 log = "0.4"
 dirs-next = "2.0.0"
@@ -35,7 +37,7 @@ base64 = "0.22"
 itertools = "0.14.0"
 tauri-plugin-shell = "2"
 tauri-plugin-log = "2"
-tokio = {version = "1.44.0", features = ["full"] }
+tokio = { version = "1.44.0", features = ["full"] }
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem

@@ -10,7 +10,6 @@ use std::arch::x86_64::_mm_setr_epi8;
 use std::arch::x86_64::_mm_shuffle_epi8;
 use std::arch::x86_64::_mm_storeu_si128;
 use windows::core::{Error, HSTRING};
-use windows::Win32::Graphics::Gdi::CreateCompatibleDC;
 use windows::Win32::Graphics::Gdi::DeleteDC;
 use windows::Win32::Graphics::Gdi::DeleteObject;
 use windows::Win32::Graphics::Gdi::GetDIBits;
@@ -18,6 +17,7 @@ use windows::Win32::Graphics::Gdi::SelectObject;
 use windows::Win32::Graphics::Gdi::BITMAPINFO;
 use windows::Win32::Graphics::Gdi::BITMAPINFOHEADER;
 use windows::Win32::Graphics::Gdi::DIB_RGB_COLORS;
+use windows::Win32::Graphics::Gdi::{CreateCompatibleDC, HGDIOBJ};
 use windows::Win32::UI::Shell::ExtractIconExW;
 use windows::Win32::UI::WindowsAndMessaging::GetIconInfoExW;
 use windows::Win32::UI::WindowsAndMessaging::HICON;
@@ -115,8 +115,8 @@ fn hicon_to_image(hicon: &HICON) -> Result<RgbaImage, String> {
         }
 
         let hdc_screen = CreateCompatibleDC(None);
-        let hdc_mem = CreateCompatibleDC(hdc_screen);
-        let hbm_old = SelectObject(hdc_mem, icon_info.hbmColor);
+        let hdc_mem = CreateCompatibleDC(Some(hdc_screen));
+        let hbm_old = SelectObject(hdc_mem, HGDIOBJ::from(icon_info.hbmColor));
 
         let mut bmp_info = BITMAPINFO {
             bmiHeader: BITMAPINFOHEADER {
@@ -156,8 +156,8 @@ fn hicon_to_image(hicon: &HICON) -> Result<RgbaImage, String> {
         SelectObject(hdc_mem, hbm_old);
         let _ = DeleteDC(hdc_mem);
         let _ = DeleteDC(hdc_screen);
-        let _ = DeleteObject(icon_info.hbmColor);
-        let _ = DeleteObject(icon_info.hbmMask);
+        let _ = DeleteObject(HGDIOBJ::from(icon_info.hbmColor));
+        let _ = DeleteObject(HGDIOBJ::from(icon_info.hbmMask));
 
         bgra_to_rgba(buffer.as_mut_slice());
 

@@ -34,7 +34,7 @@ pub fn get_file_version(path: &str) -> Option<FileVersion> {
         let mut buffer: Vec<u16> = vec![0; size];
         GetFileVersionInfoW(
             &HSTRING::from(path),
-            0,
+            Some(0),
             buffer.len() as u32,
             buffer.as_mut_ptr() as _,
         )

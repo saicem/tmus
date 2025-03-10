@@ -1,7 +1,7 @@
 use crate::app::constant::{config_file_path, data_dir};
 use crate::app::tray::tray;
 use crate::config::Config;
-use crate::engine;
+use crate::{app, engine};
 use std::fs;
 use std::path::PathBuf;
 use tauri::Manager;
@@ -22,6 +22,7 @@ fn init_config() {
 
 pub fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     let app_handle = app.app_handle();
+    app::global::APP_HANDLE.set(app_handle.to_owned()).unwrap();
     init_data_dir();
     init_config();
     tray(app_handle).expect("Error while initializing tray");

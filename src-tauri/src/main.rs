@@ -10,6 +10,7 @@ mod engine;
 mod util;
 
 fn main() {
+    tauri::async_runtime::block_on(util::force_singleton());
     let app = tauri::Builder::default()
         .plugin(tauri_plugin_log::Builder::new().build())
         .plugin(tauri_plugin_shell::init())
