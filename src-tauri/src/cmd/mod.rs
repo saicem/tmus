@@ -89,7 +89,7 @@ pub fn duration_by_day_id(
 /// - A `FileDetail` struct with the file's name, id, path, icon, and version information.
 /// - A `String` containing an error message if the file details cannot be retrieved.
 #[tauri::command]
-pub fn file_detail(id: usize) -> Result<FileDetail, String> {
+pub async fn file_detail(id: usize) -> Result<FileDetail, String> {
     let path = Engine::get_path_by_id(id).unwrap();
     if !Path::new(&path).exists() {
         return Ok(FileDetail {

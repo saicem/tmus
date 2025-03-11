@@ -1,4 +1,3 @@
-use crate::engine::data::{CursorPosition, ReadDirection};
 use crate::engine::{data::Millisecond, Engine, FocusRecord};
 use std::cmp::{max, min};
 

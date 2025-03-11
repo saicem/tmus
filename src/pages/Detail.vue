@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { FileDetail } from "@/global/data.ts"
-import { appDetail } from "@/global/api.ts"
+import { requestAppDetail } from "@/global/api.ts"
 import { ref } from "vue"
 import { showInFolder } from "@/global/cmd.ts"
 import { i18n } from "@/global/i18n.ts"
@@ -9,7 +9,7 @@ const props = defineProps<{
   id: number
 }>()
 const detail = ref<FileDetail | null>(null)
-appDetail(props.id).then((res) => (detail.value = res))
+requestAppDetail(props.id).then((res) => (detail.value = res))
 </script>
 
 <template>

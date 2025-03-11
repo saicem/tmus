@@ -2,8 +2,9 @@ import moment, { Duration, Moment } from "moment-timezone"
 import cmd, { getAppConfig } from "@/global/cmd.ts"
 import { FileDetail, FocusData, FocusRecord } from "./data"
 import { config } from "@/global/state.ts"
+import { getApp, saveApp } from "@/global/db.ts"
 
-const exeDetailCache: Map<number, Promise<FileDetail>> = new Map<
+const appDetailCache: Map<number, Promise<FileDetail>> = new Map<
   number,
   Promise<FileDetail>
 >()
@@ -25,12 +26,23 @@ export async function todayAppGeneral() {
 }
 
 export async function appDetail(id: number): Promise<FileDetail> {
-  if (!exeDetailCache.has(id)) {
-    const promise = cmd.fileDetail(id)
-    exeDetailCache.set(id, promise)
-    console.log("appDetail", await promise)
+  let app = await getApp(id)
+  if (app != null) {
+    return app
   }
-  return await exeDetailCache.get(id)!
+  return requestAppDetail(id)
+}
+
+export async function requestAppDetail(id: number): Promise<FileDetail> {
+  if (appDetailCache.has(id)) {
+    return appDetailCache.get(id)!
+  }
+  const promise = cmd.fileDetail(id)
+  appDetailCache.set(id, promise)
+  const app = await promise
+  await saveApp(app)
+  appDetailCache.delete(id)
+  return app!
 }
 
 export async function durationByDayInThisYear() {
