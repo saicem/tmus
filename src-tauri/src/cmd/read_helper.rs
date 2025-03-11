@@ -19,35 +19,6 @@ pub fn read_by_timestamp(start_millis: Millisecond, end_millis: Millisecond) -> 
     trim_focus_records(rough_records, start_millis, end_millis)
 }
 
-/// This function is designed to retrieve a set of records in reverse order based on a given cursor position and the number of records to retrieve.
-/// It is particularly useful in scenarios where data needs to be displayed or processed in reverse order, such as displaying the latest messages at the top of a chat application.
-///
-/// Parameters:
-/// - `cursor`: An optional parameter representing the starting point of the query. It is usually the ID or position of the last record retrieved in the previous query.
-///   If this is the first query, the cursor can be `None`.
-/// - `count`: A mandatory parameter indicating the number of records to retrieve. It is used to control the amount of data retrieved in a single query, thereby optimizing performance and controlling memory usage.
-///
-/// Returns:
-/// - A tuple containing two elements:
-///   1. A vector of `FocusRecord` instances, representing the set of records retrieved in reverse order.
-///   2. An `u64` value representing the cursor position for the next query. If there are no more records to retrieve, this value will be `None`.
-pub fn read_reverse(cursor: Option<u64>, count: u64) -> (Vec<FocusRecord>, Option<u64>) {
-    let (records, new_cursor) = Engine::read_by_cursor(
-        match cursor {
-            None => CursorPosition::End,
-            Some(idx) => CursorPosition::Middle(idx),
-        },
-        count,
-        ReadDirection::Backward,
-    );
-    let ret_cursor = match new_cursor {
-        CursorPosition::Start => None,
-        CursorPosition::End => None,
-        CursorPosition::Middle(idx) => Some(idx),
-    };
-    (records, ret_cursor)
-}
-
 /// Trims focus records to retain only those within the specified time range.
 ///
 /// This function accepts a vector of focus records along with start and end times in milliseconds.

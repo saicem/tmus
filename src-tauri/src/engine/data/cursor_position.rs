@@ -1,5 +1,5 @@
 pub enum CursorPosition {
     Start,
     End,
-    Middle(u64),
+    Middle(usize),
 }

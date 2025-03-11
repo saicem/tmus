@@ -28,14 +28,6 @@ pub fn raw_record(
 }
 
 #[tauri::command]
-pub fn read_reverse(
-    cursor: Option<u64>,
-    count: u64,
-) -> Result<(Vec<FocusRecord>, Option<u64>), String> {
-    Ok(read_helper::read_reverse(cursor, count))
-}
-
-#[tauri::command]
 pub fn duration_by_id(
     start_millis: Millisecond,
     end_millis: Millisecond,

@@ -1,45 +1,78 @@
 use std::cmp::min;
-use std::fs::File;
 use std::fs::OpenOptions;
-use std::io::Read;
-use std::io::Seek;
-use std::io::SeekFrom;
-use std::io::Write;
 use std::mem::size_of;
-use std::ops::Add;
-use std::os::windows::fs::OpenOptionsExt;
-use std::path::PathBuf;
-use std::sync::Mutex;
+use std::path::{Path, PathBuf};
 
 use crate::engine::data::focus_record::RecordByte;
-use crate::engine::data::{CursorPosition, ReadDirection};
 use log;
-use windows::Win32::Storage::FileSystem::FILE_SHARE_READ;
+use memmap2::MmapMut;
 
 const RECORD_SIZE: usize = size_of::<RecordByte>();
 
 pub struct FileRecord {
-    file: Mutex<File>,
+    file_path: PathBuf,
+    mmap: MmapMut,
+    len: usize,
+    size: usize,
 }
+
+/// Find first all zero 8 bytes, and return the index of it.
+fn find_really_len(arr: &[u8]) -> usize {
+    for (index, chunk) in arr.chunks(8).enumerate() {
+        if chunk.iter().all(|byte| *byte == 0) {
+            return index * 8;
+        }
+    }
+    arr.len()
+}
+
+/// The size use for mmap expand every time.
+const EXPAND_SIZE: usize = 4 * 1024;
 
 impl FileRecord {
     pub fn new(data_dir: &PathBuf) -> Self {
-        let file = OpenOptions::new()
-            .create(true)
-            .append(true)
-            .read(true)
-            .share_mode(FILE_SHARE_READ.0)
-            .open(data_dir.join("record.bin"))
-            .expect("open record.bin failed.");
+        let file_path = data_dir.join("record.bin");
+        let mmap = Self::map_file(&file_path, None);
+        let size = mmap.len() / 8 * 8;
+        let search_start = size.saturating_sub(4 * 1024);
+        let len = search_start + find_really_len(&mmap[search_start..size]);
         Self {
-            file: Mutex::new(file),
+            file_path,
+            mmap,
+            len,
+            size,
         }
     }
 
-    pub fn write(&self, record: RecordByte) -> u64 {
-        let mut file = self.file.lock().unwrap();
-        file.write(&record).unwrap();
-        file.flush().unwrap();
+    pub fn can_append(&self) -> bool {
+        self.size > self.len
+    }
+
+    pub fn expand_size(&mut self) {
+        let new_size = self.size + EXPAND_SIZE;
+        self.mmap = Self::map_file(&self.file_path, Some(new_size));
+        self.size = new_size;
+    }
+
+    fn map_file<T: AsRef<Path>>(file_path: T, size: Option<usize>) -> MmapMut {
+        let file = OpenOptions::new()
+            .create(true)
+            .read(true)
+            .write(true)
+            .open(file_path)
+            .expect("open record.bin failed.");
+        if let Some(size) = size {
+            file.set_len(size as u64).expect("Resize file failed.");
+        }
+        unsafe { MmapMut::map_mut(&file).expect("Error mapping record.bin file") }
+    }
+
+    pub fn write(&mut self, record: RecordByte) -> u64 {
+        if !self.can_append() {
+            self.expand_size();
+        }
+        self.mmap[self.len..self.len + RECORD_SIZE].copy_from_slice(&record);
+        self.len += 8;
         log::debug!(
             "write record:{}",
             record
@@ -47,93 +80,22 @@ impl FileRecord {
                 .map(|byte| format!("{:02x}", byte))
                 .collect::<String>()
         );
-        file.seek(SeekFrom::End(0)).unwrap() / RECORD_SIZE as u64
+        (self.len / RECORD_SIZE) as u64
     }
 
-    pub fn read_by_cursor(
-        &self,
-        cursor: CursorPosition,
-        quantity: u64,
-        direction: ReadDirection,
-    ) -> (Vec<RecordByte>, CursorPosition) {
-        if quantity == 0 {
-            return (vec![], cursor);
+    pub fn read(&self, start: usize, end: usize) -> Vec<RecordByte> {
+        let start = start * RECORD_SIZE;
+        let end = min(end * RECORD_SIZE, self.len);
+        if start >= end {
+            return vec![];
         }
-        let mut file = self.file.lock().unwrap();
-        let (start, end) = compute_read_range(&mut file, cursor, quantity, direction);
-        log::debug!(
-            "Read by cursor, start:{}, end:{}, count:{}",
-            start,
-            end,
-            quantity
-        );
-        let mut ret = read(&mut file, start, end);
-        if direction == ReadDirection::Backward {
-            ret.reverse();
-        }
-        (
-            ret,
-            match direction {
-                ReadDirection::Forward => CursorPosition::Middle(end),
-                ReadDirection::Backward => start
-                    .checked_sub(1)
-                    .map_or(CursorPosition::Start, |x| CursorPosition::Middle(x)),
-            },
-        )
+        self.mmap[start..end]
+            .chunks(RECORD_SIZE)
+            .map(|chunk| chunk.try_into().unwrap())
+            .collect()
     }
 
-    /// Read all record from start to end, end is not included.
-    ///
-    /// `read(start, end)` is equivalent to `read_by_cursor(CursorPosition::Middle(start), end - start, ReadDirection::Forward)`
-    pub fn read(&self, start: u64, end: u64) -> Vec<RecordByte> {
-        let mut file = self.file.lock().unwrap();
-        read(&mut file, start, end)
+    pub fn read_to_end(&self, start: usize) -> Vec<RecordByte> {
+        self.read(start, self.len)
     }
-
-    pub fn read_to_end(&self, start: u64) -> Vec<RecordByte> {
-        let mut file = self.file.lock().unwrap();
-        let total_count = file.seek(SeekFrom::End(0)).unwrap() / RECORD_SIZE as u64;
-        read(&mut file, start, total_count)
-    }
-}
-
-fn compute_read_range(
-    file: &mut File,
-    cursor_position: CursorPosition,
-    quantity: u64,
-    direction: ReadDirection,
-) -> (u64, u64) {
-    let total_count = file.seek(SeekFrom::End(0)).unwrap() / RECORD_SIZE as u64;
-    let cur = match cursor_position {
-        CursorPosition::Start => 0,
-        CursorPosition::End => total_count,
-        CursorPosition::Middle(cur) => cur,
-    };
-    match direction {
-        ReadDirection::Forward => {
-            let end = min(cur.add(quantity), total_count);
-            (cur, end)
-        }
-        ReadDirection::Backward => {
-            let start = cur.add(1).saturating_sub(quantity);
-            (start, cur.add(1))
-        }
-    }
-}
-
-pub fn read(file: &mut File, ge: u64, lt: u64) -> Vec<RecordByte> {
-    if lt <= ge {
-        return vec![];
-    }
-    let mut buf: RecordByte = RecordByte::default();
-    let mut ret = Vec::with_capacity((lt - ge) as usize);
-    file.seek(SeekFrom::Start(ge * RECORD_SIZE as u64)).unwrap();
-    for _ in ge..lt {
-        let n = file.read(&mut buf).unwrap();
-        if n != RECORD_SIZE {
-            break;
-        }
-        ret.push(buf);
-    }
-    ret
 }

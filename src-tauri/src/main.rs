@@ -21,7 +21,6 @@ fn main() {
             cmd::duration_by_day,
             cmd::duration_by_day_id,
             cmd::raw_record,
-            cmd::read_reverse,
             cmd::get_app_config,
             cmd::set_app_config,
             cmd::show_in_folder,

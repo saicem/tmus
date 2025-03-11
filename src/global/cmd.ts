@@ -1,20 +1,6 @@
 import { invoke } from "@tauri-apps/api/core"
-import { FileDetail, FocusRecord } from "./data"
+import { FileDetail } from "./data"
 import { Config } from "@/global/state.ts"
-
-async function rawRecord(
-  startMillis: number,
-  endMillis: number
-): Promise<FocusRecord[]> {
-  return await invoke("raw_record", { startMillis, endMillis })
-}
-
-async function readReverse(
-  cursor: number | null,
-  count: number
-): Promise<[FocusRecord[], number | null]> {
-  return await invoke("read_reverse", { cursor, count })
-}
 
 async function durationById(
   startMillis: number,
@@ -65,8 +51,6 @@ export async function showInFolder(path: string | undefined) {
 }
 
 export default {
-  rawRecord,
-  readReverse,
   durationById,
   durationByDay,
   durationByDayId,

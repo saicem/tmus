@@ -57,7 +57,7 @@ impl FileIndex {
                 if n >= size as IndexUnit {
                     CursorPosition::End
                 } else {
-                    CursorPosition::Middle(n)
+                    CursorPosition::Middle(n as usize)
                 }
             })
             .unwrap_or(CursorPosition::Start)

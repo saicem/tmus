@@ -8,11 +8,11 @@ use crate::engine::data::{CursorPosition, EngineState, FocusEvent, Millisecond, 
 use crate::engine::file_record::FileRecord;
 use crate::engine::monitor::loop_get_current_window;
 use log;
-use std::fmt::Debug;
+use std::fmt::{format, Debug};
 use std::path::PathBuf;
 use std::sync::mpsc::channel;
 use std::sync::mpsc::Sender;
-use std::sync::OnceLock;
+use std::sync::{OnceLock, RwLock};
 use std::thread;
 use std::time::Duration;
 
@@ -23,7 +23,7 @@ use std::time::Duration;
 pub struct Engine {
     file_app: FileApp,
     file_index: FileIndex,
-    file_record: FileRecord,
+    file_record: RwLock<FileRecord>,
     status: EngineState,
 }
 
@@ -41,14 +41,24 @@ static LOOP_GET_CURRENT_WINDOW_INTERVAL: Duration = Duration::from_secs(1 * 60);
 /// If foreground change event interval above this threshold, it's invalid.
 static INVALID_INTERVAL_BOUND: Millisecond = Millisecond::from_secs(3 * 60);
 
+pub(crate) fn init(data_dir: &PathBuf) {
+    let engine = Engine::new(data_dir);
+    engine.start();
+    ENGINE.set(engine).expect("Engine init failed.");
+}
+
 impl Engine {
-    pub fn init(data_dir: &PathBuf) {
-        let engine = Engine::new(data_dir);
-        ENGINE.set(engine).expect("Engine init failed.");
+    pub(crate) fn new(data_dir: &PathBuf) -> Engine {
+        Self {
+            file_app: FileApp::new(data_dir),
+            file_index: FileIndex::new(data_dir),
+            file_record: RwLock::new(FileRecord::new(data_dir)),
+            status: EngineState::Running,
+        }
     }
 
     /// Can only call once. Return sender, use for sending windows foreground change event.
-    pub fn start() {
+    pub fn start(&self) {
         let channel = channel::<FocusEvent>();
         let (sender, receiver) = channel;
         SENDER.set(sender).unwrap();
@@ -67,8 +77,9 @@ impl Engine {
                     cur_focus
                 );
 
+                let engine = ENGINE.get().unwrap();
                 if cur_focus.focus_at - last_receive > INVALID_INTERVAL_BOUND {
-                    Engine::write_record(&last_focus.app_path, last_focus.focus_at, last_receive);
+                    engine.write_record(&last_focus.app_path, last_focus.focus_at, last_receive);
                     last_receive = cur_focus.focus_at;
                     last_focus = cur_focus;
                     log::info!(
@@ -83,7 +94,7 @@ impl Engine {
                     continue;
                 }
 
-                Engine::write_record(
+                engine.write_record(
                     &last_focus.app_path,
                     last_focus.focus_at,
                     cur_focus.focus_at,
@@ -92,15 +103,6 @@ impl Engine {
             }
         });
         loop_get_current_window(LOOP_GET_CURRENT_WINDOW_INTERVAL);
-    }
-
-    fn new(data_dir: &PathBuf) -> Engine {
-        Self {
-            file_app: FileApp::new(data_dir),
-            file_index: FileIndex::new(data_dir),
-            file_record: FileRecord::new(data_dir),
-            status: EngineState::Running,
-        }
     }
 
     /// Not implement
@@ -145,47 +147,22 @@ impl Engine {
         match (start_index, end_index) {
             (_, CursorPosition::Start) => vec![],
             (CursorPosition::End, _) => vec![],
-            (CursorPosition::Start, CursorPosition::Middle(end)) => engine.file_record.read(0, end),
-            (CursorPosition::Start, CursorPosition::End) => engine.file_record.read_to_end(0),
+            (CursorPosition::Start, CursorPosition::Middle(end)) => {
+                engine.file_record.read().unwrap().read(0, end)
+            }
+            (CursorPosition::Start, CursorPosition::End) => {
+                engine.file_record.read().unwrap().read_to_end(0)
+            }
             (CursorPosition::Middle(start), CursorPosition::Middle(end)) => {
-                engine.file_record.read(start, end)
+                engine.file_record.read().unwrap().read(start, end)
             }
             (CursorPosition::Middle(start), CursorPosition::End) => {
-                engine.file_record.read_to_end(start)
+                engine.file_record.read().unwrap().read_to_end(start)
             }
         }
         .into_iter()
         .map(|x| x.into())
         .collect()
-    }
-
-    /// Reads a batch of data starting from the given cursor position in the specified direction.
-    ///
-    /// # Arguments
-    ///
-    /// * `cursor`: An optional cursor position to start reading from. If `None`, starts from the end.
-    /// * `count`: The number of records to read.
-    /// * `direction`: The direction to read, either forward or backward.
-    ///
-    /// # Returns
-    ///
-    /// A tuple containing:
-    /// - A vector of `FocusRecord` instances.
-    /// - A `u64` representing the new cursor position.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// // Example usage
-    /// ```
-    pub(crate) fn read_by_cursor(
-        cursor: CursorPosition,
-        count: u64,
-        direction: ReadDirection,
-    ) -> (Vec<FocusRecord>, CursorPosition) {
-        let engine = ENGINE.get().unwrap();
-        let (records, ret_cursor) = engine.file_record.read_by_cursor(cursor, count, direction);
-        (records.into_iter().map(|x| x.into()).collect(), ret_cursor)
     }
 
     pub fn get_id_by_path(path: &str) -> AppId {
@@ -207,11 +184,11 @@ impl Engine {
                 app_path: process_path.to_owned(),
                 focus_at,
             })
-            .unwrap();
+            .expect("Send focus event failed.");
     }
 
-    fn write_record(process_path: &str, focus_at: Millisecond, blur_at: Millisecond) {
-        if process_path == String::default() || focus_at >= blur_at {
+    fn write_record(&self, process_path: &str, focus_at: Millisecond, blur_at: Millisecond) {
+        if process_path == String::default() || blur_at - focus_at < Millisecond::ONE_SECOND {
             return;
         }
 
@@ -222,11 +199,13 @@ impl Engine {
             blur_at,
         };
 
-        let engine = ENGINE.get().unwrap();
         for sub_record in record.split_record() {
-            let index = engine.file_record.write(sub_record.unsafe_to_byte());
-            engine
-                .file_index
+            let index = self
+                .file_record
+                .write()
+                .unwrap()
+                .write(sub_record.unsafe_to_byte());
+            self.file_index
                 .update_index(sub_record.focus_at.as_days() as u64, index)
         }
     }

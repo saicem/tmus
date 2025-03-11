@@ -10,7 +10,6 @@ pub use engine::Engine;
 use std::path::PathBuf;
 
 pub fn init(data_dir: &PathBuf) {
-    Engine::init(data_dir);
-    Engine::start();
+    engine::init(data_dir);
     monitor::set_event_hook();
 }

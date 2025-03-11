@@ -11,16 +11,6 @@ const exeDetailCache: Map<number, Promise<FileDetail>> = new Map<
 const minMillis = moment.duration(1, "minute").asMilliseconds()
 const dayMillis = moment.duration(1, "day").asMilliseconds()
 
-export async function readReverse(
-  cursor: number | null,
-  count: number
-): Promise<[FocusData[], number | null]> {
-  const [rawRecords, newCursor] = await cmd.readReverse(cursor, count)
-  console.log("readReverse", rawRecords, newCursor)
-  const records = rawRecords.map((x) => convertFocusData(x))
-  return [records, newCursor]
-}
-
 export async function todayAppGeneral() {
   const end = moment()
   const start = end.clone().startOf("day")
