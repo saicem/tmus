@@ -28,6 +28,7 @@ type I18nMessageType = {
   configPage: {
     language: string
     theme: string
+    autoStart: string
     themeSystem: string
     themeLight: string
     themeDark: string
@@ -75,6 +76,7 @@ const messages: Record<LanguageConfig, I18nMessageType> = {
     configPage: {
       language: "Language",
       theme: "Theme",
+      autoStart: "AutoStart",
       themeSystem: "System",
       themeLight: "Light",
       themeDark: "Dark",
@@ -112,6 +114,7 @@ const messages: Record<LanguageConfig, I18nMessageType> = {
     configPage: {
       language: "语言",
       theme: "主题",
+      autoStart: "开机自启",
       themeSystem: "系统",
       themeLight: "浅色",
       themeDark: "深色",

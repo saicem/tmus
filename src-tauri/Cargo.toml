@@ -13,8 +13,8 @@ tauri-build = { version = "2", features = [] }
 
 [dependencies]
 tauri = { version = "2", features = ["tray-icon"] }
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
 windows = { version = "0.60.0", features = [
     "Win32",
     "Win32_Foundation",
@@ -37,7 +37,7 @@ base64 = "0.22"
 itertools = "0.14.0"
 tauri-plugin-shell = "2"
 tauri-plugin-log = "2"
-tokio = { version = "1.44.0", features = ["full"] }
+tokio = { version = "1", features = ["full"] }
 memmap2 = "0.9.5"
 
 [features]
@@ -46,4 +46,4 @@ memmap2 = "0.9.5"
 custom-protocol = ["tauri/custom-protocol"]
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
-tauri-plugin-single-instance = "2"
+tauri-plugin-autostart = "2"

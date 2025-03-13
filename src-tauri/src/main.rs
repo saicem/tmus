@@ -1,7 +1,11 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use tauri::{AppHandle, RunEvent};
+use crate::app::constant::data_dir;
+use std::env;
+use std::path::PathBuf;
+use tauri::{AppHandle, Manager, RunEvent};
+use tauri_plugin_autostart::MacosLauncher;
 
 mod app;
 mod cmd;
@@ -12,9 +16,13 @@ mod util;
 fn main() {
     tauri::async_runtime::block_on(util::force_singleton());
     let app = tauri::Builder::default()
+        .plugin(tauri_plugin_autostart::init(
+            MacosLauncher::LaunchAgent,
+            Some(vec!["nw"]),
+        ))
         .plugin(tauri_plugin_log::Builder::new().build())
         .plugin(tauri_plugin_shell::init())
-        .setup(app::setup)
+        .setup(setup)
         .invoke_handler(tauri::generate_handler![
             cmd::file_detail,
             cmd::duration_by_id,
@@ -31,11 +39,29 @@ fn main() {
     app.run(event_callback);
 }
 
+pub fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
+    let app_handle = app.app_handle();
+    app::global::APP_HANDLE.set(app_handle.to_owned()).unwrap();
+    app::setup::init_data_dir();
+    app::setup::init_config();
+    app::tray::tray(app_handle).expect("Error while initializing tray");
+    engine::init(&PathBuf::from(data_dir()));
+    handle_start_args(app_handle);
+    Ok(())
+}
+
 fn event_callback(_: &AppHandle, event: RunEvent) {
     match event {
         RunEvent::ExitRequested { api, .. } => {
             api.prevent_exit();
         }
         _ => {}
+    }
+}
+
+fn handle_start_args(app_handle: &AppHandle) {
+    let no_window = env::args().any(|x| x == "nw");
+    if !no_window {
+        app::focus_main_window(app_handle);
     }
 }

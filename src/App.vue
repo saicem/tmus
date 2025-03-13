@@ -9,7 +9,7 @@ import { i18n } from "./global/i18n.ts"
       <TitleBar />
     </el-header>
     <el-container>
-      <el-aside>
+      <el-aside width="200px">
         <el-scrollbar>
           <el-menu default-active="'1'">
             <RouterLink to="/">

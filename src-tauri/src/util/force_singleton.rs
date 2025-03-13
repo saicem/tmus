@@ -3,7 +3,7 @@ use log;
 use std::io;
 use std::process::exit;
 use std::time::Duration;
-use tauri::async_runtime::TokioJoinHandle;
+use tauri::async_runtime::JoinHandle;
 use tokio::net::windows::named_pipe::{ClientOptions, ServerOptions};
 use tokio::time;
 use windows::Win32::Foundation::ERROR_PIPE_BUSY;
@@ -50,14 +50,14 @@ fn run_server() -> Result<(), io::Error> {
         .first_pipe_instance(true)
         .create(PIPE_NAME)?;
 
-    let server_task: TokioJoinHandle<Result<(), io::Error>> = tokio::spawn(async move {
+    let server_task: JoinHandle<Result<(), io::Error>> = tauri::async_runtime::spawn(async move {
         loop {
             server.connect().await?;
             log::info!("Another instance is trying start.");
             focus_main_window();
             let connected_client = server;
             server = ServerOptions::new().create(PIPE_NAME)?;
-            let client = tokio::spawn(async move {});
+            let client = tauri::async_runtime::spawn(async move {});
         }
     });
     Ok(())
