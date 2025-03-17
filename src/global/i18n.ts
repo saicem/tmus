@@ -16,6 +16,16 @@ type I18nMessageType = {
     totalUse: string
     mostUse: string
   }
+  statisticPage: {
+    shortcuts: {
+      last1day: string
+      last3days: string
+      last1week: string
+      last1month: string
+      last3months: string
+      last1year: string
+    }
+  }
   weeklyChart: {
     title: string
     thisWeek: string
@@ -57,6 +67,16 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
       totalUse: "Total Use",
       mostUse: "Most Use",
     },
+    statisticPage: {
+      shortcuts: {
+        last1day: "Last 1 Day",
+        last3days: "Last 3 Days",
+        last1week: "Last 1 Week",
+        last1month: "Last 1 Month",
+        last3months: "Last 3 Months",
+        last1year: "Last 1 Year",
+      }
+    },
     weeklyChart: {
       title: "Weekly Usage",
       thisWeek: "This Week",
@@ -97,6 +117,16 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
       tags: "标签",
       statistic: "统计",
       setting: "设置",
+    },
+    statisticPage: {
+      shortcuts: {
+        last1day: "最近 1 天",
+        last3days: "最近 3 天",
+        last1week: "最近 1 周",
+        last1month: "最近 1 月",
+        last3months: "最近 3 月",
+        last1year: "最近 1 年",
+      }
     },
     homePage: {
       apps: "应用",

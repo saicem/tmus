@@ -1,13 +1,14 @@
 <script setup lang="ts">
-import { ref, watch } from "vue"
+import { ref, watch, computed } from "vue"
 import { AppDuration } from "@/global/data.ts"
 import AppCardGroup from "@/components/AppCardGroup.vue"
 import moment, { Moment } from "moment-timezone"
 import { appDetail, durationById } from "@/global/api.ts"
+import { i18n } from "@/global/i18n.ts"
 
-const shortcuts = [
+const shortcuts = computed(() => [
   {
-    text: "Last 1 day",
+    text: i18n.value.statisticPage.shortcuts.last1day,
     value: (): [Date, Date] => {
       const end = new Date()
       const start = new Date()
@@ -16,7 +17,7 @@ const shortcuts = [
     },
   },
   {
-    text: "Last 3 days",
+    text: i18n.value.statisticPage.shortcuts.last3days,
     value: (): [Date, Date] => {
       const end = new Date()
       const start = new Date()
@@ -25,7 +26,7 @@ const shortcuts = [
     },
   },
   {
-    text: "Last 1 week",
+    text: i18n.value.statisticPage.shortcuts.last1week,
     value: (): [Date, Date] => {
       const end = new Date()
       const start = new Date()
@@ -34,7 +35,7 @@ const shortcuts = [
     },
   },
   {
-    text: "Last 1 month",
+    text: i18n.value.statisticPage.shortcuts.last1month,
     value: (): [Date, Date] => {
       const end = new Date()
       const start = new Date()
@@ -43,7 +44,7 @@ const shortcuts = [
     },
   },
   {
-    text: "Last 3 months",
+    text: i18n.value.statisticPage.shortcuts.last3months,
     value: (): [Date, Date] => {
       const end = new Date()
       const start = new Date()
@@ -52,7 +53,7 @@ const shortcuts = [
     },
   },
   {
-    text: "Last 1 year",
+    text: i18n.value.statisticPage.shortcuts.last1year,
     value: (): [Date, Date] => {
       const end = new Date()
       const start = new Date()
@@ -60,9 +61,14 @@ const shortcuts = [
       return [start, end]
     },
   },
-]
+])
 
-const datetimeRange = ref<[Date, Date]>(shortcuts[0].value())
+const datetimeRange = ref<[Date, Date]>(((): [Date, Date] => {
+  const end = new Date()
+  const start = new Date()
+  start.setDate(start.getDate() - 1)
+  return [start, end]
+})())
 const data = ref<AppDuration[]>([])
 
 const load = async (startDate: Moment, endDate: Moment) => {
@@ -87,14 +93,8 @@ watch(
 
 <template>
   <div style="display: flex; flex-wrap: wrap; gap: 8px">
-    <el-date-picker
-      v-model="datetimeRange"
-      type="datetimerange"
-      :shortcuts="shortcuts"
-      range-separator="To"
-      start-placeholder="Start date"
-      end-placeholder="End date"
-    />
+    <el-date-picker v-model="datetimeRange" type="datetimerange" :shortcuts="shortcuts" range-separator="To"
+      start-placeholder="Start date" end-placeholder="End date" />
     <app-card-group :data="data" />
   </div>
 </template>
