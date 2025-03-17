@@ -22,6 +22,7 @@ fn main() {
         ))
         .plugin(tauri_plugin_log::Builder::new().build())
         .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_os::init())
         .setup(setup)
         .invoke_handler(tauri::generate_handler![
             cmd::file_detail,

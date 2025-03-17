@@ -1,8 +1,11 @@
+use tauri_plugin_os::locale;
+
 use crate::config::config::{Config, LangConfig};
 
 #[derive(Debug, Clone)]
 pub struct I18n {
     pub language: &'static str,
+    pub language_system: &'static str,
     pub theme: &'static str,
     pub theme_system: &'static str,
     pub theme_light: &'static str,
@@ -12,6 +15,7 @@ pub struct I18n {
 
 static LANG_EN: I18n = I18n {
     language: "Language",
+    language_system: "System",
     theme: "Theme",
     theme_system: "System",
     theme_light: "Light",
@@ -21,6 +25,7 @@ static LANG_EN: I18n = I18n {
 
 static LANG_ZH: I18n = I18n {
     language: "语言",
+    language_system: "系统",
     theme: "主题",
     theme_system: "系统",
     theme_light: "浅色",
@@ -28,11 +33,17 @@ static LANG_ZH: I18n = I18n {
     exit: "退出",
 };
 
+/// IETF BCP-47 language tag
 impl I18n {
     pub fn get() -> &'static I18n {
         match Config::get_mut().lang {
             LangConfig::Zh => &LANG_ZH,
             LangConfig::En => &LANG_EN,
+            LangConfig::System => match locale() {
+                Some(locale) if locale.starts_with("zh") => &LANG_ZH,
+                Some(locale) if locale == "en-US" => &LANG_EN,
+                _ => &LANG_EN,
+            },
         }
     }
 }

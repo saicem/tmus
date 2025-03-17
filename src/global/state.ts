@@ -2,7 +2,8 @@ import { listen } from "@tauri-apps/api/event"
 import { useColorMode } from "@vueuse/core"
 import { ref, watch } from "vue"
 
-export type LanguageConfig = "en" | "zh"
+export type LanguageEnum = "en" | "zh"
+export type LanguageConfig = LanguageEnum | "system"
 export type ThemeConfig = "dark" | "light" | "system"
 export type Config = {
   lang: LanguageConfig
@@ -10,9 +11,10 @@ export type Config = {
 }
 
 export const config = ref<Config>({
-  lang: "en",
+  lang: "system",
   theme: "system",
 })
+export const actualLang = ref<LanguageEnum>("en")
 
 export function setThemeListener() {
   const themeMedia = window.matchMedia("(prefers-color-scheme: light)")

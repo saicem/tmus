@@ -1,4 +1,3 @@
-use crate::engine::engine::Engine;
 use log;
 use std::time::Duration;
 use tokio::time;
@@ -9,6 +8,10 @@ use windows::Win32::System::Threading::*;
 use windows::Win32::UI::Accessibility::SetWinEventHook;
 use windows::Win32::UI::Accessibility::HWINEVENTHOOK;
 use windows::Win32::UI::WindowsAndMessaging::*;
+
+use crate::engine::core::FOCUS_EVENT_SENDER;
+use crate::engine::data::FocusEvent;
+use crate::engine::data::Millisecond;
 
 pub fn loop_get_current_window(interval: Duration) {
     tauri::async_runtime::spawn(async move {
@@ -53,7 +56,14 @@ fn on_window_focus(hwnd: &HWND) {
     match get_process_path_from_hwnd(&hwnd) {
         Ok(process_path) => {
             log::info!("On window focus: {}", &process_path);
-            Engine::on_focus(&process_path);
+            FOCUS_EVENT_SENDER
+                .get()
+                .expect("Not init focus event sender.")
+                .send(FocusEvent {
+                    app_path: process_path,
+                    focus_at: Millisecond::now(),
+                })
+                .expect("[Monitor] Failed to send focus event.");
         }
         Err(e) => {
             log::error!("Error, can't get process path: {}", e);

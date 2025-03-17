@@ -33,6 +33,14 @@ fn build_menu(app_handle: &AppHandle) -> Result<Menu<Wry>, Box<dyn Error>> {
         .items(&[
             &CheckMenuItem::with_id(
                 app_handle,
+                "lang_system",
+                I18n::get().language_system,
+                true,
+                config.lang == LangConfig::System,
+                None::<&str>,
+            )?,
+            &CheckMenuItem::with_id(
+                app_handle,
                 "lang_en",
                 "English",
                 true,
@@ -112,6 +120,9 @@ fn on_menu_event(app_handle: &AppHandle, event: MenuEvent) {
                 }
                 "lang_zh" => {
                     Config::get_mut().lang = LangConfig::Zh;
+                }
+                "lang_system" => {
+                    Config::get_mut().lang = LangConfig::System;
                 }
                 "theme_system" => {
                     Config::get_mut().theme = ThemeConfig::System;

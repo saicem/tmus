@@ -1,9 +1,6 @@
-import { config, LanguageConfig } from "@/global/state.ts"
-import { computed } from "vue"
-
-export const i18n = computed(() => {
-  return messages[config.value.lang]
-})
+import { config, LanguageEnum } from "@/global/state.ts"
+import { locale } from "@tauri-apps/plugin-os";
+import { ref, watch } from "vue"
 
 type I18nMessageType = {
   navigateMenu: {
@@ -27,6 +24,7 @@ type I18nMessageType = {
   }
   configPage: {
     language: string
+    langSystem: string
     theme: string
     autoStart: string
     themeSystem: string
@@ -44,7 +42,7 @@ type I18nMessageType = {
   }
 }
 
-const messages: Record<LanguageConfig, I18nMessageType> = {
+const messages: Record<LanguageEnum, I18nMessageType> = {
   en: {
     navigateMenu: {
       home: "Home",
@@ -75,8 +73,9 @@ const messages: Record<LanguageConfig, I18nMessageType> = {
     },
     configPage: {
       language: "Language",
+      langSystem: "System",
       theme: "Theme",
-      autoStart: "AutoStart",
+      autoStart: "Auto Start",
       themeSystem: "System",
       themeLight: "Light",
       themeDark: "Dark",
@@ -85,10 +84,10 @@ const messages: Record<LanguageConfig, I18nMessageType> = {
       icon: "Icon",
       exist: "Exist",
       name: "Name",
-      filePath: "FilePath",
-      productName: "ProductName",
-      fileDescription: "FileDescription",
-      companyName: "CompanyName",
+      filePath: "File Path",
+      productName: "Product Name",
+      fileDescription: "File Description",
+      companyName: "Company Name",
     },
   },
   zh: {
@@ -113,6 +112,7 @@ const messages: Record<LanguageConfig, I18nMessageType> = {
     },
     configPage: {
       language: "语言",
+      langSystem: "系统",
       theme: "主题",
       autoStart: "开机自启",
       themeSystem: "系统",
@@ -130,3 +130,31 @@ const messages: Record<LanguageConfig, I18nMessageType> = {
     },
   },
 }
+
+export const i18n = ref<I18nMessageType>(messages["en"]);
+
+const getLang = async (): Promise<LanguageEnum> => {
+  if (config.value.lang === "system") {
+    return await getLocaleLang();
+  } else {
+    return config.value.lang;
+  }
+}
+
+const getLocaleLang = async () => {
+  const lang = await locale()
+  if (lang?.startsWith("zh")) {
+    return "zh"
+  } else {
+    return "en"
+  }
+}
+
+
+watch(
+  () => config.value.lang,
+  async () => {
+    i18n.value = messages[await getLang()];
+  },
+  { immediate: true }
+);

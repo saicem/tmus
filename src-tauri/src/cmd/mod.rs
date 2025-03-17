@@ -4,7 +4,7 @@ use crate::cmd::data::FileDetail;
 use crate::cmd::duration_calculate_helper::{group_by_day, group_by_day_id, group_by_id};
 use crate::config::Config;
 use crate::engine::data::{AppId, Millisecond};
-use crate::engine::{Engine, FocusRecord};
+use crate::engine::{get_engine, Engine, FocusRecord};
 use crate::util;
 use base64::engine::general_purpose;
 use base64::Engine as OtherEngine;
@@ -90,7 +90,7 @@ pub fn duration_by_day_id(
 /// - A `String` containing an error message if the file details cannot be retrieved.
 #[tauri::command]
 pub async fn file_detail(id: usize) -> Result<FileDetail, String> {
-    let path = Engine::get_path_by_id(id).unwrap();
+    let path = get_engine().get_path_by_id(id).unwrap();
     if !Path::new(&path).exists() {
         return Ok(FileDetail {
             name: Path::new(&path)

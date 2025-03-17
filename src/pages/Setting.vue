@@ -27,6 +27,7 @@ isEnabled().then((value) => (autoStart.value = value))
         >
           <el-option label="English" value="en" />
           <el-option label="简体中文" value="zh" />
+          <el-option :label="i18n.configPage.langSystem" value="system" />
         </el-select>
       </SettingItem>
       <SettingItem :label="i18n.configPage.theme">
@@ -43,7 +44,7 @@ isEnabled().then((value) => (autoStart.value = value))
       <SettingItem :label="i18n.configPage.autoStart">
         <el-switch
           v-model="autoStart"
-          @change="(val) => (val ? enable() : disable())"
+          @change="(val: boolean) => (val ? enable() : disable())"
         />
       </SettingItem>
     </SettingGroup>

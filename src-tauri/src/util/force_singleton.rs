@@ -2,11 +2,8 @@ use crate::app;
 use log;
 use std::io;
 use std::process::exit;
-use std::time::Duration;
 use tauri::async_runtime::JoinHandle;
 use tokio::net::windows::named_pipe::{ClientOptions, ServerOptions};
-use tokio::time;
-use windows::Win32::Foundation::ERROR_PIPE_BUSY;
 use windows::{
     core::HSTRING,
     Win32::{
@@ -64,13 +61,6 @@ fn run_server() -> Result<(), io::Error> {
 }
 
 async fn run_client() -> Result<(), io::Error> {
-    let client = loop {
-        match ClientOptions::new().open(PIPE_NAME) {
-            Ok(client) => break client,
-            Err(e) if e.raw_os_error() == Some(ERROR_PIPE_BUSY.0 as i32) => (),
-            Err(e) => return Err(e),
-        }
-        time::sleep(Duration::from_millis(50)).await;
-    };
+    ClientOptions::new().open(PIPE_NAME)?;
     Ok(())
 }

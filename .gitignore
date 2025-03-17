@@ -24,3 +24,5 @@ dist-ssr
 *.sw?
 /target
 **/Cargo.lock
+.qodo
+src-tauri/gen/*

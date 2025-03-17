@@ -18,9 +18,10 @@ pub struct Config {
 #[serde(rename_all = "camelCase")]
 pub enum LangConfig {
     Zh,
+    En,
     #[default]
     #[serde(other)]
-    En,
+    System,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
