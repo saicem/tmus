@@ -10,6 +10,8 @@ export type Config = {
   theme: ThemeConfig
 }
 
+export const statisticStore = ref<"Card" | "Progress">("Card");
+
 export const config = ref<Config>({
   lang: "system",
   theme: "system",

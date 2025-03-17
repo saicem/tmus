@@ -24,6 +24,10 @@ type I18nMessageType = {
       last1month: string
       last3months: string
       last1year: string
+    },
+    type: {
+      card: string
+      progress: string
     }
   }
   weeklyChart: {
@@ -75,6 +79,10 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
         last1month: "Last 1 Month",
         last3months: "Last 3 Months",
         last1year: "Last 1 Year",
+      },
+      type:{
+        card: "Card",
+        progress: "Progress",
       }
     },
     weeklyChart: {
@@ -126,6 +134,10 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
         last1month: "最近 1 月",
         last3months: "最近 3 月",
         last1year: "最近 1 年",
+      },
+      type: {
+        card: "卡片",
+        progress: "进度条",
       }
     },
     homePage: {

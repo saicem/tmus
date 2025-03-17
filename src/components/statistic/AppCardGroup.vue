@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import AppCard from "@/components/AppCard.vue"
+import AppCard from "@/components/statistic/AppCard.vue"
 import { AppDuration } from "@/global/data.ts"
 
 defineProps<{
@@ -9,11 +9,7 @@ defineProps<{
 
 <template>
   <div style="display: flex; flex-wrap: wrap; gap: 16px">
-    <RouterLink
-      v-for="{ app: app, duration: duration } in data"
-      :key="app.id"
-      :to="'/detail/' + app.id"
-    >
+    <RouterLink v-for="{ app: app, duration: duration } in data" :key="app.id" :to="'/detail/' + app.id">
       <AppCard :detail="app" :duration="duration" />
     </RouterLink>
   </div>

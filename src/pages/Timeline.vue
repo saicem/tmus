@@ -3,7 +3,7 @@ import { computed, ref } from "vue"
 import { appDetail, durationByDayId } from "@/global/api.ts"
 import moment, { Moment } from "moment-timezone"
 import { AppDuration, DateGroup } from "@/global/data.ts"
-import AppCardGroup from "@/components/AppCardGroup.vue"
+import AppCardGroup from "@/components/statistic/AppCardGroup.vue"
 
 const scrollDisable = computed(() => loading.value || noMore.value)
 const noMore = ref(false)
