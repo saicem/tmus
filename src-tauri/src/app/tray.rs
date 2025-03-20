@@ -1,5 +1,6 @@
 use crate::app::constant::config_file_path;
 use crate::app::window::focus_main_window;
+use crate::config::config_loader::ConfigLoader as _;
 use crate::config::{Config, I18n, LangConfig, ThemeConfig};
 use std::error::Error;
 use std::sync::LazyLock;

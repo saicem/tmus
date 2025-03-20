@@ -30,23 +30,52 @@ pub fn get_engine<'a>() -> &'a impl Engine {
     ENGINE.get().unwrap()
 }
 
-pub fn init(data_dir: &PathBuf) {
+/// Initializes the application engine with a given data directory and a filter function.
+///
+/// This function sets up the necessary communication channels, initializes the `AlphaEngine`,
+/// and starts the monitoring process. It also sets the event hook for the monitor.
+///
+/// # Arguments
+/// * `data_dir` - A reference to the `PathBuf` representing the data directory.
+/// * `filter` - A function pointer that takes a `&str` and returns an `Option<String>`.
+///              This function is used to filter the application paths before recording.
+///
+/// # Panics
+/// This function will panic if the `FOCUS_EVENT_SENDER` or `ENGINE` cannot be set.
+pub fn init(data_dir: &PathBuf, filter: fn(&str) -> Option<String>) {
     let (sender, receiver) = channel::<FocusEvent>();
     FOCUS_EVENT_SENDER.set(sender).unwrap();
     let alpha_engine = AlphaEngine::new(data_dir);
-    start(|raw| ENGINE.get().unwrap().write_record(raw), receiver);
-    ENGINE.set(alpha_engine).expect("Engine init failed.");
+    // Define a closure to write records after filtering
+    let write_record = move |raw: FocusRecordRaw| {
+        if let Some(app_path) = filter(&raw.app_path) {
+            ENGINE.get().unwrap().write_record(FocusRecordRaw::new(
+                app_path,
+                raw.focus_at,
+                raw.blur_at,
+            ))
+        } else {
+            log::info!(
+                "App {} is filtered out. Focus at {:?}, blur at {:?}",
+                raw.app_path,
+                raw.focus_at,
+                raw.blur_at
+            )
+        }
+    };
+    ENGINE.set(alpha_engine).expect("Engine set failed.");
+    start(write_record, receiver);
     monitor::set_event_hook();
 }
 
-pub struct FocusRecordRaw<'a> {
-    pub app_path: &'a str,
+pub struct FocusRecordRaw {
+    pub app_path: String,
     pub focus_at: Millisecond,
     pub blur_at: Millisecond,
 }
 
-impl<'a> FocusRecordRaw<'a> {
-    fn new(app_path: &'a str, focus_at: Millisecond, blur_at: Millisecond) -> Self {
+impl FocusRecordRaw {
+    fn new(app_path: String, focus_at: Millisecond, blur_at: Millisecond) -> Self {
         Self {
             app_path,
             focus_at,
@@ -79,7 +108,7 @@ where
 
             if cur_focus.focus_at - last_receive > INVALID_INTERVAL_BOUND {
                 write_record(FocusRecordRaw::new(
-                    &last_focus.app_path,
+                    last_focus.app_path,
                     last_focus.focus_at,
                     last_receive,
                 ));
@@ -98,7 +127,7 @@ where
             }
 
             write_record(FocusRecordRaw::new(
-                &last_focus.app_path,
+                last_focus.app_path,
                 last_focus.focus_at,
                 cur_focus.focus_at,
             ));
@@ -106,14 +135,4 @@ where
         }
     });
     loop_get_current_window(LOOP_GET_CURRENT_WINDOW_INTERVAL);
-}
-
-fn on_foreground_changed(process_path: &str) {
-    let sender = FOCUS_EVENT_SENDER.get().unwrap();
-    sender
-        .send(FocusEvent {
-            app_path: process_path.to_string(),
-            focus_at: Millisecond::now(),
-        })
-        .unwrap();
 }

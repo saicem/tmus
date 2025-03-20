@@ -13,8 +13,8 @@ defineProps<{
   <el-card>
     <div
       style="
-        height: 140px;
-        width: 140px;
+        height: 130px;
+        width: 130px;
         flex: auto;
         display: flex;
         flex-direction: column;

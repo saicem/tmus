@@ -42,6 +42,8 @@
         "title": "Tmus",
         "width": 1200,
         "height": 680,
+        "minHeight": 480,
+        "minWidth": 860,
         "decorations": false,
         "useHttpsScheme": true,
         "create": false

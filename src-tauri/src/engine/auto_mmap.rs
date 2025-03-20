@@ -45,7 +45,6 @@ impl AutoMmap {
 
     pub(crate) fn read(&self, start_inclusive: usize, end_exclusive: usize) -> &[u8] {
         debug_assert!(start_inclusive <= end_exclusive);
-        debug_assert!(start_inclusive >= 0);
         debug_assert!(end_exclusive <= self.len);
         &self.mmap[start_inclusive + META_OFFSET..end_exclusive + META_OFFSET]
     }

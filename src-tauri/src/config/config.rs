@@ -1,8 +1,5 @@
+use crate::config::rule::Rule;
 use serde::{Deserialize, Serialize};
-use std::fs;
-use std::fs::OpenOptions;
-use std::io::Read;
-use std::path::Path;
 use std::sync::{Mutex, MutexGuard, OnceLock};
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
@@ -12,6 +9,7 @@ pub struct Config {
     pub lang: LangConfig,
     #[serde(default)]
     pub theme: ThemeConfig,
+    pub rule: Rule,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
@@ -51,20 +49,4 @@ impl Config {
         *Self::get_mut() = config;
     }
 
-    pub fn load<P: AsRef<Path>>(file_path: P) -> Config {
-        let mut file = OpenOptions::new()
-            .write(true)
-            .read(true)
-            .create(true)
-            .open(file_path)
-            .unwrap();
-        let mut buf = String::new();
-        file.read_to_string(&mut buf).unwrap();
-        serde_json::from_str(&buf).unwrap_or(Config::default())
-    }
-
-    pub fn dump<P: AsRef<Path>>(&self, file_path: P) {
-        let str = serde_json::to_string_pretty(self).unwrap();
-        fs::write(file_path, str).unwrap()
-    }
 }

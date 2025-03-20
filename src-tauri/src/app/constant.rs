@@ -20,3 +20,8 @@ pub fn config_file_path() -> &'static str {
     static CONFIG_FILE_PATH: OnceLock<String> = OnceLock::new();
     CONFIG_FILE_PATH.get_or_init(|| data_dir().to_owned() + "/" + CONFIG_FILE_NAME)
 }
+
+pub fn rule_file_path() -> &'static str {
+    static RULE_FILE_PATH: OnceLock<String> = OnceLock::new();
+    RULE_FILE_PATH.get_or_init(|| data_dir().to_owned() + "/rule.json")
+}

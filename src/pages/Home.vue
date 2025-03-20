@@ -68,9 +68,10 @@ todayAppGeneral().then((res) => {
         :illustration="i18n.homePage.mostUse"
       />
     </div>
-    <el-card>
+    <el-card class="heat-calendar-card">
       <HeatCalendar :data="duration" v-if="duration" />
     </el-card>
+
     <el-card>
       <WeeklyChart :durations="weeklyDurations" v-if="weeklyDurations" />
     </el-card>
@@ -78,6 +79,12 @@ todayAppGeneral().then((res) => {
 </template>
 
 <style scoped>
+@media (max-width: 1100px) {
+  .heat-calendar-card {
+    display: none;
+  }
+}
+
 .cards {
   display: flex;
   flex-direction: row;

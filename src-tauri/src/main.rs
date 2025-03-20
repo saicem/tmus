@@ -4,6 +4,8 @@
 use crate::app::constant::data_dir;
 use std::env;
 use std::path::PathBuf;
+use app::constant::rule_file_path;
+use config::{config_loader::ConfigLoader, rule::Rule};
 use tauri::{AppHandle, Manager, RunEvent};
 use tauri_plugin_autostart::MacosLauncher;
 
@@ -46,7 +48,15 @@ pub fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     app::setup::init_data_dir();
     app::setup::init_config();
     app::tray::tray(app_handle).expect("Error while initializing tray");
-    engine::init(&PathBuf::from(data_dir()));
+
+    let rule = Rule::load(rule_file_path());
+    config::rule::init(&rule);
+    engine::init(&PathBuf::from(data_dir()), |app_path| {
+        if config::rule::is_exclude(&app_path) {
+            return None;
+        }
+        config::rule::get_merged_path(&app_path).map(|x|x.as_ref().to_string()).or(Some(app_path.to_owned()))
+    });
     handle_start_args(app_handle);
     Ok(())
 }

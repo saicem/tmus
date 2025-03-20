@@ -2,6 +2,7 @@ use crate::app::constant::config_file_path;
 use crate::app::refresh_tray_menu;
 use crate::cmd::data::FileDetail;
 use crate::cmd::duration_calculate_helper::{group_by_day, group_by_day_id, group_by_id};
+use crate::config::config_loader::ConfigLoader as _;
 use crate::config::Config;
 use crate::engine::data::{AppId, Millisecond};
 use crate::engine::{get_engine, Engine, FocusRecord};

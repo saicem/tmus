@@ -44,7 +44,7 @@ isEnabled().then((value) => (autoStart.value = value))
       <SettingItem :label="i18n.configPage.autoStart">
         <el-switch
           v-model="autoStart"
-          @change="(val: boolean) => (val ? enable() : disable())"
+          @change="(val) => (val ? enable() : disable())"
         />
       </SettingItem>
     </SettingGroup>

@@ -1,4 +1,5 @@
 use crate::app::constant::{config_file_path, data_dir};
+use crate::config::config_loader::ConfigLoader as _;
 use crate::config::Config;
 use std::fs;
 use std::path::PathBuf;
