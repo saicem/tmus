@@ -1,14 +1,10 @@
-use crate::app::constant::config_file_path;
-use crate::app::refresh_tray_menu;
 use crate::cmd::data::FileDetail;
 use crate::cmd::duration_calculate_helper::{group_by_day, group_by_day_id, group_by_id};
-use crate::config::config_loader::ConfigLoader as _;
-use crate::config::Config;
 use crate::engine::data::{AppId, Millisecond};
 use crate::engine::{get_engine, Engine, FocusRecord};
 use crate::util;
 use base64::engine::general_purpose;
-use base64::Engine as OtherEngine;
+use base64::Engine as _;
 use image::ImageFormat;
 use log::info;
 use read_helper::read_by_timestamp;
@@ -134,18 +130,6 @@ pub async fn file_detail(id: usize) -> Result<FileDetail, String> {
         icon,
         version,
     })
-}
-
-#[tauri::command]
-pub fn get_app_config() -> Config {
-    Config::get()
-}
-
-#[tauri::command]
-pub async fn set_app_config(config: Config, app_handle: tauri::AppHandle) {
-    config.dump(config_file_path());
-    Config::set(config);
-    refresh_tray_menu(&app_handle);
 }
 
 #[tauri::command]

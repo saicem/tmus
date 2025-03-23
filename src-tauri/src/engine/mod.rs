@@ -7,5 +7,5 @@ mod monitor;
 
 pub use core::get_engine;
 pub use core::Engine;
+pub use core::{init, start};
 pub use data::focus_record::FocusRecord;
-pub use core::init;

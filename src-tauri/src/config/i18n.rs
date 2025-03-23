@@ -1,6 +1,6 @@
+use crate::config::config::LangConfig;
+use crate::config::CONFIG;
 use tauri_plugin_os::locale;
-
-use crate::config::config::{Config, LangConfig};
 
 #[derive(Debug, Clone)]
 pub struct I18n {
@@ -36,7 +36,7 @@ static LANG_ZH: I18n = I18n {
 /// IETF BCP-47 language tag
 impl I18n {
     pub fn get() -> &'static I18n {
-        match Config::get_mut().lang {
+        match CONFIG.get().lang {
             LangConfig::Zh => &LANG_ZH,
             LangConfig::En => &LANG_EN,
             LangConfig::System => match locale() {

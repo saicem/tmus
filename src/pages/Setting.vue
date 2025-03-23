@@ -1,19 +1,14 @@
 <script setup lang="ts">
 import { i18n } from "@/global/i18n.ts"
-import { config } from "@/global/state.ts"
+import { autoStart, config } from "@/global/state.ts"
 import { setAppConfig } from "@/global/cmd.ts"
-import { ref } from "vue"
-import { disable, enable, isEnabled } from "@tauri-apps/plugin-autostart"
+import { disable, enable } from "@tauri-apps/plugin-autostart"
 import SettingItem from "@/components/setting/SettingItem.vue"
 import SettingGroup from "@/components/setting/SettingGroup.vue"
 
 function configChange() {
   setAppConfig(config.value)
 }
-
-const autoStart = ref<boolean>(false)
-
-isEnabled().then((value) => (autoStart.value = value))
 </script>
 
 <template>

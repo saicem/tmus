@@ -2,12 +2,16 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use crate::app::constant::data_dir;
-use std::env;
+use crate::config::rule::{is_exclude, is_include};
+use crate::config::{get_app_config, set_app_config, RULE};
+use config::{get_app_rule, get_app_tag, set_app_rule, set_app_tag};
+use engine::{get_engine, Engine};
+use log;
 use std::path::PathBuf;
-use app::constant::rule_file_path;
-use config::{config_loader::ConfigLoader, rule::Rule};
+use std::{env, fs};
 use tauri::{AppHandle, Manager, RunEvent};
 use tauri_plugin_autostart::MacosLauncher;
+use tauri_plugin_log;
 
 mod app;
 mod cmd;
@@ -32,8 +36,12 @@ fn main() {
             cmd::duration_by_day,
             cmd::duration_by_day_id,
             cmd::raw_record,
-            cmd::get_app_config,
-            cmd::set_app_config,
+            get_app_config,
+            set_app_config,
+            get_app_rule,
+            set_app_rule,
+            get_app_tag,
+            set_app_tag,
             cmd::show_in_folder,
         ])
         .build(tauri::generate_context!())
@@ -45,18 +53,29 @@ fn main() {
 pub fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     let app_handle = app.app_handle();
     app::global::APP_HANDLE.set(app_handle.to_owned()).unwrap();
-    app::setup::init_data_dir();
-    app::setup::init_config();
-    app::tray::tray(app_handle).expect("Error while initializing tray");
 
-    let rule = Rule::load(rule_file_path());
-    config::rule::init(&rule);
-    engine::init(&PathBuf::from(data_dir()), |app_path| {
-        if config::rule::is_exclude(&app_path) {
-            return None;
-        }
-        config::rule::get_merged_path(&app_path).map(|x|x.as_ref().to_string()).or(Some(app_path.to_owned()))
-    });
+    init_data_dir();
+
+    config::init();
+    config::rule::init_rule(&RULE.get());
+
+    app::tray::tray(app_handle).expect("Error while initializing tray");
+    
+
+    let receiver = engine::init(&PathBuf::from(data_dir()));
+    let app_vec = get_engine().get_all_app();
+
+    engine::start(
+        |app_path| {
+            if app_path.is_empty() || (is_exclude(&app_path) && !is_include(&app_path)) {
+                return None;
+            }
+            config::rule::get_merged_path(&app_path)
+                .map(|x| x.as_ref().to_string())
+                .or(Some(app_path.to_owned()))
+        },
+        receiver,
+    );
     handle_start_args(app_handle);
     Ok(())
 }
@@ -74,5 +93,12 @@ fn handle_start_args(app_handle: &AppHandle) {
     let no_window = env::args().any(|x| x == "nw");
     if !no_window {
         app::focus_main_window(app_handle);
+    }
+}
+
+pub(crate) fn init_data_dir() {
+    let data_dir = PathBuf::from(data_dir());
+    if !data_dir.is_dir() {
+        fs::create_dir_all(data_dir.clone()).expect("create date directory failed.");
     }
 }

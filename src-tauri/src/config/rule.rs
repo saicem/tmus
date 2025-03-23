@@ -17,6 +17,7 @@ impl Default for Rule {
         Self {
             exclude: vec![
                 String::from("C:\\Windows\\SystemApps"),
+                String::from("C:\\Windows\\System32"),
                 String::from("~\\AppData\\Local\\Temp"),
             ],
             include: Default::default(),
@@ -29,7 +30,7 @@ static EXCLUDE: OnceLock<RadixTree<()>> = OnceLock::new();
 static INCLUDE: OnceLock<RadixTree<()>> = OnceLock::new();
 static MERGE: OnceLock<RadixTree<Arc<String>>> = OnceLock::new();
 
-pub fn init(rule: &Rule) {
+pub fn init_rule(rule: &Rule) {
     let mut exclude = RadixTree::new();
     let mut include = RadixTree::new();
     let mut merge = RadixTree::new();
@@ -72,15 +73,32 @@ pub fn is_exclude(app_path: &str) -> bool {
         .get()
         .unwrap()
         .longest_prefix_meta(app_path)
-        .is_some_and(|_| {
-            !INCLUDE
-                .get()
-                .unwrap()
-                .longest_prefix_meta(app_path)
-                .is_some()
-        })
+        .is_some()
+}
+
+pub fn is_include(app_path: &str) -> bool {
+    INCLUDE
+        .get()
+        .unwrap()
+        .longest_prefix_meta(app_path)
+        .is_some()
 }
 
 pub fn get_merged_path(app_path: &str) -> Option<Arc<String>> {
     MERGE.get().unwrap().longest_prefix_meta(app_path)
+}
+
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_exclude() {
+        let app_path =
+            "C:\\Windows\\SystemApps\\MicrosoftWindows.Client.CBS_cw5n1h2txyewy\\SearchHost.exe";
+        let mut exclude = RadixTree::new();
+        for path in Rule::default().exclude {
+            exclude.insert(&expand_path(&path), Some(()));
+        }
+        exclude.longest_prefix_meta(app_path);
+    }
 }

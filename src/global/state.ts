@@ -1,6 +1,7 @@
 import { listen } from "@tauri-apps/api/event"
 import { useColorMode } from "@vueuse/core"
 import { ref, watch } from "vue"
+import { isEnabled } from "@tauri-apps/plugin-autostart"
 
 export type LanguageEnum = "en" | "zh"
 export type LanguageConfig = LanguageEnum | "system"
@@ -16,7 +17,9 @@ export const config = ref<Config>({
   lang: "system",
   theme: "system",
 })
-export const actualLang = ref<LanguageEnum>("en")
+
+export const autoStart = ref<boolean>(false)
+isEnabled().then((value) => (autoStart.value = value))
 
 export function setThemeListener() {
   const themeMedia = window.matchMedia("(prefers-color-scheme: light)")

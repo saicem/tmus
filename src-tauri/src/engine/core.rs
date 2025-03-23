@@ -21,6 +21,7 @@ pub trait Engine {
     fn read_by_time(&self, start: Millisecond, end: Millisecond) -> Vec<FocusRecord>;
     fn get_id_by_path(&self, path: &str) -> AppId;
     fn get_path_by_id(&self, id: AppId) -> Result<String, EngineError>;
+    fn get_all_app(&self) -> Vec<(AppId, String)>;
     fn write_record(&self, raw: FocusRecordRaw);
 }
 
@@ -42,30 +43,12 @@ pub fn get_engine<'a>() -> &'a impl Engine {
 ///
 /// # Panics
 /// This function will panic if the `FOCUS_EVENT_SENDER` or `ENGINE` cannot be set.
-pub fn init(data_dir: &PathBuf, filter: fn(&str) -> Option<String>) {
+pub fn init(data_dir: &PathBuf) -> Receiver<FocusEvent> {
     let (sender, receiver) = channel::<FocusEvent>();
     FOCUS_EVENT_SENDER.set(sender).unwrap();
     let alpha_engine = AlphaEngine::new(data_dir);
-    // Define a closure to write records after filtering
-    let write_record = move |raw: FocusRecordRaw| {
-        if let Some(app_path) = filter(&raw.app_path) {
-            ENGINE.get().unwrap().write_record(FocusRecordRaw::new(
-                app_path,
-                raw.focus_at,
-                raw.blur_at,
-            ))
-        } else {
-            log::info!(
-                "App {} is filtered out. Focus at {:?}, blur at {:?}",
-                raw.app_path,
-                raw.focus_at,
-                raw.blur_at
-            )
-        }
-    };
     ENGINE.set(alpha_engine).expect("Engine set failed.");
-    start(write_record, receiver);
-    monitor::set_event_hook();
+    receiver
 }
 
 pub struct FocusRecordRaw {
@@ -84,10 +67,24 @@ impl FocusRecordRaw {
     }
 }
 
-fn start<F>(write_record: F, receiver: Receiver<FocusEvent>)
-where
-    F: Fn(FocusRecordRaw) + Send + 'static,
-{
+pub fn start(filter: fn(&str) -> Option<String>, receiver: Receiver<FocusEvent>) {
+    let write_record = move |raw: FocusRecordRaw| {
+        if let Some(app_path) = filter(&raw.app_path) {
+            ENGINE.get().unwrap().write_record(FocusRecordRaw::new(
+                app_path,
+                raw.focus_at,
+                raw.blur_at,
+            ))
+        } else {
+            log::info!(
+                "App {} is filtered out. Focus at {:?}, blur at {:?}",
+                raw.app_path,
+                raw.focus_at,
+                raw.blur_at
+            )
+        }
+    };
+
     /// Check the current window every 1 minute
     static LOOP_GET_CURRENT_WINDOW_INTERVAL: Duration = Duration::from_secs(1 * 60);
     /// If foreground change event interval above this threshold, it's invalid.
@@ -135,4 +132,5 @@ where
         }
     });
     loop_get_current_window(LOOP_GET_CURRENT_WINDOW_INTERVAL);
+    monitor::set_event_hook();
 }

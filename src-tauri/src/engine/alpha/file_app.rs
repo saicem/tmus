@@ -60,6 +60,10 @@ impl FileApp {
         }
     }
 
+    pub fn get_all_app(&self) -> Vec<String> {
+        self.id_path_map.lock().unwrap().to_owned()
+    }
+
     /// Returns the app id which was written.
     fn write_app(&self, name: &str) -> AppId {
         let mut id_name_map = self.id_path_map.lock().unwrap();

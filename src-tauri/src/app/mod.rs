@@ -1,6 +1,5 @@
 pub mod constant;
 pub mod global;
-pub(crate) mod setup;
 pub(crate) mod tray;
 mod window;
 

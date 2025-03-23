@@ -194,10 +194,11 @@ mod tests {
     fn longest_prefix_meta() {
         let mut tree = RadixTree::new();
         tree.insert("app", Some(1));
-        tree.insert("中文", Some(2));
+        tree.insert("apple", Some(2));
+        tree.insert("applet", Some(3));
         assert_eq!(tree.longest_prefix_meta("app"), Some(1));
-        assert_eq!(tree.longest_prefix_meta("apple"), Some(1));
-        assert_eq!(tree.longest_prefix_meta("中文"), Some(2));
-        assert_eq!(tree.longest_prefix_meta("中"), None);
+        assert_eq!(tree.longest_prefix_meta("appl"), Some(1));
+        assert_eq!(tree.longest_prefix_meta("apple"), Some(2));
+        assert_eq!(tree.longest_prefix_meta("applet"), Some(3));
     }
 }

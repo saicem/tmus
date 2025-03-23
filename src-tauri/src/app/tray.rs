@@ -1,7 +1,8 @@
 use crate::app::constant::config_file_path;
 use crate::app::window::focus_main_window;
-use crate::config::config_loader::ConfigLoader as _;
-use crate::config::{Config, I18n, LangConfig, ThemeConfig};
+use crate::config::config::{LangConfig, ThemeConfig};
+use crate::config::i18n::I18n;
+use crate::config::CONFIG;
 use std::error::Error;
 use std::sync::LazyLock;
 use tauri::menu::{CheckMenuItem, Menu, MenuBuilder, MenuEvent, MenuItemBuilder, SubmenuBuilder};
@@ -29,7 +30,7 @@ pub fn refresh_tray_menu(app_handle: &AppHandle) {
 }
 
 fn build_menu(app_handle: &AppHandle) -> Result<Menu<Wry>, Box<dyn Error>> {
-    let config = Config::get();
+    let config = CONFIG.get();
     let lang_menu = SubmenuBuilder::new(app_handle, I18n::get().language)
         .items(&[
             &CheckMenuItem::with_id(
@@ -117,28 +118,27 @@ fn on_menu_event(app_handle: &AppHandle, event: MenuEvent) {
         _ => {
             match event_id {
                 "lang_en" => {
-                    Config::get_mut().lang = LangConfig::En;
+                    CONFIG.set_field(|x| x.lang = LangConfig::En);
                 }
                 "lang_zh" => {
-                    Config::get_mut().lang = LangConfig::Zh;
+                    CONFIG.set_field(|x| x.lang = LangConfig::Zh);
                 }
                 "lang_system" => {
-                    Config::get_mut().lang = LangConfig::System;
+                    CONFIG.set_field(|x| x.lang = LangConfig::System);
                 }
                 "theme_system" => {
-                    Config::get_mut().theme = ThemeConfig::System;
+                    CONFIG.set_field(|x| x.theme = ThemeConfig::System);
                 }
                 "theme_light" => {
-                    Config::get_mut().theme = ThemeConfig::Light;
+                    CONFIG.set_field(|x| x.theme = ThemeConfig::Light);
                 }
                 "theme_dark" => {
-                    Config::get_mut().theme = ThemeConfig::Dark;
+                    CONFIG.set_field(|x| x.theme = ThemeConfig::Dark);
                 }
                 _ => {}
             }
-            let config = Config::get();
+            CONFIG.dump(config_file_path());
             refresh_tray_menu(app_handle);
-            config.dump(config_file_path())
         }
     }
 }
