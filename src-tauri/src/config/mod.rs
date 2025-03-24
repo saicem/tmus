@@ -40,8 +40,8 @@ pub async fn get_app_rule() -> rule::Rule {
 }
 
 #[tauri::command]
-pub async fn set_app_rule(rule: Rule) {
-    RULE.set(&rule);
+pub async fn set_app_rule(config: Rule) {
+    RULE.set(&config);
     RULE.dump(rule_file_path());
 }
 
@@ -51,7 +51,7 @@ pub async fn get_app_tag() -> tag::AppTag {
 }
 
 #[tauri::command]
-pub async fn set_app_tag(tag: tag::AppTag) {
-    TAG.set(&tag);
+pub async fn set_app_tag(config: tag::AppTag) {
+    TAG.set(&config);
     TAG.dump(tag_file_path());
 }

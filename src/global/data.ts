@@ -49,3 +49,27 @@ export interface AppDuration {
   app: FileDetail
   duration: Duration
 }
+
+export interface RuleConfig {
+  exclude: ExcludeRuleItem[]
+  include: IncludeRuleItem[]
+  merge: MergeRuleItem[]
+}
+
+export interface ExcludeRuleItem {
+  path: string
+}
+
+export interface IncludeRuleItem {
+  path: string
+}
+
+export interface MergeRuleItem {
+  path: string
+  toPath: string
+}
+
+export interface TagConfig {
+  appPath: string
+  tags: string[]
+}

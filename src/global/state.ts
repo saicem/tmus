@@ -1,7 +1,7 @@
 import { listen } from "@tauri-apps/api/event"
-import { useColorMode } from "@vueuse/core"
 import { ref, watch } from "vue"
 import { isEnabled } from "@tauri-apps/plugin-autostart"
+import { useColorMode } from "@vueuse/core"
 
 export type LanguageEnum = "en" | "zh"
 export type LanguageConfig = LanguageEnum | "system"
@@ -11,8 +11,7 @@ export type Config = {
   theme: ThemeConfig
 }
 
-export const statisticStore = ref<"Card" | "Progress">("Card");
-
+export const statisticStore = ref<"Card" | "Progress">("Card")
 export const config = ref<Config>({
   lang: "system",
   theme: "system",

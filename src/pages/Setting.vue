@@ -1,10 +1,17 @@
 <script setup lang="ts">
+import { ref } from "vue"
 import { i18n } from "@/global/i18n.ts"
 import { autoStart, config } from "@/global/state.ts"
 import { setAppConfig } from "@/global/cmd.ts"
 import { disable, enable } from "@tauri-apps/plugin-autostart"
 import SettingItem from "@/components/setting/SettingItem.vue"
 import SettingGroup from "@/components/setting/SettingGroup.vue"
+import SettingMoreItem from "@/components/setting/SettingMoreItem.vue"
+import RuleDialog from "@/components/setting/RuleDialog.vue"
+import TagDialog from "@/components/setting/TagDialog.vue"
+
+const dialogVisibleRule = ref(false)
+const dialogVisibleTag = ref(false)
 
 function configChange() {
   setAppConfig(config.value)
@@ -12,7 +19,15 @@ function configChange() {
 </script>
 
 <template>
-  <div style="flex: 1; display: flex; flex-wrap: wrap; padding: 16px">
+  <div
+    style="
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      grid-gap: 16px;
+    "
+  >
+    <RuleDialog v-model="dialogVisibleRule" v-if="dialogVisibleRule" />
+    <TagDialog v-model="dialogVisibleTag" v-if="dialogVisibleTag" />
     <SettingGroup>
       <SettingItem :label="i18n.configPage.language">
         <el-select
@@ -42,6 +57,14 @@ function configChange() {
           @change="(val) => (val ? enable() : disable())"
         />
       </SettingItem>
+    </SettingGroup>
+    <SettingGroup>
+      <SettingMoreItem
+        :label="i18n.configPage.appRule"
+        @click="dialogVisibleRule = true"
+        :tip="i18n.configPage.appRuleTip"
+      />
+      <!--      <SettingMoreItem :label="i18n.configPage.appTag" @click="dialogVisibleTag = true" />-->
     </SettingGroup>
   </div>
 </template>

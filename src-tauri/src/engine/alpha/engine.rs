@@ -70,7 +70,12 @@ impl Engine for AlphaEngine {
     }
 
     fn get_all_app(&self) -> Vec<(AppId, String)> {
-        self.file_app.get_all_app().into_iter().enumerate().map(|(id, path)| (id as AppId, path)).collect()
+        self.file_app
+            .get_all_app()
+            .into_iter()
+            .enumerate()
+            .map(|(id, path)| (id as AppId, path))
+            .collect()
     }
 
     fn write_record(&self, raw: FocusRecordRaw) {

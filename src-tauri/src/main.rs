@@ -22,6 +22,7 @@ mod util;
 fn main() {
     tauri::async_runtime::block_on(util::force_singleton());
     let app = tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_autostart::init(
             MacosLauncher::LaunchAgent,
             Some(vec!["nw"]),
@@ -60,7 +61,6 @@ pub fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     config::rule::init_rule(&RULE.get());
 
     app::tray::tray(app_handle).expect("Error while initializing tray");
-    
 
     let receiver = engine::init(&PathBuf::from(data_dir()));
     let app_vec = get_engine().get_all_app();
@@ -70,9 +70,7 @@ pub fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
             if app_path.is_empty() || (is_exclude(&app_path) && !is_include(&app_path)) {
                 return None;
             }
-            config::rule::get_merged_path(&app_path)
-                .map(|x| x.as_ref().to_string())
-                .or(Some(app_path.to_owned()))
+            config::rule::get_merged_path(&app_path).or(Some(app_path.to_owned()))
         },
         receiver,
     );
