@@ -78,14 +78,14 @@ const data = ref<AppDuration[]>([])
 const load = async (startDate: Moment, endDate: Moment) => {
   console.log("load", startDate, endDate)
   let result = await durationById(startDate, endDate)
-  data.value = await Promise.all(
+  data.value = (await Promise.all(
     Object.entries(result).map(async ([k, v]) => {
       return {
         app: await appDetail(+k),
         duration: moment.duration(v),
       }
     })
-  )
+  )).sort((a, b) => b.duration.asMilliseconds() - a.duration.asMilliseconds())
 }
 
 

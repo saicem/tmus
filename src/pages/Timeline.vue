@@ -27,12 +27,14 @@ const load = async () => {
         return {
           moment: moment(millisInDay * +k),
           data: await Promise.all(
-            Object.entries(v).map(async ([id, duration]) => {
-              return {
-                app: await appDetail(+id),
-                duration: moment.duration(duration),
-              }
-            })
+            Object.entries(v)
+              .sort((a, b) => b[1] - a[1])
+              .map(async ([id, duration]) => {
+                return {
+                  app: await appDetail(+id),
+                  duration: moment.duration(duration),
+                }
+              })
           ),
         }
       })
