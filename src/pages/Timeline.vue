@@ -5,6 +5,7 @@ import moment, { Moment } from "moment-timezone"
 import { AppDuration, DateGroup } from "@/global/data.ts"
 import AppCardGroup from "@/components/statistic/AppCardGroup.vue"
 import { appMeta } from "@/global/cmd.ts"
+import { config } from "@/global/state.ts"
 
 const scrollDisable = computed(() => loading.value || noMore.value)
 const noMore = ref(false)
@@ -25,26 +26,26 @@ const load = async () => {
   const result = await durationByDayId(startDate, endDate)
   console.log("result", result)
   const ripeResult: DateGroup<AppDuration>[] = await Promise.all(
-    Object.entries(result)
-      .sort((a, b) => {
-        return +b[0] - +a[0]
-      })
-      .map(async ([k, v]) => {
-        return {
-          moment: moment(millisInDay * +k),
-          data: await Promise.all(
-            Object.entries(v)
-              .sort((a, b) => b[1] - a[1])
-              .map(async ([id, duration]) => {
-                return {
-                  app: await appDetail(+id),
-                  duration: moment.duration(duration),
-                }
-              })
-          ),
-        }
-      })
+    Object.entries(result).map(async ([k, v]) => {
+      return {
+        moment: moment(millisInDay * +k),
+        data: await Promise.all(
+          Object.entries(v).map(async ([id, duration]) => {
+            return {
+              app: await appDetail(+id),
+              duration: moment.duration(duration),
+            }
+          })
+        ),
+      }
+    })
   )
+  ripeResult.sort((a, b) => b.moment.unix() - a.moment.unix())
+  ripeResult.forEach((dg) => {
+    dg.data = dg.data
+      .filter((d) => !config.value.filterUninstalledApp || d.app.exist)
+      .sort((a, b) => b.duration.asMilliseconds() - a.duration.asMilliseconds())
+  })
   data.value.push(...ripeResult)
   console.log(
     "timeline data",

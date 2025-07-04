@@ -9,12 +9,14 @@ export type ThemeConfig = "dark" | "light" | "system"
 export type Config = {
   lang: LanguageConfig
   theme: ThemeConfig
+  filterUninstalledApp: boolean
 }
 
 export const statisticStore = ref<"Card" | "Progress">("Card")
 export const config = ref<Config>({
   lang: "system",
   theme: "system",
+  filterUninstalledApp: true,
 })
 
 export const autoStart = ref<boolean>(false)

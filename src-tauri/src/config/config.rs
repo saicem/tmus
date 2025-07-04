@@ -7,6 +7,8 @@ pub struct Config {
     pub lang: LangConfig,
     #[serde(default)]
     pub theme: ThemeConfig,
+    #[serde(default = "default_true")]
+    pub filter_uninstalled_app: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
@@ -27,4 +29,8 @@ pub enum ThemeConfig {
     #[default]
     #[serde(other)]
     System,
+}
+
+fn default_true() -> bool {
+    true
 }

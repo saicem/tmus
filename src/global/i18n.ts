@@ -179,11 +179,11 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
     homePage: {
       apps: "应用",
       appsUnit: "个",
-      totalUse: "使用量",
+      totalUse: "使用时长",
       mostUse: "最常使用",
     },
     weeklyChart: {
-      title: "周使用量",
+      title: "周使用时长",
       thisWeek: "本周",
       lastWeek: "上周",
       dayOfWeekNames: ["周日", "周一", "周二", "周三", "周四", "周五", "周六"],

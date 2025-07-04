@@ -64,7 +64,13 @@ function configChange() {
         @click="dialogVisibleRule = true"
         :tip="i18n.configPage.appRuleTip"
       />
-      <!--      <SettingMoreItem :label="i18n.configPage.appTag" @click="dialogVisibleTag = true" />-->
+      <!--      <SettingMoreItem-->
+      <!--        :label="i18n.configPage.appTag"-->
+      <!--        @click="dialogVisibleTag = true"-->
+      <!--      />-->
+      <SettingItem :label="i18n.configPage.filterUninstalledApp">
+        <el-switch v-model="config.filterUninstalledApp" />
+      </SettingItem>
     </SettingGroup>
   </div>
 </template>

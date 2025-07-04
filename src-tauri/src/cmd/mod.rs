@@ -12,6 +12,7 @@ use read_helper::read_by_timestamp;
 use std::collections::{BTreeMap, HashMap};
 use std::io::Cursor;
 use std::path::Path;
+use tokio::task::JoinSet;
 
 mod data;
 mod duration_calculate_helper;
@@ -75,6 +76,16 @@ pub fn duration_by_day_id(
         end_millis
     );
     Ok(group_by_day_id(records, time_zone_offset))
+}
+
+#[tauri::command]
+pub async fn file_detail_batch(ids: Vec<usize>) -> Result<Vec<FileDetail>, String> {
+    Ok(ids
+        .into_iter()
+        .map(async |id| file_detail(id).await.unwrap())
+        .collect::<JoinSet<_>>()
+        .join_all()
+        .await)
 }
 
 /// Retrieves detailed information about an exe file given its application ID.
