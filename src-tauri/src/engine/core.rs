@@ -1,7 +1,7 @@
 use super::{
-    alpha::engine::AlphaEngine,
-    data::{AppId, EngineError, FocusEvent, Millisecond},
-    monitor, FocusRecord,
+    alpha,
+    data::{FocusEvent, Millisecond},
+    monitor,
 };
 use crate::engine::monitor::loop_get_current_window;
 use std::{
@@ -15,21 +15,6 @@ use std::{
 };
 
 pub static FOCUS_EVENT_SENDER: OnceLock<Sender<FocusEvent>> = OnceLock::new();
-
-pub trait Engine {
-    fn new(data_dir: &PathBuf) -> Self;
-    fn read_by_time(&self, start: Millisecond, end: Millisecond) -> Vec<FocusRecord>;
-    fn get_id_by_path(&self, path: &str) -> AppId;
-    fn get_path_by_id(&self, id: AppId) -> Result<String, EngineError>;
-    fn get_all_app(&self) -> Vec<(AppId, String)>;
-    fn write_record(&self, raw: FocusRecordRaw);
-}
-
-static ENGINE: OnceLock<AlphaEngine> = OnceLock::new();
-
-pub fn get_engine<'a>() -> &'a impl Engine {
-    ENGINE.get().unwrap()
-}
 
 /// Initializes the application engine with a given data directory and a filter function.
 ///
@@ -46,8 +31,7 @@ pub fn get_engine<'a>() -> &'a impl Engine {
 pub fn init(data_dir: &PathBuf) -> Receiver<FocusEvent> {
     let (sender, receiver) = channel::<FocusEvent>();
     FOCUS_EVENT_SENDER.set(sender).unwrap();
-    let alpha_engine = AlphaEngine::new(data_dir);
-    ENGINE.set(alpha_engine).expect("Engine set failed.");
+    alpha::init(data_dir);
     receiver
 }
 
@@ -70,11 +54,7 @@ impl FocusRecordRaw {
 pub fn start(filter: fn(&str) -> Option<String>, receiver: Receiver<FocusEvent>) {
     let write_record = move |raw: FocusRecordRaw| {
         if let Some(app_path) = filter(&raw.app_path) {
-            ENGINE.get().unwrap().write_record(FocusRecordRaw::new(
-                app_path,
-                raw.focus_at,
-                raw.blur_at,
-            ))
+            alpha::write_record(FocusRecordRaw::new(app_path, raw.focus_at, raw.blur_at))
         } else {
             log::info!(
                 "App {} is filtered out. Focus at {:?}, blur at {:?}",

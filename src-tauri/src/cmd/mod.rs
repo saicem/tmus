@@ -1,7 +1,8 @@
 use crate::cmd::data::FileDetail;
 use crate::cmd::duration_calculate_helper::{group_by_day, group_by_day_id, group_by_id};
-use crate::engine::data::{AppId, Millisecond};
-use crate::engine::{get_engine, Engine, FocusRecord};
+use crate::engine::alpha::focus_index;
+use crate::engine::data::{AppId, AppMeta, Millisecond};
+use crate::engine::{alpha, FocusRecord};
 use crate::util;
 use base64::engine::general_purpose;
 use base64::Engine as _;
@@ -87,7 +88,7 @@ pub fn duration_by_day_id(
 /// - A `String` containing an error message if the file details cannot be retrieved.
 #[tauri::command]
 pub async fn file_detail(id: usize) -> Result<FileDetail, String> {
-    let path = get_engine().get_path_by_id(id).unwrap();
+    let path = alpha::focus_app::get_path_by_id(id);
     if !Path::new(&path).exists() {
         return Ok(FileDetail {
             name: Path::new(&path)
@@ -135,4 +136,14 @@ pub async fn file_detail(id: usize) -> Result<FileDetail, String> {
 #[tauri::command]
 pub async fn show_in_folder(path: String) -> Result<(), String> {
     Ok(util::show_in_folder(path))
+}
+
+#[tauri::command]
+pub async fn app_meta() -> Result<AppMeta, String> {
+    Ok(alpha::get_app_meta())
+}
+
+#[tauri::command]
+pub async fn focus_index_record() -> Result<Vec<focus_index::FileIndexRecord>, String> {
+    Ok(focus_index::all_record())
 }

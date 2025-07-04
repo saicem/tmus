@@ -5,7 +5,6 @@ use crate::app::constant::data_dir;
 use crate::config::rule::{is_exclude, is_include};
 use crate::config::{get_app_config, set_app_config, RULE};
 use config::{get_app_rule, get_app_tag, set_app_rule, set_app_tag};
-use engine::{get_engine, Engine};
 use log;
 use std::path::PathBuf;
 use std::{env, fs};
@@ -44,6 +43,8 @@ fn main() {
             get_app_tag,
             set_app_tag,
             cmd::show_in_folder,
+            cmd::app_meta,
+            cmd::focus_index_record,
         ])
         .build(tauri::generate_context!())
         .expect("Error while building application");
@@ -63,7 +64,6 @@ pub fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     app::tray::tray(app_handle).expect("Error while initializing tray");
 
     let receiver = engine::init(&PathBuf::from(data_dir()));
-    let app_vec = get_engine().get_all_app();
 
     engine::start(
         |app_path| {

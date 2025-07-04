@@ -51,6 +51,10 @@ impl Millisecond {
     pub const fn from_secs(secs: i64) -> Millisecond {
         Millisecond(secs * 1000)
     }
+    
+    pub fn as_millis(&self) -> i64 {
+        self.0
+    }
 
     pub const fn from_millis(millis: i64) -> Millisecond {
         Millisecond(millis)

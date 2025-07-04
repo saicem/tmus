@@ -1,4 +1,5 @@
-use crate::engine::{data::Millisecond, get_engine, Engine, FocusRecord};
+use crate::engine::{alpha, data::Millisecond, FocusRecord};
+use log::debug;
 use std::cmp::{max, min};
 
 /// Reads all focus records that fall within the specified time range.
@@ -14,7 +15,13 @@ pub fn read_by_timestamp(start_millis: Millisecond, end_millis: Millisecond) -> 
     if start_millis >= end_millis {
         return vec![];
     }
-    let rough_records = get_engine().read_by_time(start_millis, end_millis);
+    let rough_records = alpha::read_by_timestamp(start_millis, end_millis);
+    debug!(
+        "Read rough records, start: {:?}, end: {:?}, len: {:?}",
+        start_millis,
+        end_millis,
+        rough_records.len()
+    );
     trim_focus_records(rough_records, start_millis, end_millis)
 }
 
