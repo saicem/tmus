@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core"
-import { FileDetail, RuleConfig, TagConfig } from "./data"
+import { AppMeta, FileDetail, FileIndexRecord, RuleConfig, TagConfig } from "./data"
 import { Config } from "@/global/state.ts"
 
 async function durationById(
@@ -64,6 +64,14 @@ export async function getAppVersion(): Promise<TagConfig> {
 
 export async function setAppVersion(config: TagConfig): Promise<void> {
   return await invoke("set_app_version", { config })
+}
+
+export async function appMeta(): Promise<AppMeta> {
+  return await invoke("app_meta")
+}
+
+export async function focusIndexRecord(): Promise<FileIndexRecord[]> {
+  return await invoke("focus_index_record")
 }
 
 export default {

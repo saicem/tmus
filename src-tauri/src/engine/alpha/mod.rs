@@ -20,7 +20,6 @@ pub(crate) fn init(data_dir: &PathBuf) {
 pub(crate) fn read_by_timestamp(start: Millisecond, end: Millisecond) -> Vec<FocusRecord> {
     let start_index: CursorPosition = focus_index::query_index(start.as_days() as u64);
     let end_index = focus_index::query_index((end.as_days() + 1) as u64);
-    log::debug!("Reading records from {:?} to {:?}", start_index, end_index);
     if start_index == CursorPosition::End || end_index == CursorPosition::Start {
         return vec![];
     }

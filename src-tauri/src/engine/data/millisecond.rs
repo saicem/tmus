@@ -1,3 +1,4 @@
+use chrono::DateTime;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use std::{
@@ -24,6 +25,11 @@ impl Debug for Millisecond {
         f.debug_tuple("Millisecond")
             .field(&self.0)
             .field(&format!("{}d{}h{}m{}s", days, hours, minutes, seconds))
+            .field(
+                &DateTime::from_timestamp_millis(self.0).map_or("N/A".to_string(), |dt| {
+                    dt.format("%Y-%m-%d %H:%M:%S").to_string()
+                }),
+            )
             .finish()
     }
 }
@@ -51,7 +57,7 @@ impl Millisecond {
     pub const fn from_secs(secs: i64) -> Millisecond {
         Millisecond(secs * 1000)
     }
-    
+
     pub fn as_millis(&self) -> i64 {
         self.0
     }

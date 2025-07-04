@@ -12,9 +12,10 @@ use std::cmp::{max, min};
 /// # Returns
 /// A vector of `FocusRecord` instances.
 pub fn read_by_timestamp(start_millis: Millisecond, end_millis: Millisecond) -> Vec<FocusRecord> {
-    if start_millis >= end_millis {
-        return vec![];
-    }
+    debug_assert!(
+        start_millis <= end_millis,
+        "start_millis must be less than or equal to end_millis"
+    );
     let rough_records = alpha::read_by_timestamp(start_millis, end_millis);
     debug!(
         "Read rough records, start: {:?}, end: {:?}, len: {:?}",

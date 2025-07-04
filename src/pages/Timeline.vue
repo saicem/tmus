@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { computed, ref } from "vue"
+import { computed, onMounted, ref, toRaw } from "vue"
 import { appDetail, durationByDayId } from "@/global/api.ts"
 import moment, { Moment } from "moment-timezone"
 import { AppDuration, DateGroup } from "@/global/data.ts"
 import AppCardGroup from "@/components/statistic/AppCardGroup.vue"
+import { appMeta } from "@/global/cmd.ts"
 
 const scrollDisable = computed(() => loading.value || noMore.value)
 const noMore = ref(false)
@@ -11,14 +12,19 @@ const loading = ref(false)
 const nextDate = ref<Moment>(moment())
 const data = ref<DateGroup<AppDuration>[]>([])
 const millisInDay = 1000 * 60 * 60 * 24
+const metaStartDate = ref<Moment>(moment())
+
+onMounted(async () => {
+  metaStartDate.value = moment((await appMeta()).startMsEpoch)
+})
 
 const load = async () => {
-  console.log("load")
   loading.value = true
   const endDate = nextDate.value
-  const startDate = endDate.clone().subtract(1, "week")
+  const startDate = endDate.clone().subtract(1, "week").startOf("day")
   const result = await durationByDayId(startDate, endDate)
-  const ripeResult = await Promise.all(
+  console.log("result", result)
+  const ripeResult: DateGroup<AppDuration>[] = await Promise.all(
     Object.entries(result)
       .sort((a, b) => {
         return +b[0] - +a[0]
@@ -40,14 +46,23 @@ const load = async () => {
       })
   )
   data.value.push(...ripeResult)
-  console.log("data", data)
-  // TODO judge no more
-  if (!ripeResult || ripeResult.length == 0) {
-    console.log("no more data")
+  console.log(
+    "timeline data",
+    startDate.format("YYYY-MM-DD HH:mm:ss"),
+    "to",
+    endDate.format("YYYY-MM-DD HH:mm:ss"),
+    toRaw(data.value)
+  )
+  nextDate.value = startDate.clone().subtract(1, "day")
+  if (nextDate.value.isBefore(metaStartDate.value)) {
+    console.log(
+      "timeline no more data",
+      nextDate.value.format("YYYY-MM-DD HH:mm:ss"),
+      metaStartDate.value.format("YYYY-MM-DD HH:mm:ss")
+    )
     noMore.value = true
     return
   }
-  nextDate.value = startDate.clone().subtract(1, "day")
   loading.value = false
 }
 </script>

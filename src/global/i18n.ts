@@ -47,6 +47,7 @@ type I18nMessageType = {
     appRule: string
     appTag: string
     appRuleTip: string
+    filterUninstalledApp: string
   }
   detailPage: {
     icon: string
@@ -125,7 +126,9 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
       themeDark: "Dark",
       appRule: "App Rule",
       appTag: "App Tag",
-      appRuleTip: "Application rules. Exclude applications, all applications containing the configured prefix will be excluded. Include applications, takes precedence over excluded applications, preventing them from being excluded. Merge applications, converts all applications under a specific path to another path, allowing for unified statistics of application duration under a directory. Restarting the application takes effect.",
+      appRuleTip:
+        "Application rules. Exclude applications, all applications containing the configured prefix will be excluded. Include applications, takes precedence over excluded applications, preventing them from being excluded. Merge applications, converts all applications under a specific path to another path, allowing for unified statistics of application duration under a directory. Restarting the application takes effect.",
+      filterUninstalledApp: "Filter Uninstalled App",
     },
     detailPage: {
       icon: "Icon",
@@ -197,6 +200,7 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
       appTag: "应用标签",
       appRuleTip:
         "应用规则。排除应用，所有包含其中配置前缀的应用都会被排除。包含应用，优先级高于排除应用，避免应用被排除。合并应用，将某路径下的所有应用转化为另一路径，以便某一目录下的应用统一统计时长。重启应用生效。",
+      filterUninstalledApp: "过滤未安装应用",
     },
     detailPage: {
       icon: "图标",

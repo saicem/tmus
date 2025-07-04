@@ -11,7 +11,7 @@ use windows::Win32::Storage::FileSystem::FILE_SHARE_READ;
 type IndexUnitByte = [u8; 8];
 type IndexUnit = u64;
 
-static GLOBAL_STATE: OnceLock<GlobalState> = OnceLock::new();
+static STATE: OnceLock<State> = OnceLock::new();
 
 /// 2.85kB one year.
 ///
@@ -19,7 +19,7 @@ static GLOBAL_STATE: OnceLock<GlobalState> = OnceLock::new();
 /// After which, every 8 bytes represent the starting index of the corresponding day in record.bin.
 /// Each value is the record file index of specific day.
 #[derive(Debug)]
-struct GlobalState {
+struct State {
     file: Mutex<File>,
     /// Initial data recording date from `UNIX_EPOCH`.
     base_day: IndexUnit,
@@ -45,8 +45,8 @@ pub fn init(data_dir: &PathBuf) {
         index[0] = 0;
         ret
     };
-    GLOBAL_STATE
-        .set(GlobalState {
+    STATE
+        .set(State {
             file: Mutex::new(file),
             base_day,
             record_index_vec: Mutex::new(index),
@@ -54,21 +54,20 @@ pub fn init(data_dir: &PathBuf) {
         .unwrap();
 }
 
-fn get_state<'a>() -> &'a GlobalState {
-    GLOBAL_STATE.get().unwrap()
+fn get_state<'a>() -> &'a State {
+    STATE.get().unwrap()
 }
 
 pub fn query_index(day: IndexUnit) -> CursorPosition {
-    let (base_day, size) = {
-        let state = get_state();
-        (state.base_day, state.record_index_vec.lock().unwrap().len())
-    };
+    let state = get_state();
+    let base_day = state.base_day;
+    let size = state.record_index_vec.lock().unwrap().len();
     day.checked_sub(base_day)
         .map(|n| {
             if n >= size as IndexUnit {
                 CursorPosition::End
             } else {
-                CursorPosition::Middle(n as usize)
+                CursorPosition::Middle(state.record_index_vec.lock().unwrap()[n as usize] as usize)
             }
         })
         .unwrap_or(CursorPosition::Start)
@@ -87,7 +86,7 @@ pub fn update_index(day: IndexUnit, index: IndexUnit) {
 }
 
 /// Write the index to the file. The index is the starting index of the corresponding day in record.bin.
-fn write_index(value: IndexUnit, state: &GlobalState) {
+fn write_index(value: IndexUnit, state: &State) {
     let mut index = state.record_index_vec.lock().unwrap();
     let mut file = state.file.lock().unwrap();
     index.push(value);

@@ -73,3 +73,12 @@ export interface TagConfig {
   appPath: string
   tags: string[]
 }
+
+export interface AppMeta {
+  startMsEpoch: number
+}
+
+export interface FileIndexRecord {
+  date_time: string
+  start_index: number
+}
