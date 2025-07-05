@@ -8,7 +8,9 @@
   },
   "bundle": {
     "active": true,
-    "targets": "all",
+    "targets": [
+      "nsis"
+    ],
     "windows": {
       "nsis": {
         "installerHooks": "./windows/hooks.nsi"
