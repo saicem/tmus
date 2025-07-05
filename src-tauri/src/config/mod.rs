@@ -1,5 +1,3 @@
-use rule::Rule;
-
 use crate::app::constant::{config_file_path, rule_file_path, tag_file_path};
 use crate::app::refresh_tray_menu;
 use crate::config::config::Config;
@@ -40,7 +38,7 @@ pub async fn get_app_rule() -> rule::Rule {
 }
 
 #[tauri::command]
-pub async fn set_app_rule(config: Rule) {
+pub async fn set_app_rule(config: rule::Rule) {
     RULE.set(&config);
     RULE.dump(rule_file_path());
 }

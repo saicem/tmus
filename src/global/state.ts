@@ -10,13 +10,19 @@ export type Config = {
   lang: LanguageConfig
   theme: ThemeConfig
   filterUninstalledApp: boolean
+  firstDayOfWeek: 0 | 1 | 2 | 3 | 4 | 5 | 6
+  dateFormat: string
+  timeFormat: string
 }
 
-export const statisticStore = ref<"Card" | "Progress">("Card")
+export const statisticStore = ref<"Card" | "Progress">("Progress")
 export const config = ref<Config>({
   lang: "system",
   theme: "system",
   filterUninstalledApp: true,
+  firstDayOfWeek: 0,
+  dateFormat: "YYYY-MM-DD",
+  timeFormat: "HH:mm:ss",
 })
 
 export const autoStart = ref<boolean>(false)

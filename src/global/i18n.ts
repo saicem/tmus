@@ -48,6 +48,16 @@ type I18nMessageType = {
     appTag: string
     appRuleTip: string
     filterUninstalledApp: string
+    firstDayOfWeek: string
+    monday: string
+    tuesday: string
+    wednesday: string
+    thursday: string
+    friday: string
+    saturday: string
+    sunday: string
+    dateFormat: string
+    timeFormat: string
   }
   detailPage: {
     icon: string
@@ -107,13 +117,13 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
       thisWeek: "This Week",
       lastWeek: "Last Week",
       dayOfWeekNames: [
-        "Sunday",
         "Monday",
         "Tuesday",
         "Wednesday",
         "Thursday",
         "Friday",
         "Saturday",
+        "Sunday",
       ],
     },
     configPage: {
@@ -127,8 +137,18 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
       appRule: "App Rule",
       appTag: "App Tag",
       appRuleTip:
-        "Application rules. Exclude applications, all applications containing the configured prefix will be excluded. Include applications, takes precedence over excluded applications, preventing them from being excluded. Merge applications, converts all applications under a specific path to another path, allowing for unified statistics of application duration under a directory. Restarting the application takes effect.",
+        "Application rules. Exclude applications, all applications containing the configured prefix will be excluded. Include applications, takes precedence over excluded applications, preventing them from being excluded. Merge applications, converts all applications under a specific path to another path, allowing for unified statistics of application duration under a directory. Restart Tmus takes effect.",
       filterUninstalledApp: "Filter Uninstalled App",
+      firstDayOfWeek: "First Day Of Week",
+      monday: "Monday",
+      tuesday: "Tuesday",
+      wednesday: "Wednesday",
+      thursday: "Thursday",
+      friday: "Friday",
+      saturday: "Saturday",
+      sunday: "Sunday",
+      dateFormat: "Date Format",
+      timeFormat: "Time Format",
     },
     detailPage: {
       icon: "Icon",
@@ -151,7 +171,7 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
       ok: "OK",
       remove: "Remove",
       modifiedTip:
-        "You have modified the rule, are you sure to close this dialog?",
+        "You have modified the rule, are you sure to close without save?",
     },
   },
   zh: {
@@ -186,7 +206,15 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
       title: "周使用时长",
       thisWeek: "本周",
       lastWeek: "上周",
-      dayOfWeekNames: ["周日", "周一", "周二", "周三", "周四", "周五", "周六"],
+      dayOfWeekNames: [
+        "星期一",
+        "星期二",
+        "星期三",
+        "星期四",
+        "星期五",
+        "星期六",
+        "星期日",
+      ],
     },
     configPage: {
       language: "语言",
@@ -199,8 +227,18 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
       appRule: "应用规则",
       appTag: "应用标签",
       appRuleTip:
-        "应用规则。排除应用，所有包含其中配置前缀的应用都会被排除。包含应用，优先级高于排除应用，避免应用被排除。合并应用，将某路径下的所有应用转化为另一路径，以便某一目录下的应用统一统计时长。重启应用生效。",
+        "应用规则。排除应用，所有包含其中配置前缀的应用都会被排除。包含应用，优先级高于排除应用，避免应用被排除。合并应用，将某路径下的所有应用转化为另一路径，以便某一目录下的应用统一统计时长。重启 Tmus 生效。",
       filterUninstalledApp: "过滤已卸载应用",
+      firstDayOfWeek: "一周的第一天",
+      monday: "星期一",
+      tuesday: "星期二",
+      wednesday: "星期三",
+      thursday: "星期四",
+      friday: "星期五",
+      saturday: "星期六",
+      sunday: "星期日",
+      dateFormat: "日期格式",
+      timeFormat: "时间格式",
     },
     detailPage: {
       icon: "图标",
@@ -222,7 +260,7 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
       cancel: "取消",
       ok: "确定",
       remove: "删除",
-      modifiedTip: "你已经修改了规则,确定关闭吗?",
+      modifiedTip: "你已经修改了规则,确定不保存关闭吗?",
     },
   },
 }

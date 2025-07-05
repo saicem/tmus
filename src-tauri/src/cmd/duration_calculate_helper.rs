@@ -1,7 +1,30 @@
 use crate::engine::data::AppId;
 use crate::engine::data::Millisecond;
 use crate::engine::FocusRecord;
+use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, HashMap};
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct DurationByIdItem {
+    app_id: AppId,
+    duration: Millisecond,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct DurationByDayItem {
+    day_epoch: i64,
+    duration: Millisecond,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct DurationByDayIdItem {
+    app_id: AppId,
+    day_epoch: i64,
+    duration: Millisecond,
+}
 
 pub fn group_by_id(records: Vec<FocusRecord>) -> HashMap<AppId, Millisecond> {
     let mut ret = HashMap::new();
@@ -24,6 +47,7 @@ pub fn group_by_day(
         if start_day == end_day {
             *ret.entry(start_day).or_insert(Millisecond::ZERO) += record.duration();
         } else {
+            debug_assert!(end_day - start_day == 1, "end_day - start_day must be 1");
             *ret.entry(start_day).or_insert(Millisecond::ZERO) +=
                 Millisecond::ONE_DAY - record.focus_at.get_day_offset();
             *ret.entry(end_day).or_insert(Millisecond::ZERO) += record.blur_at.get_day_offset();

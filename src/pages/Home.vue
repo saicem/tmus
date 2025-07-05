@@ -2,7 +2,7 @@
 import app from "@/assets/general-card/app.svg"
 import usage from "@/assets/general-card/usage.svg"
 import up from "@/assets/general-card/up.svg"
-import { ref } from "vue"
+import { onMounted, ref } from "vue"
 import moment, { Duration } from "moment"
 import { i18n } from "@/global/i18n.ts"
 import { durationByDayInThisYear, todayAppGeneral } from "@/global/api.ts"
@@ -11,25 +11,13 @@ import HeatCalendar from "@/components/HeatCalendar.vue"
 import WeeklyChart from "@/components/WeeklyChart.vue"
 import { formatDuration } from "@/global/time-util.ts"
 
-const duration = ref<Record<number, Duration>>()
-const weeklyDurations = ref<Duration[]>()
+const duration = ref<Record<number, Duration>>({})
 const appCount = ref("0")
 const totalUse = ref("0")
 const mostUse = ref("0")
 
-durationByDayInThisYear().then((res) => {
-  console.log("durationByDayInThisYear", res)
-  duration.value = res
-  let startDayOfYear = moment().startOf("week").subtract(1, "week").dayOfYear()
-  weeklyDurations.value = new Array(14).fill(0).map((_, idx) => {
-    console.log(
-      "idx",
-      startDayOfYear + idx,
-      res[startDayOfYear + idx],
-      res[startDayOfYear + idx]?.asHours()
-    )
-    return res[startDayOfYear + idx] ?? moment.duration(0)
-  })
+onMounted(async () => {
+  duration.value = await durationByDayInThisYear()
 })
 
 todayAppGeneral().then((res) => {
@@ -73,7 +61,7 @@ todayAppGeneral().then((res) => {
     </el-card>
 
     <el-card>
-      <WeeklyChart :durations="weeklyDurations" v-if="weeklyDurations" />
+      <WeeklyChart />
     </el-card>
   </div>
 </template>

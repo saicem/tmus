@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import moment, { Duration } from "moment"
 import { formatDuration } from "../global/time-util.ts"
+import { config } from "@/global/state.ts"
 
 defineProps<{
   dayOfYear: number
@@ -12,7 +13,7 @@ defineProps<{
   <el-tooltip :show-after="200" :hide-after="200">
     <template #content>
       <div style="text-align: center">
-        {{ `${moment().dayOfYear(dayOfYear).format("yyyy-MM-DD")} ` }}
+        {{ `${moment().dayOfYear(dayOfYear).format(config.dateFormat)} ` }}
         <br />{{ formatDuration(duration) }}
       </div>
     </template>

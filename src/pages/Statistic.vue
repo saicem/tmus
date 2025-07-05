@@ -6,7 +6,7 @@ import { appDetail, durationById } from "@/global/api.ts"
 import { i18n } from "@/global/i18n.ts"
 import AppProgressGroup from "@/components/statistic/AppProgressGroup.vue"
 import AppCardGroup from "@/components/statistic/AppCardGroup.vue"
-import {statisticStore} from "@/global/state.ts"
+import { statisticStore } from "@/global/state.ts"
 
 const shortcuts = computed(() => [
   {
@@ -76,25 +76,24 @@ const datetimeRange = ref<[Date, Date]>(
 const data = ref<AppDuration[]>([])
 
 const load = async (startDate: Moment, endDate: Moment) => {
-  console.log("load", startDate, endDate)
   let result = await durationById(startDate, endDate)
-  data.value = (await Promise.all(
-    Object.entries(result).map(async ([k, v]) => {
-      return {
-        app: await appDetail(+k),
-        duration: moment.duration(v),
-      }
-    })
-  )).sort((a, b) => b.duration.asMilliseconds() - a.duration.asMilliseconds())
+  data.value = (
+    await Promise.all(
+      Object.entries(result).map(async ([k, v]) => {
+        return {
+          app: await appDetail(+k),
+          duration: moment.duration(v),
+        }
+      })
+    )
+  ).sort((a, b) => b.duration.asMilliseconds() - a.duration.asMilliseconds())
 }
-
 
 watch(
   datetimeRange,
   ([startDate, endDate]) => load(moment(startDate), moment(endDate)),
   { immediate: true }
 )
-
 </script>
 
 <template>
