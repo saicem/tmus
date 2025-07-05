@@ -72,7 +72,7 @@ fn map_file<T: AsRef<Path>>(file_path: T, size: Option<usize>) -> MmapMut {
 
 pub fn write(record: RecordByte) -> u64 {
     let mut state = get_state();
-    if state.size < state.len {
+    if state.size <= state.len {
         expand_size(&mut state);
     }
     let range = state.len..state.len + RECORD_SIZE;
