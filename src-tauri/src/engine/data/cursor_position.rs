@@ -1,5 +1,4 @@
-#[derive(Debug)]
-#[derive(PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum CursorPosition {
     Start,
     End,

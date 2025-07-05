@@ -26,6 +26,10 @@ struct State {
     record_index_vec: Mutex<Vec<IndexUnit>>,
 }
 
+fn get_state<'a>() -> &'a State {
+    STATE.get().unwrap()
+}
+
 pub fn init(data_dir: &PathBuf) {
     let mut file = OpenOptions::new()
         .create(true)
@@ -52,10 +56,6 @@ pub fn init(data_dir: &PathBuf) {
             record_index_vec: Mutex::new(index),
         })
         .unwrap();
-}
-
-fn get_state<'a>() -> &'a State {
-    STATE.get().unwrap()
 }
 
 pub fn query_index(day: IndexUnit) -> CursorPosition {

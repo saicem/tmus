@@ -16,7 +16,7 @@ tauri = { version = "2", features = ["tray-icon"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 chrono = { version = "0.4", features = ["serde"] }
-windows = { version = "0.60.0", features = [
+windows = { version = "0.61", features = [
     "Win32",
     "Win32_Foundation",
     "Win32_Graphics_Gdi",
@@ -50,3 +50,4 @@ custom-protocol = ["tauri/custom-protocol"]
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 tauri-plugin-autostart = "2"
+tauri-plugin-updater = "2"

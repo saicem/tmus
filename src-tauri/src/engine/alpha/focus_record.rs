@@ -7,6 +7,8 @@ use std::path::{Path, PathBuf};
 use std::sync::{Mutex, MutexGuard, OnceLock};
 
 const RECORD_SIZE: usize = size_of::<RecordByte>();
+/// The size use for mmap expand every time.
+const EXPAND_SIZE: usize = 4 * 1024;
 
 static STATE: OnceLock<Mutex<State>> = OnceLock::new();
 
@@ -22,19 +24,6 @@ fn get_state<'a>() -> MutexGuard<'a, State> {
     STATE.get().unwrap().lock().unwrap()
 }
 
-/// Find first all zero 8 bytes, and return the index of it.
-fn find_really_len(arr: &[u8]) -> usize {
-    for (index, chunk) in arr.chunks(8).enumerate() {
-        if chunk.iter().all(|byte| *byte == 0) {
-            return index * 8;
-        }
-    }
-    arr.len()
-}
-
-/// The size use for mmap expand every time.
-const EXPAND_SIZE: usize = 4 * 1024;
-
 pub fn init(data_dir: &PathBuf) {
     let file_path = data_dir.join("record.bin");
     let mmap = map_file(&file_path, None);
@@ -49,25 +38,6 @@ pub fn init(data_dir: &PathBuf) {
             size,
         }))
         .unwrap();
-}
-
-fn expand_size(state: &mut State) {
-    let new_size = state.size + EXPAND_SIZE;
-    state.mmap = map_file(&state.file_path, Some(new_size));
-    state.size = new_size;
-}
-
-fn map_file<T: AsRef<Path>>(file_path: T, size: Option<usize>) -> MmapMut {
-    let file = OpenOptions::new()
-        .create(true)
-        .read(true)
-        .write(true)
-        .open(file_path)
-        .expect("open record.bin failed.");
-    if let Some(size) = size {
-        file.set_len(size as u64).expect("Resize file failed.");
-    }
-    unsafe { MmapMut::map_mut(&file).expect("Error mapping record.bin file") }
 }
 
 pub fn write(record: RecordByte) -> u64 {
@@ -100,4 +70,33 @@ pub fn read(start: Option<usize>, end: Option<usize>) -> Vec<RecordByte> {
         .chunks(RECORD_SIZE)
         .map(|chunk| chunk.try_into().unwrap())
         .collect()
+}
+
+/// Find first all zero 8 bytes, and return the index of it.
+fn find_really_len(arr: &[u8]) -> usize {
+    for (index, chunk) in arr.chunks(8).enumerate() {
+        if chunk.iter().all(|byte| *byte == 0) {
+            return index * 8;
+        }
+    }
+    arr.len()
+}
+
+fn expand_size(state: &mut State) {
+    let new_size = state.size + EXPAND_SIZE;
+    state.mmap = map_file(&state.file_path, Some(new_size));
+    state.size = new_size;
+}
+
+fn map_file<T: AsRef<Path>>(file_path: T, size: Option<usize>) -> MmapMut {
+    let file = OpenOptions::new()
+        .create(true)
+        .read(true)
+        .write(true)
+        .open(file_path)
+        .expect("open record.bin failed.");
+    if let Some(size) = size {
+        file.set_len(size as u64).expect("Resize file failed.");
+    }
+    unsafe { MmapMut::map_mut(&file).expect("Error mapping record.bin file") }
 }

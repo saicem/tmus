@@ -200,7 +200,7 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
       appTag: "应用标签",
       appRuleTip:
         "应用规则。排除应用，所有包含其中配置前缀的应用都会被排除。包含应用，优先级高于排除应用，避免应用被排除。合并应用，将某路径下的所有应用转化为另一路径，以便某一目录下的应用统一统计时长。重启应用生效。",
-      filterUninstalledApp: "过滤未安装应用",
+      filterUninstalledApp: "过滤已卸载应用",
     },
     detailPage: {
       icon: "图标",

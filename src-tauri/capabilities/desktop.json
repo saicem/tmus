@@ -50,6 +50,7 @@
     "autostart:default",
     "os:allow-locale",
     "os:default",
-    "dialog:default"
+    "dialog:default",
+    "updater:default"
   ]
 }

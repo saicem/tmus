@@ -20,13 +20,24 @@
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ]
+    ],
+    "createUpdaterArtifacts": true
   },
   "productName": "Tmus",
   "mainBinaryName": "Tmus",
   "version": "0.1.1",
   "identifier": "io.github.saicem.tmus",
-  "plugins": {},
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IENFRjdCRjk2N0JGQkY3QjEKUldTeDkvdDdsci8zemdmdHRWLzZjTGZnZnV1bW44K1VPTFpoYVJLSWpHMzZTNUtQVG5PTFMxSGcK",
+      "endpoints": [
+        "https://github.com/saicem/tmus/releases/latest/download/latest.json"
+      ],
+      "windows": {
+        "installMode": "passive"
+      }
+    }
+  },
   "app": {
     "trayIcon": {
       "iconPath": "icons/icon.png",

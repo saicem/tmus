@@ -21,6 +21,7 @@ mod util;
 fn main() {
     tauri::async_runtime::block_on(util::force_singleton());
     let app = tauri::Builder::default()
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_autostart::init(
             MacosLauncher::LaunchAgent,
