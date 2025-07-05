@@ -1,46 +1,60 @@
 <script setup lang="ts">
 import { Chart } from "@antv/g2"
 import { onMounted, ref, watch } from "vue"
-import { Duration } from "moment"
 import { colorMode, config } from "@/global/state.ts"
 import { i18n } from "@/global/i18n.ts"
+import moment from "moment-timezone"
+import { durationByDay } from "@/global/api.ts"
+import { dayFromEpoch, dayOfWeekOffset } from "@/global/time-util.ts"
 
-const props = defineProps<{
-  /**
-   * 14 days duration, last week and this week.
-   */
-  durations: Duration[]
-}>()
-console.log(
-  "props.durations",
-  props.durations.map((d) => d.asHours())
-)
 const root = ref<HTMLDivElement | null>(null)
 let plot: Chart | null = null
 
-function convertData(durations: Duration[]) {
-  let lastWeek = durations.slice(0, 7)
-  let thisWeek = durations.slice(7, 14)
-  return thisWeek
-    .map((d, i) => {
+onMounted(async () => {
+  if (root?.value) {
+    renderBarChart(root.value, await loadData())
+  }
+})
+
+async function loadData() {
+  let now = moment()
+  let todayDayOfWeekOffset = dayOfWeekOffset(now)
+  let lastWeekStart = now
+    .clone()
+    .startOf("day")
+    .subtract(todayDayOfWeekOffset + 7, "days")
+  let result = await durationByDay(lastWeekStart, now)
+  let lastWeekDayFromEpoch = dayFromEpoch(lastWeekStart)
+  return Array(14)
+    .fill(0)
+    .map((_, idx) => {
       return {
-        week: i18n.value.weeklyChart.thisWeek,
-        dayOfWeek: i18n.value.weeklyChart.dayOfWeekNames[i % 7],
-        duration: Number(d.asHours().toFixed(2)),
+        week:
+          Math.trunc(idx / 7) == 0
+            ? i18n.value.weeklyChart.lastWeek
+            : i18n.value.weeklyChart.thisWeek,
+        dayOfWeek:
+          i18n.value.weeklyChart.dayOfWeekNames[
+            (idx + config.value.firstDayOfWeek) % 7
+          ],
+        duration: Number(
+          moment
+            .duration(result[lastWeekDayFromEpoch + idx] ?? 0)
+            .asHours()
+            .toFixed(2)
+        ),
       }
     })
-    .concat(
-      lastWeek.map((d, i) => {
-        return {
-          week: i18n.value.weeklyChart.lastWeek,
-          dayOfWeek: i18n.value.weeklyChart.dayOfWeekNames[i % 7],
-          duration: Number(d.asHours().toFixed(2)),
-        }
-      })
-    )
 }
 
-function renderBarChart(container: HTMLElement) {
+function renderBarChart(
+  container: HTMLElement,
+  chartData: {
+    week: string
+    dayOfWeek: string
+    duration: number
+  }[]
+) {
   console.log("renderBarChart")
   const chart = new Chart({ container })
   chart.theme({ type: colorMode.value })
@@ -48,7 +62,7 @@ function renderBarChart(container: HTMLElement) {
     title: i18n.value.weeklyChart.title,
     type: "interval",
     autoFit: true,
-    data: convertData(props.durations),
+    data: chartData,
     encode: { x: "dayOfWeek", y: "duration", color: "week" },
     transform: [{ type: "dodgeX" }],
     axis: {
@@ -75,18 +89,14 @@ function renderBarChart(container: HTMLElement) {
 }
 
 watch(
-  config,
-  (_old, _new) => {
-    renderBarChart(root.value!)
+  [() => config.value.firstDayOfWeek, () => config.value.theme, i18n],
+  async (_old, _new) => {
+    if (root?.value) {
+      renderBarChart(root.value, await loadData())
+    }
   },
   { deep: true }
 )
-
-onMounted(() => {
-  if (root?.value) {
-    renderBarChart(root.value)
-  }
-})
 </script>
 
 <template>

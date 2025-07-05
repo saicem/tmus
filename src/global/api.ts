@@ -65,6 +65,14 @@ export async function durationByDayInThisYear() {
   return ret
 }
 
+export async function durationByDay(start: Moment, end: Moment) {
+  return await cmd.durationByDay(
+    start.valueOf(),
+    end.valueOf(),
+    end.utcOffset() * minMillis
+  )
+}
+
 export async function durationById(start: Moment, end: Moment) {
   return await cmd.durationById(start.valueOf(), end.valueOf())
 }

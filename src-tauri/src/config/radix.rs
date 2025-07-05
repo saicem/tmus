@@ -156,7 +156,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn basic_operations() {
+    fn test_radix_tree_basic_insert_and_lookup() {
         let mut tree = RadixTree::new();
 
         tree.insert("apple", Some(()));
@@ -175,7 +175,7 @@ mod tests {
     }
 
     #[test]
-    fn edge_cases() {
+    fn test_radix_tree_edge_cases() {
         let mut tree = RadixTree::new();
 
         tree.insert("", Some(()));
@@ -191,7 +191,7 @@ mod tests {
     }
 
     #[test]
-    fn longest_prefix_meta() {
+    fn test_radix_tree_longest_prefix_matching() {
         let mut tree = RadixTree::new();
         tree.insert("app", Some(1));
         tree.insert("apple", Some(2));

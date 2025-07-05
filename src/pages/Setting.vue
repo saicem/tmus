@@ -51,11 +51,40 @@ function configChange() {
           <el-option :label="i18n.configPage.themeDark" value="dark" />
         </el-select>
       </SettingItem>
-      <SettingItem :label="i18n.configPage.autoStart">
-        <el-switch
-          v-model="autoStart"
-          @change="(val) => (val ? enable() : disable())"
-        />
+      <SettingItem :label="i18n.configPage.firstDayOfWeek">
+        <el-select
+          v-model="config.firstDayOfWeek"
+          @change="configChange"
+          style="width: 100px"
+        >
+          <el-option :label="i18n.configPage.monday" :value="0" />
+          <el-option :label="i18n.configPage.tuesday" :value="1" />
+          <el-option :label="i18n.configPage.wednesday" :value="2" />
+          <el-option :label="i18n.configPage.thursday" :value="3" />
+          <el-option :label="i18n.configPage.friday" :value="4" />
+          <el-option :label="i18n.configPage.saturday" :value="5" />
+          <el-option :label="i18n.configPage.sunday" :value="6" />
+        </el-select>
+      </SettingItem>
+      <SettingItem :label="i18n.configPage.dateFormat">
+        <el-select
+          v-model="config.dateFormat"
+          @change="configChange"
+          style="width: 100px"
+        >
+          <el-option label="2025-07-05" value="YYYY-MM-DD" />
+          <el-option label="2025/07/05" value="YYYY/MM/DD" />
+        </el-select>
+      </SettingItem>
+      <SettingItem :label="i18n.configPage.timeFormat">
+        <el-select
+          v-model="config.timeFormat"
+          @change="configChange"
+          style="width: 100px"
+        >
+          <el-option label="9:40 / 14:40" value="H:mm:ss" />
+          <el-option label="09:40 / 14:40" value="HH:mm:ss" />
+        </el-select>
       </SettingItem>
     </SettingGroup>
     <SettingGroup>
@@ -70,6 +99,12 @@ function configChange() {
       <!--      />-->
       <SettingItem :label="i18n.configPage.filterUninstalledApp">
         <el-switch v-model="config.filterUninstalledApp" />
+      </SettingItem>
+      <SettingItem :label="i18n.configPage.autoStart">
+        <el-switch
+          v-model="autoStart"
+          @change="(val) => (val ? enable() : disable())"
+        />
       </SettingItem>
     </SettingGroup>
   </div>

@@ -1,3 +1,4 @@
+use crate::util::str_util::load_wstring_vec;
 use core::slice;
 use log::info;
 use serde::{Deserialize, Serialize};
@@ -89,16 +90,9 @@ unsafe fn file_version_item(
         return None;
     }
 
-    Some(utf16_to_string(
+    Some(load_wstring_vec(
         &slice::from_raw_parts(buffer.cast(), len as usize).to_vec(),
     ))
-}
-
-fn utf16_to_string(raw: &[u16]) -> String {
-    match raw.iter().position(|&c| c == 0) {
-        Some(null_pos) => String::from_utf16_lossy(&raw[..null_pos]),
-        None => String::from_utf16_lossy(raw),
-    }
 }
 
 unsafe fn query_lang_id(data: *const c_void) -> i32 {

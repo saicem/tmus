@@ -47,14 +47,14 @@ fn run_server() -> Result<(), io::Error> {
         .first_pipe_instance(true)
         .create(PIPE_NAME)?;
 
-    let server_task: JoinHandle<Result<(), io::Error>> = tauri::async_runtime::spawn(async move {
+    let _server_task: JoinHandle<Result<(), io::Error>> = tauri::async_runtime::spawn(async move {
         loop {
             server.connect().await?;
             log::info!("Another instance is trying start.");
             focus_main_window();
-            let connected_client = server;
+            let _connected_client = server;
             server = ServerOptions::new().create(PIPE_NAME)?;
-            let client = tauri::async_runtime::spawn(async move {});
+            let _client = tauri::async_runtime::spawn(async move {});
         }
     });
     Ok(())

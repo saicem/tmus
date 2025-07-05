@@ -7,8 +7,14 @@ pub struct Config {
     pub lang: LangConfig,
     #[serde(default)]
     pub theme: ThemeConfig,
-    #[serde(default = "default_true")]
+    #[serde(default = "default_filter_uninstalled_app")]
     pub filter_uninstalled_app: bool,
+    #[serde(default)]
+    pub first_day_of_week: u8,
+    #[serde(default = "default_date_format")]
+    pub date_format: String,
+    #[serde(default = "default_time_format")]
+    pub time_format: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
@@ -31,6 +37,14 @@ pub enum ThemeConfig {
     System,
 }
 
-fn default_true() -> bool {
+fn default_filter_uninstalled_app() -> bool {
     true
+}
+
+fn default_date_format() -> String {
+    "YYYY-MM-DD".to_string()
+}
+
+fn default_time_format() -> String {
+    "H:mm:ss".to_string()
 }
