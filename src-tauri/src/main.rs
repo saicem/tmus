@@ -44,8 +44,9 @@ fn main() {
             get_app_tag,
             set_app_tag,
             cmd::show_in_folder,
-            cmd::app_meta,
+            cmd::tmus_meta,
             cmd::focus_index_record,
+            cmd::get_all_app,
         ])
         .build(tauri::generate_context!())
         .expect("Error while building application");

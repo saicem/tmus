@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import moment, { Duration } from "moment"
-import { formatDuration } from "../global/time-util.ts"
-import { config } from "@/global/state.ts"
+import { formatDuration } from "@/script/time-util.ts"
+import { config } from "@/script/state.ts"
 
 defineProps<{
   dayOfYear: number

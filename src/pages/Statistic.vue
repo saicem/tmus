@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue"
-import { AppDuration } from "@/global/data.ts"
+import { AppDuration } from "@/script/data.ts"
 import moment, { Moment } from "moment-timezone"
-import { appDetail, durationById } from "@/global/api.ts"
-import { i18n } from "@/global/i18n.ts"
+import { appDetail, durationById } from "@/script/api.ts"
+import { i18n } from "@/script/i18n.ts"
 import AppProgressGroup from "@/components/statistic/AppProgressGroup.vue"
 import AppCardGroup from "@/components/statistic/AppCardGroup.vue"
-import { statisticStore } from "@/global/state.ts"
+import { statisticStore } from "@/script/state.ts"
 
 const shortcuts = computed(() => [
   {

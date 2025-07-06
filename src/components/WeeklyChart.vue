@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { Chart } from "@antv/g2"
 import { onMounted, ref, watch } from "vue"
-import { colorMode, config } from "@/global/state.ts"
-import { i18n } from "@/global/i18n.ts"
+import { colorMode, config } from "@/script/state.ts"
+import { i18n } from "@/script/i18n.ts"
 import moment from "moment-timezone"
-import { durationByDay } from "@/global/api.ts"
-import { dayFromEpoch, dayOfWeekOffset } from "@/global/time-util.ts"
+import { durationByDay } from "@/script/api.ts"
+import { dayFromEpoch, dayOfWeekOffset } from "@/script/time-util.ts"
 
 const root = ref<HTMLDivElement | null>(null)
 let plot: Chart | null = null

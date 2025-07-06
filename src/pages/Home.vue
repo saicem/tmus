@@ -4,12 +4,12 @@ import usage from "@/assets/general-card/usage.svg"
 import up from "@/assets/general-card/up.svg"
 import { onMounted, ref } from "vue"
 import moment, { Duration } from "moment"
-import { i18n } from "@/global/i18n.ts"
-import { durationByDayInThisYear, todayAppGeneral } from "@/global/api.ts"
+import { i18n } from "@/script/i18n.ts"
+import { durationByDayInThisYear, todayAppGeneral } from "@/script/api.ts"
 import GeneralCard from "@/components/GeneralCard.vue"
 import HeatCalendar from "@/components/HeatCalendar.vue"
 import WeeklyChart from "@/components/WeeklyChart.vue"
-import { formatDuration } from "@/global/time-util.ts"
+import { formatDuration } from "@/script/time-util.ts"
 
 const duration = ref<Record<number, Duration>>({})
 const appCount = ref("0")
