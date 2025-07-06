@@ -27,7 +27,7 @@
   },
   "productName": "Tmus",
   "mainBinaryName": "Tmus",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "identifier": "io.github.saicem.tmus",
   "plugins": {
     "updater": {
