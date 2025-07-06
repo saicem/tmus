@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { FileDetail } from "@/global/data.ts"
-import { requestAppDetail } from "@/global/api.ts"
+import { FileDetail } from "@/script/data.ts"
+import { requestAppDetail } from "@/script/api.ts"
 import { ref } from "vue"
-import { showInFolder } from "@/global/cmd.ts"
-import { i18n } from "@/global/i18n.ts"
+import { showInFolder } from "@/script/cmd.ts"
+import { i18n } from "@/script/i18n.ts"
 
 const props = defineProps<{
   id: number

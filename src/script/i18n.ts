@@ -1,4 +1,4 @@
-import { config, LanguageEnum } from "@/global/state.ts"
+import { config, LanguageEnum } from "@/script/state.ts"
 import { locale } from "@tauri-apps/plugin-os"
 import { ref, watch } from "vue"
 
@@ -8,6 +8,7 @@ type I18nMessageType = {
     timeline: string
     tags: string
     statistic: string
+    application: string
     setting: string
   }
   homePage: {
@@ -90,6 +91,7 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
       timeline: "Timeline",
       tags: "Tags",
       statistic: "Statistic",
+      application: "Application",
       setting: "Setting",
     },
     homePage: {
@@ -180,6 +182,7 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
       timeline: "时间线",
       tags: "标签",
       statistic: "统计",
+      application: "应用",
       setting: "设置",
     },
     statisticPage: {

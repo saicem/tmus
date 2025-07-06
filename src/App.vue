@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import TitleBar from "@/components/TitleBar.vue"
-import { i18n } from "./global/i18n.ts"
+import { i18n } from "@/script/i18n.ts"
 </script>
 
 <template>
@@ -27,8 +27,13 @@ import { i18n } from "./global/i18n.ts"
                 {{ i18n.navigateMenu.statistic }}
               </el-menu-item>
             </RouterLink>
-            <RouterLink to="/setting">
+            <RouterLink to="/application">
               <el-menu-item index="4">
+                {{ i18n.navigateMenu.application }}
+              </el-menu-item>
+            </RouterLink>
+            <RouterLink to="/setting">
+              <el-menu-item index="5">
                 {{ i18n.navigateMenu.setting }}
               </el-menu-item>
             </RouterLink>

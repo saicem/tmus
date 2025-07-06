@@ -1,4 +1,4 @@
-import { FileDetail } from "@/global/data.ts"
+import { FileDetail } from "@/script/data.ts"
 import * as localforage from "localforage"
 
 export const saveApp = async (app: FileDetail) => {

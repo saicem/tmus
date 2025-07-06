@@ -1,8 +1,8 @@
 import moment, { Duration, Moment } from "moment-timezone"
-import cmd, { getAppConfig } from "@/global/cmd.ts"
+import cmd, { getAppConfig } from "@/script/cmd.ts"
 import { FileDetail, FocusData, FocusRecord } from "./data"
-import { config } from "@/global/state.ts"
-import { getApp, saveApp } from "@/global/db.ts"
+import { config } from "@/script/state.ts"
+import { getApp, saveApp } from "@/script/db.ts"
 
 const appDetailCache: Map<number, Promise<FileDetail>> = new Map<
   number,

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref } from "vue"
-import { i18n } from "@/global/i18n.ts"
-import { autoStart, config } from "@/global/state.ts"
-import { setAppConfig } from "@/global/cmd.ts"
+import { i18n } from "@/script/i18n.ts"
+import { autoStart, config } from "@/script/state.ts"
+import { setAppConfig } from "@/script/cmd.ts"
 import { disable, enable } from "@tauri-apps/plugin-autostart"
 import SettingItem from "@/components/setting/SettingItem.vue"
 import SettingGroup from "@/components/setting/SettingGroup.vue"

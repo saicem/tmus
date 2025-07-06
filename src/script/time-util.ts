@@ -1,5 +1,5 @@
 import { Duration, Moment } from "moment-timezone"
-import { config } from "@/global/state.ts"
+import { config } from "@/script/state.ts"
 
 export const formatDuration = (duration: Duration) => {
   let parts = []

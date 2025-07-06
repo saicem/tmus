@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { FileDetail } from "@/global/data.ts"
+import { FileDetail } from "@/script/data.ts"
 import { Duration } from "moment-timezone"
-import { formatDuration } from "@/global/time-util.ts"
+import { formatDuration } from "@/script/time-util.ts"
 
 defineProps<{
   duration: Duration

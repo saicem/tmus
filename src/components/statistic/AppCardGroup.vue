@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import AppCard from "@/components/statistic/AppCard.vue"
-import { AppDuration } from "@/global/data.ts"
+import { AppDuration } from "@/script/data.ts"
 
 defineProps<{
   data: AppDuration[]

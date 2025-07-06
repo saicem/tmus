@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { getAppRule, setAppRule } from "@/global/cmd.ts"
+import { getAppRule, setAppRule } from "@/script/cmd.ts"
 import { onMounted, ref } from "vue"
-import { RuleConfig } from "@/global/data.ts"
+import { RuleConfig } from "@/script/data.ts"
 import FileSelector from "@/components/common/FileSelector.vue"
-import { i18n } from "@/global/i18n.ts"
+import { i18n } from "@/script/i18n.ts"
 
 const rule = ref<RuleConfig>({
   exclude: [],

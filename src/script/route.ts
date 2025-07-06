@@ -5,6 +5,7 @@ import Timeline from "@/pages/Timeline.vue"
 import Setting from "@/pages/Setting.vue"
 import Detail from "@/pages/Detail.vue"
 import Statistic from "@/pages/Statistic.vue"
+import Application from "@/pages/Application.vue"
 
 const routes = [
   {
@@ -26,6 +27,11 @@ const routes = [
     path: "/statistic",
     name: "statistic",
     component: Statistic,
+  },
+  {
+    path: "/application",
+    name: "application",
+    component: Application,
   },
   {
     path: "/setting",
