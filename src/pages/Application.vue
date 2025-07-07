@@ -1,27 +1,22 @@
 <script setup lang="ts">
-import { getAllApp } from "@/script/cmd.ts"
+import { getAllAppDetail } from "@/script/cmd.ts"
 import { onMounted, ref } from "vue"
 import { FileDetail } from "@/script/data.ts"
 import { config } from "@/script/state.ts"
 
 const appList = ref<FileDetail[]>([])
-const loading = ref(true)
 
 onMounted(async () => {
-  let result = await getAllApp()
+  let result = await getAllAppDetail()
   if (config.value.filterUninstalledApp) {
     result = result.filter((app) => app.exist)
   }
   appList.value = result
-  loading.value = false
 })
 </script>
 
 <template>
-  <div
-    v-loading.fullscreen.lock="loading"
-    style="display: flex; flex-wrap: wrap; gap: 16px"
-  >
+  <div style="display: flex; flex-wrap: wrap; gap: 16px">
     <RouterLink v-for="app in appList" :key="app.id" :to="'/detail/' + app.id">
       <el-card>
         <div

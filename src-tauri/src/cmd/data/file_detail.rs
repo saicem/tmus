@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::util::FileVersion;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct FileDetail {
     pub id: usize,

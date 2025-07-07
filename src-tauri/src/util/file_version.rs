@@ -8,7 +8,7 @@ use windows::Win32::Storage::FileSystem::GetFileVersionInfoSizeW;
 use windows::Win32::Storage::FileSystem::GetFileVersionInfoW;
 use windows::Win32::Storage::FileSystem::VerQueryValueW;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct FileVersion {
     pub comments: Option<String>,

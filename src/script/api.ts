@@ -1,48 +1,33 @@
 import moment, { Duration, Moment } from "moment-timezone"
-import cmd, { getAppConfig } from "@/script/cmd.ts"
+import cmd, { getAllAppDetail, getAppConfig } from "@/script/cmd.ts"
 import { FileDetail, FocusData, FocusRecord } from "./data"
 import { config } from "@/script/state.ts"
-import { getApp, saveApp } from "@/script/db.ts"
-
-const appDetailCache: Map<number, Promise<FileDetail>> = new Map<
-  number,
-  Promise<FileDetail>
->()
 
 const minMillis = moment.duration(1, "minute").asMilliseconds()
 const dayMillis = moment.duration(1, "day").asMilliseconds()
 
+export async function getAppDetailMap() {
+  return (await getAllAppDetail()).reduce(
+    (map, detail) => {
+      map[detail.id] = detail
+      return map
+    },
+    {} as Record<number, FileDetail>
+  )
+}
+
 export async function todayAppGeneral() {
+  const appDetailMap = await getAppDetailMap()
   const end = moment()
   const start = end.clone().startOf("day")
   const records = await cmd.durationById(start.valueOf(), end.valueOf())
   const result = Object.entries(records).map(async ([k, v]) => {
     return {
-      file: await appDetail(Number.parseInt(k)),
+      file: appDetailMap[Number.parseInt(k)],
       duration: moment.duration(v),
     }
   })
   return Promise.all(result)
-}
-
-export async function appDetail(id: number): Promise<FileDetail> {
-  let app = await getApp(id)
-  if (app != null) {
-    return app
-  }
-  return requestAppDetail(id)
-}
-
-export async function requestAppDetail(id: number): Promise<FileDetail> {
-  if (appDetailCache.has(id)) {
-    return appDetailCache.get(id)!
-  }
-  const promise = cmd.fileDetail(id)
-  appDetailCache.set(id, promise)
-  const app = await promise
-  await saveApp(app)
-  appDetailCache.delete(id)
-  return app!
 }
 
 export async function durationByDayInThisYear() {

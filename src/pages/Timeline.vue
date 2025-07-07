@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, toRaw } from "vue"
-import { appDetail, durationByDayId } from "@/script/api.ts"
+import { durationByDayId, getAppDetailMap } from "@/script/api.ts"
 import moment, { Moment } from "moment-timezone"
-import { AppDuration, DateGroup } from "@/script/data.ts"
+import { AppDuration, DateGroup, FileDetail } from "@/script/data.ts"
 import AppCardGroup from "@/components/statistic/AppCardGroup.vue"
 import { getTmusMeta } from "@/script/cmd.ts"
 import { config } from "@/script/state.ts"
@@ -14,9 +14,12 @@ const nextDate = ref<Moment>(moment())
 const data = ref<DateGroup<AppDuration>[]>([])
 const millisInDay = 1000 * 60 * 60 * 24
 const metaStartDate = ref<Moment>(moment())
+const appDetailMap = ref<Record<number, FileDetail>>({})
 
 onMounted(async () => {
   metaStartDate.value = moment((await getTmusMeta()).startMsEpoch)
+  appDetailMap.value = await getAppDetailMap()
+  await load()
 })
 
 const load = async () => {
@@ -32,7 +35,7 @@ const load = async () => {
         data: await Promise.all(
           Object.entries(v).map(async ([id, duration]) => {
             return {
-              app: await appDetail(+id),
+              app: appDetailMap.value[+id],
               duration: moment.duration(duration),
             }
           })

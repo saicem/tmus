@@ -47,10 +47,6 @@ async function durationByDayId(
   })
 }
 
-async function fileDetail(id: number): Promise<FileDetail> {
-  return await ivk("file_detail", { id: id })
-}
-
 export async function showInFolder(path: string | undefined) {
   if (!path) return
   return await ivk("show_in_folder", { path })
@@ -88,8 +84,12 @@ export async function focusIndexRecord(): Promise<FileIndexRecord[]> {
   return await ivk("focus_index_record")
 }
 
-export async function getAllApp(): Promise<FileDetail[]> {
-  return await ivk("get_all_app")
+export async function getAppDetail(id: number): Promise<FileDetail> {
+  return await ivk("get_app_detail", { id: id })
+}
+
+export async function getAllAppDetail(): Promise<FileDetail[]> {
+  return await ivk("get_all_app_detail")
 }
 
 export async function fetch_update(): Promise<UpdateMetadata | null> {
@@ -108,7 +108,6 @@ export default {
   durationById,
   durationByDay,
   durationByDayId,
-  fileDetail,
 }
 
 async function ivk<T>(

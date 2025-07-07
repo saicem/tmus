@@ -35,7 +35,6 @@ fn main() {
         .plugin(tauri_plugin_os::init())
         .setup(setup)
         .invoke_handler(tauri::generate_handler![
-            cmd::file_detail,
             cmd::duration_by_id,
             cmd::duration_by_day,
             cmd::duration_by_day_id,
@@ -49,7 +48,8 @@ fn main() {
             cmd::show_in_folder,
             cmd::get_tmus_meta,
             cmd::focus_index_record,
-            cmd::get_all_app,
+            cmd::app_detail::get_app_detail,
+            cmd::app_detail::get_all_app_detail,
             update::fetch_update,
             update::install_update,
         ])

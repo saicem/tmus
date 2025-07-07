@@ -2,11 +2,11 @@
 import { computed, ref, watch } from "vue"
 import { AppDuration } from "@/script/data.ts"
 import moment, { Moment } from "moment-timezone"
-import { appDetail, durationById } from "@/script/api.ts"
 import { i18n } from "@/script/i18n.ts"
 import AppProgressGroup from "@/components/statistic/AppProgressGroup.vue"
 import AppCardGroup from "@/components/statistic/AppCardGroup.vue"
 import { statisticStore } from "@/script/state.ts"
+import { durationById, getAppDetailMap } from "@/script/api.ts"
 
 const shortcuts = computed(() => [
   {
@@ -76,12 +76,13 @@ const datetimeRange = ref<[Date, Date]>(
 const data = ref<AppDuration[]>([])
 
 const load = async (startDate: Moment, endDate: Moment) => {
-  let result = await durationById(startDate, endDate)
+  const result = await durationById(startDate, endDate)
+  const appDetailMap = await getAppDetailMap()
   data.value = (
     await Promise.all(
       Object.entries(result).map(async ([k, v]) => {
         return {
-          app: await appDetail(+k),
+          app: appDetailMap[+k],
           duration: moment.duration(v),
         }
       })

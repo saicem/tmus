@@ -14,7 +14,13 @@ const slots = useSlots()
 <template>
   <div
     :class="{ root: !slots.default }"
-    style="display: flex; flex-direction: row; width: 100%; padding: 12px 12px"
+    style="
+      display: flex;
+      flex-direction: row;
+      width: 100%;
+      height: 48px;
+      padding: 12px 12px;
+    "
   >
     <span style="flex: 1 1 auto"
       >{{ label }}
