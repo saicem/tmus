@@ -190,8 +190,8 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
       productName: "Product Name",
       fileDescription: "File Description",
       companyName: "Company Name",
-      durationDateAreaTab: "Date distribution",
-      durationDayAreaTab: "Distribution within a day",
+      durationDateAreaTab: "Daily Trends",
+      durationDayAreaTab: "Intraday Rhythm",
       durationAreaChart: {
         dateChart: {
           xName: "Date",
@@ -301,8 +301,8 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
       productName: "产品名称",
       fileDescription: "文件描述",
       companyName: "公司名称",
-      durationDateAreaTab: "日期分布",
-      durationDayAreaTab: "一天内分布",
+      durationDateAreaTab: "每日趋势",
+      durationDayAreaTab: "日内节律",
       durationAreaChart: {
         dateChart: {
           xName: "日期",

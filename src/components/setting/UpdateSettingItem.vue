@@ -4,6 +4,7 @@ import { fetch_update, install_update } from "@/script/cmd.ts"
 import { i18n } from "@/script/i18n.ts"
 import SettingItem from "@/components/setting/SettingItem.vue"
 import { DownloadEvent, UpdateMetadata } from "@/script/data.ts"
+import { ElNotification } from "element-plus"
 
 const checkUpdateLoading = ref(false)
 const dialogVisible = ref(false)
@@ -22,7 +23,14 @@ async function checkNeedUpdate() {
   }
   checkUpdateLoading.value = true
   updateMeta.value = await fetch_update()
-  dialogVisible.value = true
+  if (updateMeta.value) {
+    dialogVisible.value = true
+  } else {
+    ElNotification({
+      message: i18n.value.configPage.currentVersionIsAlreadyTheLatestVersion,
+      type: "success",
+    })
+  }
   checkUpdateLoading.value = false
 }
 

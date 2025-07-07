@@ -3,6 +3,7 @@ use crate::engine::data::Millisecond;
 use crate::engine::FocusRecord;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use std::cmp::max;
 use std::ops::Add;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -82,6 +83,8 @@ fn compute_date_area(
     ret
 }
 
+/// Calculates the number of days an application is used each minute within the 24-hour period during the specified time range.
+/// Minutes with usage are counted as one if used multiple times within the same day, and partial minutes are also counted.
 fn compute_day_area(
     vec: &Vec<FocusRecord>,
     time_zone_offset: Millisecond,
@@ -94,6 +97,7 @@ fn compute_day_area(
             value: 0,
         });
     }
+    let mut pre_blur_at_minute = 0;
     for record in vec {
         let mut focus_at = record.focus_at + time_zone_offset;
         let blur_at = record.blur_at + time_zone_offset;
@@ -101,8 +105,10 @@ fn compute_day_area(
             let focus_at_day = focus_at.as_days();
             let blur_at_day = blur_at.as_days();
             let base_day_minute = Millisecond::from_days(focus_at_day).as_minute();
-            let focus_at_minute = focus_at.as_minute() + 1 - base_day_minute;
-            let blur_at_minute = blur_at.as_minute() + 1 - base_day_minute;
+            let focus_at_minute = max(focus_at.as_minute(), pre_blur_at_minute) - base_day_minute;
+            pre_blur_at_minute = blur_at.as_minute() + 1;
+            let blur_at_minute = pre_blur_at_minute - base_day_minute;
+            pre_blur_at_minute = blur_at_minute;
             if focus_at_day == blur_at_day {
                 if blur_at_minute > focus_at_minute && blur_at_minute < size as i64 {
                     ret[focus_at_minute as usize].value += 1;

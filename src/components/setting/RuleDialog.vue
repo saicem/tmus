@@ -52,7 +52,7 @@ const handleClose = (done: () => void) => {
 
 <template>
   <el-dialog
-    :title="i18n.ruleDialog.excludeApp"
+    :title="i18n.configPage.appRule"
     v-model="model"
     :before-close="handleClose"
   >
@@ -162,9 +162,7 @@ const handleClose = (done: () => void) => {
     <template #footer>
       <div>
         <el-button @click="addItem">{{ i18n.ruleDialog.add }}</el-button>
-        <el-button @click="model = false"
-          >{{ i18n.common.cancel }}
-        </el-button>
+        <el-button @click="model = false">{{ i18n.common.cancel }} </el-button>
         <el-button
           type="primary"
           @click="
