@@ -96,3 +96,14 @@ export interface DownloadEvent {
     chunkLength?: number
   }
 }
+
+export interface AppDurationAreaModel {
+  appId: number
+  dateArea: AppDurationAreaModelItem[]
+  dayArea: AppDurationAreaModelItem[]
+}
+
+export interface AppDurationAreaModelItem {
+  index: string
+  value: number
+}

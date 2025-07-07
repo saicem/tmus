@@ -50,6 +50,10 @@ impl Millisecond {
         Millisecond(days * 1000 * 60 * 60 * 24)
     }
 
+    pub fn as_minute(&self) -> i64 {
+        self.0 / (1000 * 60)
+    }
+
     pub fn as_secs(&self) -> i64 {
         self.0 / 1000
     }

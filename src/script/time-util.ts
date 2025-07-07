@@ -1,4 +1,4 @@
-import { Duration, Moment } from "moment-timezone"
+import moment, { Duration, Moment } from "moment-timezone"
 import { config } from "@/script/state.ts"
 
 export const formatDuration = (duration: Duration) => {
@@ -37,3 +37,6 @@ export const dayOfWeekOffset = (day: Moment) => {
 export const dayFromEpoch = (day: Moment) => {
   return Math.trunc((day.valueOf() / 1000 / 60 + day.utcOffset()) / 60 / 24)
 }
+
+export const timeZoneOffsetMillis = () =>
+  moment().utcOffset() * moment.duration(1, "minute").asMilliseconds()

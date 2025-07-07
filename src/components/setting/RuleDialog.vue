@@ -163,7 +163,7 @@ const handleClose = (done: () => void) => {
       <div>
         <el-button @click="addItem">{{ i18n.ruleDialog.add }}</el-button>
         <el-button @click="model = false"
-          >{{ i18n.ruleDialog.cancel }}
+          >{{ i18n.common.cancel }}
         </el-button>
         <el-button
           type="primary"
@@ -173,7 +173,7 @@ const handleClose = (done: () => void) => {
               model = false
             }
           "
-          >{{ i18n.ruleDialog.ok }}
+          >{{ i18n.common.ok }}
         </el-button>
       </div>
     </template>

@@ -21,7 +21,6 @@ onMounted(async () => {
 })
 
 todayAppGeneral().then((res) => {
-  console.log("todayAppGeneral", res)
   if (res.length == 0) {
     return
   }

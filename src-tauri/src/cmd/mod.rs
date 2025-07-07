@@ -11,6 +11,7 @@ pub mod app_detail;
 mod data;
 mod duration_calculate_helper;
 mod read_helper;
+pub mod app_duration_area;
 
 #[tauri::command]
 pub fn raw_record(

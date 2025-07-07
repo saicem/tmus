@@ -7,12 +7,11 @@ import moment from "moment-timezone"
 import { durationByDay } from "@/script/api.ts"
 import { dayFromEpoch, dayOfWeekOffset } from "@/script/time-util.ts"
 
-const root = ref<HTMLDivElement | null>(null)
-let plot: Chart | null = null
+const chartContainer = ref<HTMLDivElement | null>(null)
 
 onMounted(async () => {
-  if (root?.value) {
-    renderBarChart(root.value, await loadData())
+  if (chartContainer?.value) {
+    renderBarChart(chartContainer.value, await loadData())
   }
 })
 
@@ -55,7 +54,6 @@ function renderBarChart(
     duration: number
   }[]
 ) {
-  console.log("renderBarChart")
   const chart = new Chart({ container })
   chart.theme({ type: colorMode.value })
   chart.options({
@@ -84,15 +82,14 @@ function renderBarChart(
       ],
     },
   })
-  plot = chart
-  plot.render()
+  chart.render()
 }
 
 watch(
   [() => config.value.firstDayOfWeek, () => config.value.theme, i18n],
   async (_old, _new) => {
-    if (root?.value) {
-      renderBarChart(root.value, await loadData())
+    if (chartContainer?.value) {
+      renderBarChart(chartContainer.value, await loadData())
     }
   },
   { deep: true }
@@ -100,5 +97,5 @@ watch(
 </script>
 
 <template>
-  <div ref="root"></div>
+  <div ref="chartContainer"></div>
 </template>

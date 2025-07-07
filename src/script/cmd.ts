@@ -5,6 +5,7 @@ import {
   InvokeOptions,
 } from "@tauri-apps/api/core"
 import {
+  AppDurationAreaModel,
   AppMeta,
   DownloadEvent,
   FileDetail,
@@ -102,6 +103,20 @@ export async function install_update(
   let onEvent = new Channel<DownloadEvent>()
   onEvent.onmessage = onMessage
   return await ivk("install_update", { onEvent })
+}
+
+export async function getAppDurationArea(
+  appId: number,
+  startMillis: number,
+  endMillis: number,
+  timeZoneOffset: number
+): Promise<AppDurationAreaModel> {
+  return await ivk("get_app_duration_area", {
+    appId,
+    startMillis,
+    endMillis,
+    timeZoneOffset,
+  })
 }
 
 export default {

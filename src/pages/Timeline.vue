@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, toRaw } from "vue"
+import { computed, onMounted, ref } from "vue"
 import { durationByDayId, getAppDetailMap } from "@/script/api.ts"
 import moment, { Moment } from "moment-timezone"
 import { AppDuration, DateGroup, FileDetail } from "@/script/data.ts"
@@ -9,7 +9,7 @@ import { config } from "@/script/state.ts"
 
 const scrollDisable = computed(() => loading.value || noMore.value)
 const noMore = ref(false)
-const loading = ref(false)
+const loading = ref(true)
 const nextDate = ref<Moment>(moment())
 const data = ref<DateGroup<AppDuration>[]>([])
 const millisInDay = 1000 * 60 * 60 * 24
@@ -19,7 +19,7 @@ const appDetailMap = ref<Record<number, FileDetail>>({})
 onMounted(async () => {
   metaStartDate.value = moment((await getTmusMeta()).startMsEpoch)
   appDetailMap.value = await getAppDetailMap()
-  await load()
+  loading.value = false
 })
 
 const load = async () => {
@@ -27,7 +27,6 @@ const load = async () => {
   const endDate = nextDate.value
   const startDate = endDate.clone().subtract(1, "week").startOf("day")
   const result = await durationByDayId(startDate, endDate)
-  console.log("result", result)
   const ripeResult: DateGroup<AppDuration>[] = await Promise.all(
     Object.entries(result).map(async ([k, v]) => {
       return {
@@ -50,20 +49,8 @@ const load = async () => {
       .sort((a, b) => b.duration.asMilliseconds() - a.duration.asMilliseconds())
   })
   data.value.push(...ripeResult)
-  console.log(
-    "timeline data",
-    startDate.format("YYYY-MM-DD HH:mm:ss"),
-    "to",
-    endDate.format("YYYY-MM-DD HH:mm:ss"),
-    toRaw(data.value)
-  )
   nextDate.value = startDate.clone().subtract(1, "day")
   if (nextDate.value.isBefore(metaStartDate.value)) {
-    console.log(
-      "timeline no more data",
-      nextDate.value.format("YYYY-MM-DD HH:mm:ss"),
-      metaStartDate.value.format("YYYY-MM-DD HH:mm:ss")
-    )
     noMore.value = true
     return
   }
@@ -75,7 +62,6 @@ const load = async () => {
   <el-timeline
     v-infinite-scroll="load"
     :infinite-scroll-disabled="scrollDisable"
-    :infinite-scroll-delay="400"
     infinite-scroll-distance="1000"
   >
     <div>

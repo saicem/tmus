@@ -77,6 +77,18 @@ type I18nMessageType = {
     productName: string
     fileDescription: string
     companyName: string
+    durationDateAreaTab: string
+    durationDayAreaTab: string
+    durationAreaChart: {
+      dateChart: {
+        xName: string
+        yName: string
+      }
+      dayChart: {
+        xName: string
+        yName: string
+      }
+    }
   }
   ruleDialog: {
     excludeApp: string
@@ -178,6 +190,18 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
       productName: "Product Name",
       fileDescription: "File Description",
       companyName: "Company Name",
+      durationDateAreaTab: "Date distribution",
+      durationDayAreaTab: "Distribution within a day",
+      durationAreaChart: {
+        dateChart: {
+          xName: "Date",
+          yName: "Duration",
+        },
+        dayChart: {
+          xName: "Time",
+          yName: "Days",
+        },
+      },
     },
     ruleDialog: {
       excludeApp: "Exclude App",
@@ -277,6 +301,18 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
       productName: "产品名称",
       fileDescription: "文件描述",
       companyName: "公司名称",
+      durationDateAreaTab: "日期分布",
+      durationDayAreaTab: "一天内分布",
+      durationAreaChart: {
+        dateChart: {
+          xName: "日期",
+          yName: "时长",
+        },
+        dayChart: {
+          xName: "时间",
+          yName: "天数",
+        },
+      },
     },
     ruleDialog: {
       excludeApp: "排除应用",

@@ -2,8 +2,8 @@ import moment, { Duration, Moment } from "moment-timezone"
 import cmd, { getAllAppDetail, getAppConfig } from "@/script/cmd.ts"
 import { FileDetail, FocusData, FocusRecord } from "./data"
 import { config } from "@/script/state.ts"
+import { timeZoneOffsetMillis } from "@/script/time-util.ts"
 
-const minMillis = moment.duration(1, "minute").asMilliseconds()
 const dayMillis = moment.duration(1, "day").asMilliseconds()
 
 export async function getAppDetailMap() {
@@ -33,15 +33,13 @@ export async function todayAppGeneral() {
 export async function durationByDayInThisYear() {
   const end = moment()
   const start = end.clone().startOf("year")
-  const offset = end.utcOffset() * minMillis
+  const offset = timeZoneOffsetMillis()
   const records = await cmd.durationByDay(
     start.valueOf(),
     end.valueOf(),
     offset
   )
   const startDay = Math.floor((start.valueOf() + offset) / dayMillis)
-  console.log("records", records)
-
   const ret: Record<number, Duration> = {}
 
   Object.entries(records).forEach(([k, v]) => {
@@ -54,7 +52,7 @@ export async function durationByDay(start: Moment, end: Moment) {
   return await cmd.durationByDay(
     start.valueOf(),
     end.valueOf(),
-    end.utcOffset() * minMillis
+    timeZoneOffsetMillis()
   )
 }
 
@@ -66,7 +64,7 @@ export async function durationByDayId(start: Moment, end: Moment) {
   return await cmd.durationByDayId(
     start.valueOf(),
     end.valueOf(),
-    end.utcOffset() * minMillis
+    timeZoneOffsetMillis()
   )
 }
 
