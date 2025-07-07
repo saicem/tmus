@@ -37,9 +37,7 @@ pub async fn force_singleton() {
 }
 
 fn focus_main_window() {
-    if let Some(app_handle) = app::global::APP_HANDLE.get() {
-        app::focus_main_window(app_handle);
-    }
+    app::focus_main_window(app::global::get_app_handle());
 }
 
 fn run_server() -> Result<(), io::Error> {

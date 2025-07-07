@@ -27,7 +27,6 @@ export const dayOfWeekOffset = (day: Moment) => {
   return (day.day() - 1 - config.value.firstDayOfWeek + 7) % 7
 }
 
-
 /**
  * Calculates the number of days since the epoch (January 1, 1970) for a given moment,
  * adjusted for the local timezone offset.
@@ -36,7 +35,5 @@ export const dayOfWeekOffset = (day: Moment) => {
  * @returns The number of days since the epoch.
  */
 export const dayFromEpoch = (day: Moment) => {
-  return Math.trunc(
-    (day.valueOf() / 1000 / 60 + day.utcOffset()) / 60 / 24
-  )
+  return Math.trunc((day.valueOf() / 1000 / 60 + day.utcOffset()) / 60 / 24)
 }

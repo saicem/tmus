@@ -2,6 +2,8 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use crate::app::constant::data_dir;
+use crate::app::global::set_app_handle;
+use crate::app::update;
 use crate::config::rule::{is_exclude, is_include};
 use crate::config::{get_app_config, set_app_config, RULE};
 use config::{get_app_rule, get_app_tag, set_app_rule, set_app_tag};
@@ -11,6 +13,7 @@ use std::{env, fs};
 use tauri::{AppHandle, Manager, RunEvent};
 use tauri_plugin_autostart::MacosLauncher;
 use tauri_plugin_log;
+use tokio::sync::Mutex;
 
 mod app;
 mod cmd;
@@ -44,9 +47,11 @@ fn main() {
             get_app_tag,
             set_app_tag,
             cmd::show_in_folder,
-            cmd::tmus_meta,
+            cmd::get_tmus_meta,
             cmd::focus_index_record,
             cmd::get_all_app,
+            update::fetch_update,
+            update::install_update,
         ])
         .build(tauri::generate_context!())
         .expect("Error while building application");
@@ -55,17 +60,13 @@ fn main() {
 }
 
 pub fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
-    let app_handle = app.app_handle();
-    app::global::APP_HANDLE.set(app_handle.to_owned()).unwrap();
+    app.manage(update::PendingUpdate(Mutex::new(None)));
+    let app_handle = app.app_handle().clone();
 
     init_data_dir();
-
     config::init();
     config::rule::init_rule(&RULE.get());
-
-    app::tray::tray(app_handle).expect("Error while initializing tray");
-
-    let receiver = engine::init(&PathBuf::from(data_dir()));
+    app::tray::tray(&app_handle).expect("Error while initializing tray");
 
     engine::start(
         |app_path| {
@@ -74,9 +75,10 @@ pub fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
             }
             config::rule::get_merged_path(&app_path).or(Some(app_path.to_owned()))
         },
-        receiver,
+        engine::init(&PathBuf::from(data_dir())),
     );
-    handle_start_args(app_handle);
+    handle_start_args(&app_handle);
+    set_app_handle(app_handle);
     Ok(())
 }
 

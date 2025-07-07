@@ -1,17 +1,23 @@
 <script setup lang="ts">
-import { ref } from "vue"
+import { onMounted, ref } from "vue"
 import { i18n } from "@/script/i18n.ts"
 import { autoStart, config } from "@/script/state.ts"
-import { setAppConfig } from "@/script/cmd.ts"
+import { getTmusMeta, setAppConfig } from "@/script/cmd.ts"
 import { disable, enable } from "@tauri-apps/plugin-autostart"
 import SettingItem from "@/components/setting/SettingItem.vue"
 import SettingGroup from "@/components/setting/SettingGroup.vue"
-import SettingMoreItem from "@/components/setting/SettingMoreItem.vue"
 import RuleDialog from "@/components/setting/RuleDialog.vue"
 import TagDialog from "@/components/setting/TagDialog.vue"
+import { AppMeta } from "@/script/data.ts"
+import UpdateSettingItem from "@/components/setting/UpdateSettingItem.vue"
 
 const dialogVisibleRule = ref(false)
 const dialogVisibleTag = ref(false)
+const tmusMeta = ref<AppMeta>()
+
+onMounted(async () => {
+  tmusMeta.value = await getTmusMeta()
+})
 
 function configChange() {
   setAppConfig(config.value)
@@ -88,7 +94,7 @@ function configChange() {
       </SettingItem>
     </SettingGroup>
     <SettingGroup>
-      <SettingMoreItem
+      <SettingItem
         :label="i18n.configPage.appRule"
         @click="dialogVisibleRule = true"
         :tip="i18n.configPage.appRuleTip"
@@ -105,6 +111,10 @@ function configChange() {
           v-model="autoStart"
           @change="(val) => (val ? enable() : disable())"
         />
+      </SettingItem>
+      <UpdateSettingItem />
+      <SettingItem :label="i18n.configPage.version">
+        <el-text> {{ tmusMeta?.tmusVersion }}</el-text>
       </SettingItem>
     </SettingGroup>
   </div>

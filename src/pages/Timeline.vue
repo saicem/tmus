@@ -4,7 +4,7 @@ import { appDetail, durationByDayId } from "@/script/api.ts"
 import moment, { Moment } from "moment-timezone"
 import { AppDuration, DateGroup } from "@/script/data.ts"
 import AppCardGroup from "@/components/statistic/AppCardGroup.vue"
-import { tmusMeta } from "@/script/cmd.ts"
+import { getTmusMeta } from "@/script/cmd.ts"
 import { config } from "@/script/state.ts"
 
 const scrollDisable = computed(() => loading.value || noMore.value)
@@ -16,7 +16,7 @@ const millisInDay = 1000 * 60 * 60 * 24
 const metaStartDate = ref<Moment>(moment())
 
 onMounted(async () => {
-  metaStartDate.value = moment((await tmusMeta()).startMsEpoch)
+  metaStartDate.value = moment((await getTmusMeta()).startMsEpoch)
 })
 
 const load = async () => {

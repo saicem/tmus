@@ -65,5 +65,6 @@ pub(crate) fn write_record(raw: FocusRecordRaw) {
 pub(crate) fn get_tmus_meta() -> AppMeta {
     AppMeta {
         start_ms_epoch: Millisecond::from_days(focus_index::start_day() as i64).as_millis() as u64,
+        tmus_version: env!("CARGO_PKG_VERSION").to_string(),
     }
 }

@@ -42,8 +42,8 @@ const handleClose = (done: () => void) => {
   ElMessageBox({
     message: i18n.value.ruleDialog.modifiedTip,
     showCancelButton: true,
-    confirmButtonText: i18n.value.ruleDialog.ok,
-    cancelButtonText: i18n.value.ruleDialog.cancel,
+    confirmButtonText: i18n.value.common.ok,
+    cancelButtonText: i18n.value.common.cancel,
   }).then(() => {
     done()
   })

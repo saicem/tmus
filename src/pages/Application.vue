@@ -5,6 +5,7 @@ import { FileDetail } from "@/script/data.ts"
 import { config } from "@/script/state.ts"
 
 const appList = ref<FileDetail[]>([])
+const loading = ref(true)
 
 onMounted(async () => {
   let result = await getAllApp()
@@ -12,11 +13,15 @@ onMounted(async () => {
     result = result.filter((app) => app.exist)
   }
   appList.value = result
+  loading.value = false
 })
 </script>
 
 <template>
-  <div style="display: flex; flex-wrap: wrap; gap: 16px">
+  <div
+    v-loading.fullscreen.lock="loading"
+    style="display: flex; flex-wrap: wrap; gap: 16px"
+  >
     <RouterLink v-for="app in appList" :key="app.id" :to="'/detail/' + app.id">
       <el-card>
         <div

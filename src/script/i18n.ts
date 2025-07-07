@@ -3,6 +3,10 @@ import { locale } from "@tauri-apps/plugin-os"
 import { ref, watch } from "vue"
 
 type I18nMessageType = {
+  common: {
+    cancel: string
+    ok: string
+  }
   navigateMenu: {
     home: string
     timeline: string
@@ -59,6 +63,11 @@ type I18nMessageType = {
     sunday: string
     dateFormat: string
     timeFormat: string
+    checkUpdate: string
+    version: string
+    currentVersionIsAlreadyTheLatestVersion: string
+    updateAvailable: (version: string, currentVersion: string) => string
+    versionUpdateTitle: string
   }
   detailPage: {
     icon: string
@@ -77,8 +86,6 @@ type I18nMessageType = {
     mergedPath: string
     operation: string
     add: string
-    cancel: string
-    ok: string
     remove: string
     modifiedTip: string
   }
@@ -86,6 +93,10 @@ type I18nMessageType = {
 
 const messages: Record<LanguageEnum, I18nMessageType> = {
   en: {
+    common: {
+      cancel: "Cancel",
+      ok: "OK",
+    },
     navigateMenu: {
       home: "Home",
       timeline: "Timeline",
@@ -151,6 +162,13 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
       sunday: "Sunday",
       dateFormat: "Date Format",
       timeFormat: "Time Format",
+      checkUpdate: "Check Update",
+      version: "Tmus Version",
+      currentVersionIsAlreadyTheLatestVersion:
+        "Current version is already the latest version",
+      updateAvailable: (version, currentVersion) =>
+        `Update available: ${version} (current: ${currentVersion})`,
+      versionUpdateTitle: "Version Update",
     },
     detailPage: {
       icon: "Icon",
@@ -169,14 +187,16 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
       mergedPath: "Merged Path",
       operation: "Operation",
       add: "Add",
-      cancel: "Cancel",
-      ok: "OK",
       remove: "Remove",
       modifiedTip:
         "You have modified the rule, are you sure to close without save?",
     },
   },
   zh: {
+    common: {
+      cancel: "取消",
+      ok: "确定",
+    },
     navigateMenu: {
       home: "主页",
       timeline: "时间线",
@@ -242,6 +262,12 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
       sunday: "星期日",
       dateFormat: "日期格式",
       timeFormat: "时间格式",
+      checkUpdate: "检查更新",
+      version: "Tmus 版本",
+      currentVersionIsAlreadyTheLatestVersion: "当前版本已经是最新版本",
+      updateAvailable: (version, currentVersion) =>
+        `有新版本 ${version}，当前版本为 ${currentVersion}，是否更新？`,
+      versionUpdateTitle: "版本更新",
     },
     detailPage: {
       icon: "图标",
@@ -260,8 +286,6 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
       mergedPath: "合并后路径",
       operation: "操作",
       add: "新增",
-      cancel: "取消",
-      ok: "确定",
       remove: "删除",
       modifiedTip: "你已经修改了规则,确定不保存关闭吗?",
     },

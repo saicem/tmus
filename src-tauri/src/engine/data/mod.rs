@@ -14,4 +14,5 @@ pub type AppId = usize;
 #[serde(rename_all = "camelCase")]
 pub struct AppMeta {
     pub(crate) start_ms_epoch: u64,
+    pub(crate) tmus_version: String,
 }

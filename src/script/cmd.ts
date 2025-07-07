@@ -1,18 +1,26 @@
-import { invoke } from "@tauri-apps/api/core"
+import {
+  Channel,
+  invoke,
+  InvokeArgs,
+  InvokeOptions,
+} from "@tauri-apps/api/core"
 import {
   AppMeta,
+  DownloadEvent,
   FileDetail,
   FileIndexRecord,
   RuleConfig,
   TagConfig,
+  UpdateMetadata,
 } from "./data"
 import { Config } from "@/script/state.ts"
+import { ElMessage } from "element-plus"
 
 async function durationById(
   startMillis: number,
   endMillis: number
 ): Promise<Record<number, number>> {
-  return await invoke("duration_by_id", { startMillis, endMillis })
+  return await ivk("duration_by_id", { startMillis, endMillis })
 }
 
 async function durationByDay(
@@ -20,7 +28,7 @@ async function durationByDay(
   endMillis: number,
   timeZoneOffset: number
 ): Promise<Record<number, number>> {
-  return await invoke("duration_by_day", {
+  return await ivk("duration_by_day", {
     startMillis,
     endMillis,
     timeZoneOffset,
@@ -32,7 +40,7 @@ async function durationByDayId(
   endMillis: number,
   timeZoneOffset: number
 ): Promise<Record<number, Record<number, number>>> {
-  return await invoke("duration_by_day_id", {
+  return await ivk("duration_by_day_id", {
     startMillis,
     endMillis,
     timeZoneOffset,
@@ -40,48 +48,60 @@ async function durationByDayId(
 }
 
 async function fileDetail(id: number): Promise<FileDetail> {
-  return await invoke("file_detail", { id: id })
+  return await ivk("file_detail", { id: id })
 }
 
 export async function showInFolder(path: string | undefined) {
   if (!path) return
-  return await invoke("show_in_folder", { path })
+  return await ivk("show_in_folder", { path })
 }
 
 export async function getAppConfig(): Promise<Config> {
-  return await invoke("get_app_config")
+  return await ivk("get_app_config")
 }
 
 export async function setAppConfig(config: Config): Promise<void> {
-  return await invoke("set_app_config", { config })
+  return await ivk("set_app_config", { config })
 }
 
 export async function getAppRule(): Promise<RuleConfig> {
-  return await invoke("get_app_rule")
+  return await ivk("get_app_rule")
 }
 
 export async function setAppRule(config: RuleConfig): Promise<void> {
-  return await invoke("set_app_rule", { config })
+  return await ivk("set_app_rule", { config })
 }
 
 export async function getAppVersion(): Promise<TagConfig> {
-  return await invoke("get_app_version")
+  return await ivk("get_app_version")
 }
 
 export async function setAppVersion(config: TagConfig): Promise<void> {
-  return await invoke("set_app_version", { config })
+  return await ivk("set_app_version", { config })
 }
 
-export async function tmusMeta(): Promise<AppMeta> {
-  return await invoke("tmus_meta")
+export async function getTmusMeta(): Promise<AppMeta> {
+  return await ivk("get_tmus_meta")
 }
 
 export async function focusIndexRecord(): Promise<FileIndexRecord[]> {
-  return await invoke("focus_index_record")
+  return await ivk("focus_index_record")
 }
 
 export async function getAllApp(): Promise<FileDetail[]> {
-  return await invoke("get_all_app")
+  return await ivk("get_all_app")
+}
+
+export async function fetch_update(): Promise<UpdateMetadata | null> {
+  return await ivk("fetch_update")
+}
+
+export async function install_update(
+  onMessage: (event: DownloadEvent) => void
+): Promise<void> {
+  let onEvent = new Channel<DownloadEvent>()
+  onEvent.onmessage = onMessage
+  return await ivk("install_update", { onEvent })
 }
 
 export default {
@@ -89,4 +109,29 @@ export default {
   durationByDay,
   durationByDayId,
   fileDetail,
+}
+
+async function ivk<T>(
+  cmd: string,
+  args?: InvokeArgs,
+  options?: InvokeOptions
+): Promise<T> {
+  try {
+    return await invoke(cmd, args, options)
+  } catch (error) {
+    let errorMessage = "An unknown error occurred."
+    if (typeof error === "string") {
+      errorMessage = error
+    } else if (error instanceof Error) {
+      errorMessage = error.message
+    }
+
+    ElMessage({
+      message: errorMessage,
+      type: "error",
+      duration: 5000,
+      showClose: true,
+    })
+    throw new Error(errorMessage)
+  }
 }

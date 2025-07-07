@@ -76,9 +76,23 @@ export interface TagConfig {
 
 export interface AppMeta {
   startMsEpoch: number
+  tmusVersion: string
 }
 
 export interface FileIndexRecord {
   date_time: string
   start_index: number
+}
+
+export interface UpdateMetadata {
+  version: string
+  currentVersion: string
+}
+
+export interface DownloadEvent {
+  event: "Started" | "Progress" | "Finished"
+  data: {
+    contentLength?: number
+    chunkLength?: number
+  }
 }

@@ -1,6 +1,6 @@
 [package]
 name = "tmus"
-version = "0.2.0"
+version = "0.2.1"
 description = "tmus"
 authors = ["saicem"]
 repository = "https://github.com/saicem/tmus.git"
@@ -43,6 +43,9 @@ tauri-plugin-os = "2"
 tokio = { version = "1", features = ["full"] }
 memmap2 = "0.9.5"
 tauri-plugin-dialog = "2"
+thiserror = "1.0.69"
+url = "2.5.4"
+winreg = "0.55.0"
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem

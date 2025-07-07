@@ -90,7 +90,7 @@ pub async fn show_in_folder(path: String) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub async fn tmus_meta() -> Result<AppMeta, String> {
+pub async fn get_tmus_meta() -> Result<AppMeta, String> {
     Ok(alpha::get_tmus_meta())
 }
 
