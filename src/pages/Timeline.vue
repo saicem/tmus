@@ -27,7 +27,7 @@ const load = async () => {
   const endDate = nextDate.value
   const startDate = endDate.clone().subtract(1, "week").startOf("day")
   const result = await durationByDayId(startDate, endDate)
-  const ripeResult: DateGroup<AppDuration>[] = await Promise.all(
+  let ripeResult: DateGroup<AppDuration>[] = await Promise.all(
     Object.entries(result).map(async ([k, v]) => {
       return {
         moment: moment(millisInDay * +k),
@@ -48,6 +48,7 @@ const load = async () => {
       .filter((d) => !config.value.filterUninstalledApp || d.app.exist)
       .sort((a, b) => b.duration.asMilliseconds() - a.duration.asMilliseconds())
   })
+  ripeResult = ripeResult.filter((dg) => dg.data.length > 0)
   data.value.push(...ripeResult)
   nextDate.value = startDate.clone().subtract(1, "day")
   if (nextDate.value.isBefore(metaStartDate.value)) {
