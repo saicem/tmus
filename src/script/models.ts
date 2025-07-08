@@ -1,5 +1,3 @@
-import { Duration, Moment } from "moment-timezone"
-
 export interface FileVersion {
   comments?: string
   internalName?: string
@@ -50,13 +48,13 @@ export interface IdDateDuration {
 }
 
 export interface DateGroup<T> {
-  moment: Moment
+  moment: Date
   data: T[]
 }
 
 export interface AppDuration {
   app: FileDetail
-  duration: Duration
+  duration: number
 }
 
 export interface RuleConfig {

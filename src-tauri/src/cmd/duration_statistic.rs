@@ -1,4 +1,4 @@
-use crate::cmd::read_helper::read_by_timestamp;
+use crate::cmd::read_helper::{read_by_timestamp, timezone_convert};
 use crate::engine::models::millisecond::Millisecond;
 use crate::engine::models::AppId;
 use crate::engine::FocusRecord;
@@ -28,8 +28,11 @@ pub struct IdDateDuration {
 }
 
 #[tauri::command]
-pub fn get_duration_by_id(start_millis: Millisecond, end_millis: Millisecond) -> Vec<IdDuration> {
-    compute_duration_group_by_id(read_by_timestamp(start_millis, end_millis))
+pub fn get_duration_by_id(
+    start_timestamp: Millisecond,
+    end_timestamp: Millisecond,
+) -> Vec<IdDuration> {
+    compute_duration_group_by_id(read_by_timestamp(start_timestamp, end_timestamp))
         .into_iter()
         .map(|(id, duration)| IdDuration {
             app_id: id,
@@ -40,17 +43,17 @@ pub fn get_duration_by_id(start_millis: Millisecond, end_millis: Millisecond) ->
 
 #[tauri::command]
 pub fn get_duration_by_date(
-    start_millis: Millisecond,
-    end_millis: Millisecond,
-    time_zone_offset: Millisecond,
+    start_timestamp: Millisecond,
+    end_timestamp: Millisecond,
+    timezone_offset: Millisecond,
 ) -> Vec<DateDuration> {
-    compute_duration_group_by_date(
-        read_by_timestamp(start_millis, end_millis),
-        time_zone_offset,
-    )
+    compute_duration_group_by_date(timezone_convert(
+        read_by_timestamp(start_timestamp, end_timestamp),
+        timezone_offset,
+    ))
     .into_iter()
     .map(|(day, duration)| DateDuration {
-        date: Millisecond::from_days(day) - time_zone_offset,
+        date: Millisecond::from_days(day) + timezone_offset,
         duration,
     })
     .collect()
@@ -58,17 +61,17 @@ pub fn get_duration_by_date(
 
 #[tauri::command]
 pub fn get_duration_by_date_id(
-    start_millis: Millisecond,
-    end_millis: Millisecond,
-    time_zone_offset: Millisecond,
+    start_timestamp: Millisecond,
+    end_timestamp: Millisecond,
+    timezone_offset: Millisecond,
 ) -> Vec<IdDateDuration> {
-    compute_duration_group_by_date_id(
-        read_by_timestamp(start_millis, end_millis),
-        time_zone_offset,
-    )
+    compute_duration_group_by_date_id(timezone_convert(
+        read_by_timestamp(start_timestamp, end_timestamp),
+        timezone_offset,
+    ))
     .into_iter()
     .flat_map(|(day, app_durations)| {
-        let date = Millisecond::from_days(day) - time_zone_offset;
+        let date = Millisecond::from_days(day) + timezone_offset;
         app_durations
             .into_iter()
             .map(move |(app_id, duration)| IdDateDuration {
@@ -91,7 +94,6 @@ pub fn compute_duration_group_by_id(records: Vec<FocusRecord>) -> HashMap<AppId,
 
 pub fn compute_duration_group_by_date(
     ordered_records: Vec<FocusRecord>,
-    time_zone_offset: Millisecond,
 ) -> HashMap<i64, Millisecond> {
     let mut ret = HashMap::new();
     let mut add_duration = |day: i64, duration: Millisecond| {
@@ -100,8 +102,8 @@ pub fn compute_duration_group_by_date(
             .or_insert(duration);
     };
     for record in ordered_records.iter() {
-        let focus_at = record.focus_at + time_zone_offset;
-        let blur_at = record.blur_at + time_zone_offset;
+        let focus_at = record.focus_at;
+        let blur_at = record.blur_at;
         let focus_day = record.focus_at.as_days();
         let blur_day = record.blur_at.as_days();
         if focus_day == blur_day {
@@ -121,7 +123,6 @@ pub fn compute_duration_group_by_date(
 
 pub fn compute_duration_group_by_date_id(
     ordered_records: Vec<FocusRecord>,
-    time_zone_offset: Millisecond,
 ) -> HashMap<i64, HashMap<AppId, Millisecond>> {
     let mut ret: HashMap<i64, HashMap<AppId, Millisecond>> = HashMap::new();
     let mut add_duration = |day: i64, app_id: AppId, duration: Millisecond| {
@@ -132,8 +133,8 @@ pub fn compute_duration_group_by_date_id(
             .or_insert(duration);
     };
     for record in ordered_records.iter() {
-        let focus_at = record.focus_at + time_zone_offset;
-        let blur_at = record.blur_at + time_zone_offset;
+        let focus_at = record.focus_at;
+        let blur_at = record.blur_at;
         let focus_day = record.focus_at.as_days();
         let blur_day = record.blur_at.as_days();
         if focus_day == blur_day {

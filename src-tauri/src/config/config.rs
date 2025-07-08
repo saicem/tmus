@@ -42,7 +42,7 @@ fn default_filter_uninstalled_app() -> bool {
 }
 
 fn default_date_format() -> String {
-    "YYYY-MM-DD".to_string()
+    "yyyy-MM-dd".to_string()
 }
 
 fn default_time_format() -> String {

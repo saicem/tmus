@@ -1,39 +1,39 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow"
 
 const appWindow = getCurrentWebviewWindow()
 </script>
 
 <template>
-  <div data-tauri-drag-region class="title-bar">
+  <div class="title-bar" data-tauri-drag-region>
     <span></span>
     <div class="title-bar-button-box">
       <div class="title-bar-button" @click="appWindow.minimize">
         <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="1em"
           height="1em"
           viewBox="0 0 24 24"
+          width="1em"
+          xmlns="http://www.w3.org/2000/svg"
         >
           <path class="title-bar-icon" d="M20 14H4v-4h16" />
         </svg>
       </div>
       <div class="title-bar-button" @click="appWindow.toggleMaximize">
         <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="1em"
           height="1em"
           viewBox="0 0 24 24"
+          width="1em"
+          xmlns="http://www.w3.org/2000/svg"
         >
           <path class="title-bar-icon" d="M4 4h16v16H4zm2 4v10h12V8z" />
         </svg>
       </div>
       <div class="title-bar-button" @click="appWindow.close">
         <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="1em"
           height="1em"
           viewBox="0 0 24 24"
+          width="1em"
+          xmlns="http://www.w3.org/2000/svg"
         >
           <path
             class="title-bar-icon"

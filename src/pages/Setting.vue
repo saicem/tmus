@@ -78,8 +78,8 @@ function configChange() {
           style="width: 100px"
           @change="configChange"
         >
-          <el-option label="2025-07-05" value="YYYY-MM-DD" />
-          <el-option label="2025/07/05" value="YYYY/MM/DD" />
+          <el-option label="2025-07-05" value="yyyy-MM-dd" />
+          <el-option label="2025/07/05" value="yyyy/MM/dd" />
         </el-select>
       </SettingItem>
       <SettingItem :label="i18n.configPage.timeFormat">

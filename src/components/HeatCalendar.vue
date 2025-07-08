@@ -1,18 +1,25 @@
 <script lang="ts" setup>
-import moment, { Duration } from "moment"
 import HeatCalendarCell from "./HeatCalendarCell.vue"
+import {
+  getDay,
+  getDayOfYear,
+  isLeapYear,
+  setMonth,
+  startOfMonth,
+  startOfYear,
+} from "date-fns"
 
 const props = defineProps<{
-  data: Duration[]
+  data: number[]
 }>()
 
-const now = moment()
-const emptyCellCount = now.clone().startOf("year").day()
-const daysInYearCount = now.clone().endOf("year").dayOfYear()
+const now = new Date()
+const emptyCellCount = getDay(startOfYear(now))
+const daysInYearCount = isLeapYear(now) ? 366 : 365
 const weekCount = Math.ceil((emptyCellCount + daysInYearCount) / 7)
 const monthWeeks = new Array(12).fill(null).map((_, idx) => {
   const monthFirstDayCellNum =
-    now.clone().month(idx).date(1).dayOfYear() + emptyCellCount
+    getDayOfYear(startOfMonth(setMonth(now, idx))) + emptyCellCount
   return Math.floor((monthFirstDayCellNum - 1) / 7)
 })
 
@@ -74,7 +81,7 @@ function showCell(week: number, dow: number) {
           <HeatCalendarCell
             v-if="showCell(week, dow)"
             :day-of-year="dayOfYear(week, dow)"
-            :duration="props.data[dayOfYear(week, dow)] ?? moment.duration(0)"
+            :duration="props.data[dayOfYear(week, dow)] ?? 0"
           />
         </td>
       </tr>

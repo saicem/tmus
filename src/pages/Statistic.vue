@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { computed, ref, watch } from "vue"
 import { AppDuration } from "@/script/models.ts"
-import moment, { Moment } from "moment-timezone"
 import { i18n } from "@/script/i18n.ts"
 import AppProgressGroup from "@/components/statistic/AppProgressGroup.vue"
 import AppCardGroup from "@/components/statistic/AppCardGroup.vue"
@@ -75,24 +74,22 @@ const datetimeRange = ref<[Date, Date]>(
 )
 const data = ref<AppDuration[]>([])
 
-const load = async (startDate: Moment, endDate: Moment) => {
-  const result = await getDurationById(startDate, endDate)
+const load = async (startDate: Date, endDate: Date) => {
+  const result = await getDurationById(startDate.getTime(), endDate.getTime())
   const appDetailMap = await getAppDetailMap()
   data.value = result
     .map((x) => {
       return {
         app: appDetailMap[x.appId],
-        duration: moment.duration(x.duration),
+        duration: x.duration,
       }
     })
-    .sort((a, b) => b.duration.asMilliseconds() - a.duration.asMilliseconds())
+    .sort((a, b) => b.duration - a.duration)
 }
 
-watch(
-  datetimeRange,
-  ([startDate, endDate]) => load(moment(startDate), moment(endDate)),
-  { immediate: true }
-)
+watch(datetimeRange, ([startDate, endDate]) => load(startDate, endDate), {
+  immediate: true,
+})
 </script>
 
 <template>

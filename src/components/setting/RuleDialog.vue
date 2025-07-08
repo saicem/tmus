@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { getAppRule } from "@/script/cmd.ts"
+import { getAppRule, setAppRule } from "@/script/cmd.ts"
 import { onMounted, ref } from "vue"
 import { RuleConfig } from "@/script/models.ts"
 import FileSelector from "@/components/common/FileSelector.vue"
@@ -12,6 +12,8 @@ const rule = ref<RuleConfig>({
 })
 
 const modified = ref<boolean>(false)
+const model = defineModel<boolean>()
+const tabModel = ref("exclude")
 
 onMounted(async () => {
   const result = await getAppRule()
@@ -21,9 +23,7 @@ onMounted(async () => {
   rule.value = result
 })
 
-const model = defineModel<boolean>()
-const tabModel = ref("exclude")
-const addItem = () => {
+function addItem() {
   modified.value = true
   if (tabModel.value === "exclude") {
     rule.value?.exclude.push({ path: "" })
@@ -34,7 +34,7 @@ const addItem = () => {
   }
 }
 
-const handleClose = (done: () => void) => {
+function handleClose(done: () => void) {
   if (!modified.value) {
     done()
     return
@@ -47,6 +47,11 @@ const handleClose = (done: () => void) => {
   }).then(() => {
     done()
   })
+}
+
+function setRule() {
+  setAppRule(rule.value)
+  model.value = false
 }
 </script>
 
@@ -163,14 +168,7 @@ const handleClose = (done: () => void) => {
       <div>
         <el-button @click="addItem">{{ i18n.ruleDialog.add }}</el-button>
         <el-button @click="model = false">{{ i18n.common.cancel }}</el-button>
-        <el-button
-          type="primary"
-          @click="
-            () => {
-              setAppRule(rule)
-              model = false
-            }
-          "
+        <el-button type="primary" @click="setRule"
           >{{ i18n.common.ok }}
         </el-button>
       </div>

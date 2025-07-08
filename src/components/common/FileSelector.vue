@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import { open } from "@tauri-apps/plugin-dialog"
 import { Folder } from "@element-plus/icons-vue"
 
@@ -19,11 +19,11 @@ const selectPath = async () => {
 <template>
   <div class="input-group">
     <el-input
+      v-model="model"
+      :name="name"
       input-style="border-radius: 0"
       style="border-radius: 0; outline: 0"
       type="text"
-      :name="name"
-      v-model="model"
       @change="
         (value) => {
           change?.(value)

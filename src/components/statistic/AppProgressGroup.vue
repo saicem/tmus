@@ -7,8 +7,8 @@ const props = defineProps<{
   data: AppDuration[]
 }>()
 
-const maxDurationMillis = computed(() =>
-  Math.max(...props.data.map((duration) => duration.duration.asMilliseconds()))
+const maxDuration = computed(() =>
+  Math.max(...props.data.map((duration) => duration.duration))
 )
 </script>
 
@@ -22,9 +22,7 @@ const maxDurationMillis = computed(() =>
       <AppProgress
         :app="app"
         :duration="duration"
-        :percentage="
-          Math.round((duration.asMilliseconds() / maxDurationMillis) * 100)
-        "
+        :percentage="Math.round((duration / maxDuration) * 100)"
       />
     </RouterLink>
   </div>

@@ -20,37 +20,36 @@ import {
 import { Config } from "@/script/state.ts"
 import { ElMessage } from "element-plus"
 import { timeZoneOffsetMillis } from "@/script/time-util.ts"
-import { Moment } from "moment-timezone"
 
 export async function getDurationById(
-  start: Moment,
-  end: Moment
+  startTimestamp: number,
+  endTimestamp: number
 ): Promise<IdDuration[]> {
   return await ivk("get_duration_by_id", {
-    startMillis: start.valueOf(),
-    endMillis: end.valueOf(),
+    startTimestamp,
+    endTimestamp,
   })
 }
 
 export async function getDurationByDate(
-  start: Moment,
-  end: Moment
+  startTimestamp: number,
+  endTimestamp: number
 ): Promise<DateDuration[]> {
   return await ivk("get_duration_by_date", {
-    startMillis: start.valueOf(),
-    endMillis: end.valueOf(),
-    timeZoneOffset: timeZoneOffsetMillis(),
+    startTimestamp,
+    endTimestamp,
+    timezoneOffset: timeZoneOffsetMillis(),
   })
 }
 
 export async function getDurationByDateID(
-  start: Moment,
-  end: Moment
+  startTimestamp: number,
+  endTimestamp: number
 ): Promise<IdDateDuration[]> {
   return await ivk("get_duration_by_date_id", {
-    startMillis: start.valueOf(),
-    endMillis: end.valueOf(),
-    timeZoneOffset: timeZoneOffsetMillis(),
+    startTimestamp,
+    endTimestamp,
+    timezoneOffset: timeZoneOffsetMillis(),
   })
 }
 
@@ -109,11 +108,11 @@ export async function getAppDetailMap() {
   )
 }
 
-export async function fetch_update(): Promise<UpdateMetadata | null> {
+export async function fetchUpdate(): Promise<UpdateMetadata | null> {
   return await ivk("fetch_update")
 }
 
-export async function install_update(
+export async function installUpdate(
   onMessage: (event: DownloadEvent) => void
 ): Promise<void> {
   let onEvent = new Channel<DownloadEvent>()
@@ -123,15 +122,15 @@ export async function install_update(
 
 export async function getAppDurationArea(
   appId: number,
-  startMillis: number,
-  endMillis: number,
-  timeZoneOffset: number
+  startTimestamp: number,
+  endTimestamp: number,
+  timezoneOffset: number
 ): Promise<AppDurationAreaModel> {
   return await ivk("get_app_duration_area", {
     appId,
-    startMillis,
-    endMillis,
-    timeZoneOffset,
+    startTimestamp,
+    endTimestamp,
+    timezoneOffset,
   })
 }
 

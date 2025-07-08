@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import TitleBar from "@/components/TitleBar.vue"
 import { i18n } from "@/script/i18n.ts"
 </script>

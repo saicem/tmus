@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { computed, onMounted, ref } from "vue"
-import moment, { Moment } from "moment-timezone"
 import { AppDuration, DateGroup, FileDetail } from "@/script/models.ts"
 import AppCardGroup from "@/components/statistic/AppCardGroup.vue"
 import {
@@ -9,17 +8,18 @@ import {
   getTmusMeta,
 } from "@/script/cmd.ts"
 import { config } from "@/script/state.ts"
+import { format, isBefore, startOfDay, subDays, subWeeks } from "date-fns"
 
 const scrollDisable = computed(() => loading.value || noMore.value)
 const noMore = ref(false)
 const loading = ref(true)
-const nextDate = ref<Moment>(moment())
+const nextDate = ref<Date>(new Date())
 const data = ref<DateGroup<AppDuration>[]>([])
-const metaStartDate = ref<Moment>(moment())
+const metaStartDate = ref<Date>(new Date())
 const appDetailMap = ref<Record<number, FileDetail>>({})
 
 onMounted(async () => {
-  metaStartDate.value = moment((await getTmusMeta()).startMsEpoch)
+  metaStartDate.value = new Date((await getTmusMeta()).startMsEpoch)
   appDetailMap.value = await getAppDetailMap()
   loading.value = false
 })
@@ -27,8 +27,11 @@ onMounted(async () => {
 const load = async () => {
   loading.value = true
   const endDate = nextDate.value
-  const startDate = endDate.clone().subtract(1, "week").startOf("day")
-  const result = await getDurationByDateID(startDate, endDate)
+  const startDate = subWeeks(startOfDay(endDate), 1)
+  const result = await getDurationByDateID(
+    startDate.getTime(),
+    endDate.getTime()
+  )
   const dateMap: Record<string, AppDuration[]> = {}
   result.forEach((x) => {
     const detail = appDetailMap.value[x.appId]
@@ -40,23 +43,21 @@ const load = async () => {
     }
     dateMap[x.date].push({
       app: detail,
-      duration: moment.duration(x.duration),
+      duration: x.duration,
     })
   })
   let ripeResult: DateGroup<AppDuration>[] = Object.entries(dateMap).map(
     ([k, v]) => {
-      return { moment: moment(+k), data: v }
+      return { moment: new Date(+k), data: v }
     }
   )
   ripeResult.sort((a, b) => b.moment.valueOf() - a.moment.valueOf())
   ripeResult.forEach((dg) => {
-    dg.data = dg.data.sort(
-      (a, b) => b.duration.asMilliseconds() - a.duration.asMilliseconds()
-    )
+    dg.data = dg.data.sort((a, b) => b.duration - a.duration)
   })
   data.value.push(...ripeResult)
-  nextDate.value = startDate.clone().subtract(1, "day")
-  if (nextDate.value.isBefore(metaStartDate.value)) {
+  nextDate.value = subDays(startDate, 1)
+  if (isBefore(nextDate.value, metaStartDate.value)) {
     noMore.value = true
     return
   }
@@ -74,7 +75,7 @@ const load = async () => {
       <el-timeline-item
         v-for="({ moment: date, data: appData }, i) in data"
         :key="i"
-        :timestamp="date.format('YYYY-MM-DD')"
+        :timestamp="format(date, config.dateFormat)"
         placement="top"
       >
         <app-card-group :data="appData" />

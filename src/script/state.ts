@@ -21,7 +21,7 @@ export const config = ref<Config>({
   theme: "system",
   filterUninstalledApp: true,
   firstDayOfWeek: 0,
-  dateFormat: "YYYY-MM-DD",
+  dateFormat: "yyyy-MM-dd",
   timeFormat: "HH:mm:ss",
 })
 

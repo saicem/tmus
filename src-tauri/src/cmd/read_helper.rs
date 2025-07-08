@@ -3,28 +3,43 @@ use crate::engine::{tracking, FocusRecord};
 use log::debug;
 use std::cmp::{max, min};
 
+// For compute convenience, remember convert them back after compute.
+pub fn timezone_convert(
+    mut vec: Vec<FocusRecord>,
+    timezone_offset: Millisecond,
+) -> Vec<FocusRecord> {
+    for item in vec.iter_mut() {
+        item.focus_at = item.focus_at - timezone_offset;
+        item.blur_at = item.blur_at - timezone_offset;
+    }
+    vec
+}
+
 /// Reads all focus records that fall within the specified time range.
 /// If a record not entirely falls inside the time range, it will be trimmed to fit.
 ///
 /// # Arguments
-/// - `start_millis`: The start of the time range, inclusive.
-/// - `end_millis`: The end of the time range, inclusive.
+/// - `start_timestamp`: The start of the time range, inclusive.
+/// - `end_timestamp`: The end of the time range, inclusive.
 ///
 /// # Returns
 /// A vector of `FocusRecord` instances.
-pub fn read_by_timestamp(start_millis: Millisecond, end_millis: Millisecond) -> Vec<FocusRecord> {
+pub fn read_by_timestamp(
+    start_timestamp: Millisecond,
+    end_timestamp: Millisecond,
+) -> Vec<FocusRecord> {
     debug_assert!(
-        start_millis <= end_millis,
-        "start_millis must be less than or equal to end_millis"
+        start_timestamp <= end_timestamp,
+        "start_timestamp must be less than or equal to end_timestamp"
     );
-    let rough_records = tracking::read_by_timestamp(start_millis, end_millis);
+    let rough_records = tracking::read_by_timestamp(start_timestamp, end_timestamp);
     debug!(
         "Read rough records, start: {:?}, end: {:?}, len: {:?}",
-        start_millis,
-        end_millis,
+        start_timestamp,
+        end_timestamp,
         rough_records.len()
     );
-    trim_focus_records(rough_records, start_millis, end_millis)
+    trim_focus_records(rough_records, start_timestamp, end_timestamp)
 }
 
 /// Trims focus records to retain only those within the specified time range.
@@ -36,26 +51,26 @@ pub fn read_by_timestamp(start_millis: Millisecond, end_millis: Millisecond) -> 
 ///
 /// Arguments：
 /// - `records`: The original vector of focus records.
-/// - `start_millis`: The specified start time in milliseconds.
-/// - `end_millis`: The specified end time in milliseconds.
+/// - `start_timestamp`: The specified start time in milliseconds.
+/// - `end_timestamp`: The specified end time in milliseconds.
 ///
 /// Returns:
 /// - A new vector containing focus records within the defined time range.
 fn trim_focus_records(
     mut records: Vec<FocusRecord>,
-    start_millis: Millisecond,
-    end_millis: Millisecond,
+    start_timestamp: Millisecond,
+    end_timestamp: Millisecond,
 ) -> Vec<FocusRecord> {
     if records.is_empty() {
         return records;
     }
     // If the record blur time equals start range, after trimming, the record duration is zero.
     let start_index = records
-        .binary_search_by_key(&start_millis, |x| x.blur_at)
+        .binary_search_by_key(&start_timestamp, |x| x.blur_at)
         .map(|x| x + 1)
         .unwrap_or_else(|x| x);
     let end_index = records
-        .binary_search_by_key(&end_millis, |x| x.focus_at)
+        .binary_search_by_key(&end_timestamp, |x| x.focus_at)
         .unwrap_or_else(|x| x);
     if start_index >= end_index || start_index >= records.len() {
         return vec![];
@@ -63,10 +78,10 @@ fn trim_focus_records(
     records = records[start_index..end_index].to_vec();
     records
         .first_mut()
-        .map(|x| x.focus_at = max(x.focus_at, start_millis));
+        .map(|x| x.focus_at = max(x.focus_at, start_timestamp));
     records
         .last_mut()
-        .map(|x| x.blur_at = min(x.blur_at, end_millis));
+        .map(|x| x.blur_at = min(x.blur_at, end_timestamp));
     records
 }
 

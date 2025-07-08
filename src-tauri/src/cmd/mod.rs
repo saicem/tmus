@@ -1,9 +1,9 @@
+use crate::cmd::read_helper::read_by_timestamp;
 use crate::engine::models::millisecond::Millisecond;
 use crate::engine::models::AppMeta;
 use crate::engine::tracking::focus_index;
 use crate::engine::{tracking, FocusRecord};
 use crate::util;
-use read_helper::read_by_timestamp;
 
 pub mod app_detail;
 pub mod app_duration_area;
@@ -11,8 +11,11 @@ pub mod duration_statistic;
 mod read_helper;
 
 #[tauri::command]
-pub fn get_raw_record(start_millis: Millisecond, end_millis: Millisecond) -> Vec<FocusRecord> {
-    read_by_timestamp(start_millis, end_millis)
+pub fn get_raw_record(
+    start_timestamp: Millisecond,
+    end_timestamp: Millisecond,
+) -> Vec<FocusRecord> {
+    read_by_timestamp(start_timestamp, end_timestamp)
 }
 
 #[tauri::command]

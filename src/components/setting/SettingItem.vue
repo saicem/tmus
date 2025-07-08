@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import { InfoFilled, Loading } from "@element-plus/icons-vue"
 import { useSlots } from "vue"
 

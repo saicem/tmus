@@ -1,11 +1,10 @@
 <script lang="ts" setup>
 import { FileDetail } from "@/script/models.ts"
-import { Duration } from "moment-timezone"
 import { formatDuration } from "@/script/time-util.ts"
 
 defineProps<{
   app: FileDetail
-  duration: Duration
+  duration: number
   percentage: number
 }>()
 </script>

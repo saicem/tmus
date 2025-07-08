@@ -4,8 +4,7 @@ import { onMounted, ref, watch } from "vue"
 import { getAppDetail, getAppDurationArea, showInFolder } from "@/script/cmd.ts"
 import { i18n } from "@/script/i18n.ts"
 import { Chart } from "@antv/g2"
-import moment from "moment-timezone"
-import { timeZoneOffsetMillis } from "@/script/time-util.ts"
+import { formatDurationRough, timeZoneOffsetMillis } from "@/script/time-util.ts"
 import { colorMode, config } from "@/script/state.ts"
 
 const props = defineProps<{
@@ -21,23 +20,11 @@ onMounted(async () => {
   durationAreaData.value = await getAppDurationArea(
     props.id,
     0,
-    moment().valueOf(),
+    new Date().getTime(),
     timeZoneOffsetMillis()
   )
   renderAreaChart()
 })
-
-function formatDuration(ms: number) {
-  if (ms < 1000) return `${ms}ms`
-  const s = ms / 1000
-  if (s < 60) return `${s.toFixed(1)}s`
-  const m = s / 60
-  if (m < 60) return `${m.toFixed(1)}m`
-  const h = m / 60
-  if (h < 24) return `${h.toFixed(1)}h`
-  const d = h / 24
-  return `${d.toFixed(1)}d`
-}
 
 function renderAreaChart() {
   if (activeName.value == "durationDateArea") {
@@ -61,13 +48,13 @@ function renderDateAreaChart() {
     .encode("x", "index")
     .encode("y", "value")
     .encode("shape", "hvh")
-    .tooltip({ name: yName, channel: "y", valueFormatter: formatDuration })
+    .tooltip({ name: yName, channel: "y", valueFormatter: formatDurationRough })
     .axis("x", {
       title: xName,
       labelAutoHide: true,
       labelTransform: "rotate(0)",
     })
-    .axis("y", { title: yName, labelFormatter: formatDuration })
+    .axis("y", { title: yName, labelFormatter: formatDurationRough })
   chart.render()
 }
 
@@ -121,7 +108,6 @@ watch(
         <el-descriptions-item :label="i18n.detailPage.name">
           {{ detail?.name }}
         </el-descriptions-item>
-        <!--        TODO 通过别的方式表示 而非直接在表格中展示，比如在名称后边加个 感叹号 悬浮时标识文件不存在-->
         <el-descriptions-item :label="i18n.detailPage.exist">
           {{ detail?.exist }}
         </el-descriptions-item>

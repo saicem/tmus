@@ -3,9 +3,9 @@ import { Chart } from "@antv/g2"
 import { onMounted, ref, watch } from "vue"
 import { colorMode, config } from "@/script/state.ts"
 import { i18n } from "@/script/i18n.ts"
-import moment from "moment-timezone"
-import { dayOfWeekOffset } from "@/script/time-util.ts"
+import { dayOfWeekOffset, formatDurationRough } from "@/script/time-util.ts"
 import { getDurationByDate } from "@/script/cmd.ts"
+import { addDays, startOfDay, subDays } from "date-fns"
 
 const chartContainer = ref<HTMLDivElement | null>(null)
 
@@ -16,17 +16,13 @@ onMounted(async () => {
 })
 
 async function loadData() {
-  let now = moment()
+  let now = new Date()
   let todayDayOfWeekOffset = dayOfWeekOffset(now)
-  let lastWeekStart = now
-    .clone()
-    .startOf("day")
-    .subtract(todayDayOfWeekOffset + 7, "days")
+  let lastWeekStart = subDays(startOfDay(now), todayDayOfWeekOffset + 7)
   let result = Object.fromEntries(
-    (await getDurationByDate(lastWeekStart, now)).map((x) => [
-      x.date,
-      x.duration,
-    ])
+    (await getDurationByDate(lastWeekStart.getTime(), now.getTime())).map(
+      (x) => [x.date, x.duration]
+    )
   )
 
   return Array(14)
@@ -41,14 +37,7 @@ async function loadData() {
           i18n.value.weeklyChart.dayOfWeekNames[
             (idx + config.value.firstDayOfWeek) % 7
           ],
-        duration: Number(
-          moment
-            .duration(
-              result[lastWeekStart.clone().add(idx, "day").valueOf()] ?? 0
-            )
-            .asHours()
-            .toFixed(2)
-        ),
+        duration: result[addDays(lastWeekStart, idx).getTime()] ?? 0,
       }
     })
 }
@@ -72,7 +61,7 @@ function renderBarChart(
     transform: [{ type: "dodgeX" }],
     axis: {
       x: { title: null },
-      y: { title: null, labelFormatter: (d: number) => `${d}h` },
+      y: { title: null, labelFormatter: formatDurationRough },
     },
     interaction: {
       elementHighlight: { background: true },
@@ -84,7 +73,7 @@ function renderBarChart(
       items: [
         {
           channel: "y",
-          valueFormatter: (d: string) => `${d}h`,
+          valueFormatter: formatDurationRough,
         },
       ],
     },

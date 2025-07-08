@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { ref } from "vue"
-import { fetch_update, install_update } from "@/script/cmd.ts"
+import { fetchUpdate, installUpdate } from "@/script/cmd.ts"
 import { i18n } from "@/script/i18n.ts"
 import SettingItem from "@/components/setting/SettingItem.vue"
 import { DownloadEvent, UpdateMetadata } from "@/script/models.ts"
@@ -22,7 +22,7 @@ async function checkNeedUpdate() {
     return
   }
   checkUpdateLoading.value = true
-  updateMeta.value = await fetch_update()
+  updateMeta.value = await fetchUpdate()
   if (updateMeta.value) {
     dialogVisible.value = true
   } else {
@@ -40,7 +40,7 @@ async function confirmUpdate() {
   }
   downloading.value = true
   try {
-    await install_update((event: DownloadEvent) => {
+    await installUpdate((event: DownloadEvent) => {
       if (event.event === "Started") {
         contentLength.value = event.data.contentLength ?? 1
         downloadedLength.value = 0

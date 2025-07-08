@@ -1,4 +1,4 @@
-use crate::cmd::read_helper::read_by_timestamp;
+use crate::cmd::read_helper::{read_by_timestamp, timezone_convert};
 use crate::engine::models::millisecond::Millisecond;
 use crate::engine::FocusRecord;
 use crate::util::time_util::date_str_from_days;
@@ -23,33 +23,33 @@ pub struct AppDurationAreaModelItem {
 #[tauri::command]
 pub async fn get_app_duration_area(
     app_id: usize,
-    start_millis: Millisecond,
-    end_millis: Millisecond,
-    time_zone_offset: Millisecond,
+    start_timestamp: Millisecond,
+    end_timestamp: Millisecond,
+    timezone_offset: Millisecond,
 ) -> AppDurationAreaModel {
-    let result: Vec<FocusRecord> = read_by_timestamp(start_millis, end_millis)
-        .into_iter()
-        .filter(|x| x.id == app_id)
-        .collect();
+    let result: Vec<FocusRecord> = timezone_convert(
+        read_by_timestamp(start_timestamp, end_timestamp),
+        timezone_offset,
+    )
+    .into_iter()
+    .filter(|x| x.id == app_id)
+    .collect();
     AppDurationAreaModel {
         app_id,
-        date_area: compute_date_area(&result, time_zone_offset),
-        day_area: compute_day_area(&result, time_zone_offset),
+        date_area: compute_date_area(&result),
+        day_area: compute_day_area(&result),
     }
 }
 
-fn compute_date_area(
-    vec: &Vec<FocusRecord>,
-    time_zone_offset: Millisecond,
-) -> Vec<AppDurationAreaModelItem> {
+fn compute_date_area(vec: &Vec<FocusRecord>) -> Vec<AppDurationAreaModelItem> {
     let Some(first) = vec.first() else {
         return vec![];
     };
     let Some(last) = vec.last() else {
         return vec![];
     };
-    let first_day = (first.focus_at + time_zone_offset).as_days();
-    let last_day = (last.blur_at + time_zone_offset).as_days();
+    let first_day = (first.focus_at).as_days();
+    let last_day = (last.blur_at).as_days();
     let size = (last_day - first_day + 1) as usize;
     let mut ret: Vec<AppDurationAreaModelItem> = Vec::with_capacity(size);
     for i in 0..size {
@@ -60,8 +60,8 @@ fn compute_date_area(
     }
 
     for record in vec {
-        let mut focus_at = record.focus_at + time_zone_offset;
-        let blur_at = record.blur_at + time_zone_offset;
+        let mut focus_at = record.focus_at;
+        let blur_at = record.blur_at;
         while focus_at < blur_at {
             let focus_at_day = focus_at.as_days();
             let blur_at_day = blur_at.as_days();
@@ -80,10 +80,7 @@ fn compute_date_area(
 
 /// Calculates the number of days an application is used each minute within the 24-hour period during the specified time range.
 /// Minutes with usage are counted as one if used multiple times within the same day, and partial minutes are also counted.
-fn compute_day_area(
-    vec: &Vec<FocusRecord>,
-    time_zone_offset: Millisecond,
-) -> Vec<AppDurationAreaModelItem> {
+fn compute_day_area(vec: &Vec<FocusRecord>) -> Vec<AppDurationAreaModelItem> {
     let size = 24 * 60;
     let mut ret = Vec::with_capacity(size);
     for i in 0..size {
@@ -94,8 +91,8 @@ fn compute_day_area(
     }
     let mut pre_blur_at_minute = 0;
     for record in vec {
-        let mut focus_at = record.focus_at + time_zone_offset;
-        let blur_at = record.blur_at + time_zone_offset;
+        let mut focus_at = record.focus_at;
+        let blur_at = record.blur_at;
         while focus_at < blur_at {
             let focus_at_day = focus_at.as_days();
             let blur_at_day = blur_at.as_days();

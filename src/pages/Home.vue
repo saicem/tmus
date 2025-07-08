@@ -3,20 +3,15 @@ import app from "@/assets/general-card/app.svg"
 import usage from "@/assets/general-card/usage.svg"
 import up from "@/assets/general-card/up.svg"
 import { onMounted, ref } from "vue"
-import moment from "moment"
 import { i18n } from "@/script/i18n.ts"
 import GeneralCard from "@/components/GeneralCard.vue"
 import HeatCalendar from "@/components/HeatCalendar.vue"
 import WeeklyChart from "@/components/WeeklyChart.vue"
-import {
-  formatDurationRaw,
-  MILLISECONDS_PER_DAY,
-  timeZoneOffsetMillis,
-} from "@/script/time-util.ts"
+import { formatDuration, MILLISECONDS_PER_DAY } from "@/script/time-util.ts"
 import { getDurationByDate, getDurationById } from "@/script/cmd.ts"
-import { Duration } from "moment-timezone"
+import { endOfYear, startOfDay, startOfYear } from "date-fns"
 
-const yearData = ref<Duration[]>([])
+const yearData = ref<number[]>([])
 const appCount = ref("0")
 const totalUse = ref("0")
 const mostUse = ref("0")
@@ -27,38 +22,33 @@ onMounted(async () => {
 })
 
 async function getYearData() {
-  const now = moment()
-  const startOfYear = now.clone().startOf("year")
-  const endOfYear = now.clone().endOf("year")
-  const data = await getDurationByDate(startOfYear, now)
-  console.log(
-    "durationByDateMap",
-    startOfYear.format(),
-    data.map((x) => moment(x.date).format())
-  )
+  const now = new Date()
+  const yearStart = startOfYear(now)
+  const yearEnd = endOfYear(now)
+  const data = await getDurationByDate(yearStart.getTime(), now.getTime())
   const durationByDateMap = Object.fromEntries(
     data.map((x) => [x.date, x.duration])
   )
   const result = []
   for (
-    let i = startOfYear.valueOf();
-    i <= endOfYear.valueOf() - timeZoneOffsetMillis();
+    let i = yearStart.getTime();
+    i <= yearEnd.getTime();
     i += MILLISECONDS_PER_DAY
   ) {
-    result.push(moment.duration(durationByDateMap[i]))
+    result.push(durationByDateMap[+i])
   }
   yearData.value = result
 }
 
 async function getDayData() {
-  const end = moment()
-  const start = end.clone().startOf("day")
-  const records = await getDurationById(start, end)
+  const end = new Date()
+  const dayStart = startOfDay(end)
+  const records = await getDurationById(dayStart.getTime(), end.getTime())
   appCount.value = records.length.toString()
-  totalUse.value = formatDurationRaw(
+  totalUse.value = formatDuration(
     records.reduce((acc, cur) => acc + cur.duration, 0)
   )
-  mostUse.value = formatDurationRaw(
+  mostUse.value = formatDuration(
     records.reduce((acc, cur) => (acc > cur.duration ? acc : cur.duration), 0)
   )
 }

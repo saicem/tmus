@@ -1,11 +1,11 @@
 <script lang="ts" setup>
-import moment, { Duration } from "moment"
-import { formatDuration } from "@/script/time-util.ts"
+import { formatDuration, MILLISECONDS_PER_HOUR } from "@/script/time-util.ts"
 import { config } from "@/script/state.ts"
+import { format, setDayOfYear } from "date-fns"
 
 defineProps<{
   dayOfYear: number
-  duration: Duration
+  duration: number
 }>()
 </script>
 
@@ -13,12 +13,14 @@ defineProps<{
   <el-tooltip :hide-after="200" :show-after="200">
     <template #content>
       <div style="text-align: center">
-        {{ `${moment().dayOfYear(dayOfYear).format(config.dateFormat)} ` }}
+        {{
+          `${format(setDayOfYear(new Date(), dayOfYear), config.dateFormat)} `
+        }}
         <br />{{ formatDuration(duration) }}
       </div>
     </template>
     <div
-      :data-tag="Math.min(4, Math.ceil(duration.asHours() / 4))"
+      :data-tag="Math.min(4, Math.ceil(duration / MILLISECONDS_PER_HOUR / 4))"
       class="block-unit"
     ></div>
   </el-tooltip>
