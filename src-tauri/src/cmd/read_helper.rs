@@ -1,4 +1,4 @@
-use crate::engine::{alpha, data::Millisecond, FocusRecord};
+use crate::engine::{tracking, models::Millisecond, FocusRecord};
 use log::debug;
 use std::cmp::{max, min};
 
@@ -16,7 +16,7 @@ pub fn read_by_timestamp(start_millis: Millisecond, end_millis: Millisecond) -> 
         start_millis <= end_millis,
         "start_millis must be less than or equal to end_millis"
     );
-    let rough_records = alpha::read_by_timestamp(start_millis, end_millis);
+    let rough_records = tracking::read_by_timestamp(start_millis, end_millis);
     debug!(
         "Read rough records, start: {:?}, end: {:?}, len: {:?}",
         start_millis,

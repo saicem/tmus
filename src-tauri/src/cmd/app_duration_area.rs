@@ -1,5 +1,5 @@
 use crate::cmd::read_helper::read_by_timestamp;
-use crate::engine::data::Millisecond;
+use crate::engine::models::Millisecond;
 use crate::engine::FocusRecord;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};

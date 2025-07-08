@@ -1,4 +1,24 @@
-use super::millisecond::Millisecond;
+pub mod focus_record;
+mod millisecond;
+
+pub use millisecond::Millisecond;
+use serde::{Deserialize, Serialize};
+
+pub type AppId = usize;
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AppMeta {
+    pub(crate) start_ms_epoch: u64,
+    pub(crate) tmus_version: String,
+}
+
+#[derive(Debug, PartialEq)]
+pub enum CursorPosition {
+    Start,
+    End,
+    Middle(usize),
+}
 
 /// An event that represents a window gaining focus.
 ///

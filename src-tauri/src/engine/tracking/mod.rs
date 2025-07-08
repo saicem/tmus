@@ -2,10 +2,10 @@ pub mod focus_app;
 pub mod focus_index;
 pub mod focus_record;
 
-use super::{data, FocusRecord};
-use crate::engine::alpha::focus_app::get_id_by_path;
+use super::{models, FocusRecord};
+use crate::engine::tracking::focus_app::get_id_by_path;
 use crate::engine::core::FocusRecordRaw;
-use crate::engine::data::{AppMeta, CursorPosition, Millisecond};
+use crate::engine::models::{AppMeta, CursorPosition, Millisecond};
 use std::path::PathBuf;
 
 pub(crate) fn init(data_dir: &PathBuf) {

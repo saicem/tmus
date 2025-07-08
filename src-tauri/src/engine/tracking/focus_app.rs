@@ -6,7 +6,7 @@ use std::path::PathBuf;
 use std::sync::{Mutex, OnceLock};
 use windows::Win32::Storage::FileSystem::FILE_SHARE_READ;
 
-use super::data::AppId;
+use super::models::AppId;
 
 static STATE: OnceLock<State> = OnceLock::new();
 

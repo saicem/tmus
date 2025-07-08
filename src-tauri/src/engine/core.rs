@@ -1,6 +1,6 @@
 use super::{
-    alpha,
-    data::{FocusEvent, Millisecond},
+    tracking,
+    models::{FocusEvent, Millisecond},
     monitor,
 };
 use crate::engine::monitor::loop_get_current_window;
@@ -31,7 +31,7 @@ pub static FOCUS_EVENT_SENDER: OnceLock<Sender<FocusEvent>> = OnceLock::new();
 pub fn init(data_dir: &PathBuf) -> Receiver<FocusEvent> {
     let (sender, receiver) = channel::<FocusEvent>();
     FOCUS_EVENT_SENDER.set(sender).unwrap();
-    alpha::init(data_dir);
+    tracking::init(data_dir);
     receiver
 }
 
@@ -54,7 +54,7 @@ impl FocusRecordRaw {
 pub fn start(filter: fn(&str) -> Option<String>, receiver: Receiver<FocusEvent>) {
     let write_record = move |raw: FocusRecordRaw| {
         if let Some(app_path) = filter(&raw.app_path) {
-            alpha::write_record(FocusRecordRaw::new(app_path, raw.focus_at, raw.blur_at))
+            tracking::write_record(FocusRecordRaw::new(app_path, raw.focus_at, raw.blur_at))
         } else {
             log::info!(
                 "App {} is filtered out. Focus at {:?}, blur at {:?}",

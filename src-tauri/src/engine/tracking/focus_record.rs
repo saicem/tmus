@@ -1,4 +1,4 @@
-use crate::engine::data::focus_record::RecordByte;
+use crate::engine::models::focus_record::RecordByte;
 use log;
 use memmap2::MmapMut;
 use std::fs::OpenOptions;

@@ -1,4 +1,4 @@
-use super::data::{CursorPosition, Millisecond};
+use super::models::{CursorPosition, Millisecond};
 use chrono::{DateTime, TimeZone, Utc};
 use serde::{Deserialize, Serialize};
 use std::fs::{File, OpenOptions};

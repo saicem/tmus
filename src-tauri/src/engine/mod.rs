@@ -1,9 +1,9 @@
-pub mod alpha;
+pub mod tracking;
 mod auto_mmap;
 mod core;
-pub mod data;
+pub mod models;
 mod meta;
 mod monitor;
 
 pub use core::{init, start};
-pub use data::focus_record::FocusRecord;
+pub use models::focus_record::FocusRecord;

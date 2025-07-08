@@ -180,7 +180,6 @@ fn bgra_to_rgba(data: &mut [u8]) {
             14, 13, 12, 15, // Fourth pixel
         )
     };
-    // For each 16-byte chunk in your data
     for chunk in data.chunks_exact_mut(16) {
         let mut vector = unsafe { _mm_loadu_si128(chunk.as_ptr() as *const __m128i) };
         vector = unsafe { _mm_shuffle_epi8(vector, mask) };

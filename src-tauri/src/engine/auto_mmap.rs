@@ -92,7 +92,7 @@ mod tests {
     fn test_auto_mmap_read_write() {
         let test_file = "test_auto_mmap_read_write.aof";
         let mut mmap = AutoMmap::new(test_file);
-        let data = b"test data";
+        let data = b"test models";
         mmap.append(data);
         let read_data = mmap.read(0, data.len());
         assert_eq!(read_data, data);

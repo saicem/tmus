@@ -1,17 +1,16 @@
 use crate::cmd::duration_calculate_helper::{group_by_day, group_by_day_id, group_by_id};
-use crate::engine::alpha::focus_index;
-use crate::engine::data::{AppId, AppMeta, Millisecond};
-use crate::engine::{alpha, FocusRecord};
+use crate::engine::models::{AppId, AppMeta, Millisecond};
+use crate::engine::tracking::focus_index;
+use crate::engine::{tracking, FocusRecord};
 use crate::util;
 use log::info;
 use read_helper::read_by_timestamp;
 use std::collections::{BTreeMap, HashMap};
 
 pub mod app_detail;
-mod data;
+pub mod app_duration_area;
 mod duration_calculate_helper;
 mod read_helper;
-pub mod app_duration_area;
 
 #[tauri::command]
 pub fn raw_record(
@@ -80,7 +79,7 @@ pub async fn show_in_folder(path: String) -> Result<(), String> {
 
 #[tauri::command]
 pub async fn get_tmus_meta() -> Result<AppMeta, String> {
-    Ok(alpha::get_tmus_meta())
+    Ok(tracking::get_tmus_meta())
 }
 
 #[tauri::command]

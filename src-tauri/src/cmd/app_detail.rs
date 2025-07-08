@@ -1,10 +1,10 @@
-use crate::cmd::data::FileDetail;
-use crate::engine::alpha::focus_app;
+use crate::engine::tracking::focus_app;
 use crate::util;
 use crate::util::FileVersion;
 use base64::engine::general_purpose;
 use base64::Engine;
 use image::ImageFormat;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::io::Cursor;
 use std::path::Path;
@@ -12,6 +12,17 @@ use std::sync::OnceLock;
 use tokio::sync::Mutex;
 
 static APP_DETAIL_CACHE: OnceLock<Mutex<HashMap<usize, FileDetail>>> = OnceLock::new();
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct FileDetail {
+    pub id: usize,
+    pub name: String,
+    pub path: String,
+    pub exist: bool,
+    pub icon: Option<String>,
+    pub version: Option<FileVersion>,
+}
 
 pub fn get_app_detail_cache<'a>() -> &'a Mutex<HashMap<usize, FileDetail>> {
     APP_DETAIL_CACHE.get_or_init(|| Mutex::new(HashMap::new()))
