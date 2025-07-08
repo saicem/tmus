@@ -1,4 +1,5 @@
-use super::models::{CursorPosition, Millisecond};
+use super::models::CursorPosition;
+use crate::engine::models::millisecond::Millisecond;
 use chrono::{DateTime, TimeZone, Utc};
 use serde::{Deserialize, Serialize};
 use std::fs::{File, OpenOptions};

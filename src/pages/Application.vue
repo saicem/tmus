@@ -1,7 +1,7 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import { getAllAppDetail } from "@/script/cmd.ts"
 import { onMounted, ref } from "vue"
-import { FileDetail } from "@/script/data.ts"
+import { FileDetail } from "@/script/models.ts"
 import { config } from "@/script/state.ts"
 
 const appList = ref<FileDetail[]>([])
@@ -31,8 +31,8 @@ onMounted(async () => {
         >
           <div>
             <el-image
-              style="width: 32px; height: 32px"
               :src="app?.icon ?? ''"
+              style="width: 32px; height: 32px"
             />
           </div>
           <p

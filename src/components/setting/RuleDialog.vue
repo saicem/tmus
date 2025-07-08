@@ -1,7 +1,7 @@
-<script setup lang="ts">
-import { getAppRule, setAppRule } from "@/script/cmd.ts"
+<script lang="ts" setup>
+import { getAppRule } from "@/script/cmd.ts"
 import { onMounted, ref } from "vue"
-import { RuleConfig } from "@/script/data.ts"
+import { RuleConfig } from "@/script/models.ts"
 import FileSelector from "@/components/common/FileSelector.vue"
 import { i18n } from "@/script/i18n.ts"
 
@@ -52,32 +52,32 @@ const handleClose = (done: () => void) => {
 
 <template>
   <el-dialog
-    :title="i18n.configPage.appRule"
     v-model="model"
     :before-close="handleClose"
+    :title="i18n.configPage.appRule"
   >
     <el-tabs v-model="tabModel">
       <el-tab-pane :label="i18n.ruleDialog.excludeApp" name="exclude">
-        <el-table :data="rule?.exclude" style="width: 100%" max-height="300">
-          <el-table-column prop="path" :label="i18n.ruleDialog.path">
+        <el-table :data="rule?.exclude" max-height="300" style="width: 100%">
+          <el-table-column :label="i18n.ruleDialog.path" prop="path">
             <template #default="scope">
               <FileSelector
-                name="file"
                 v-model="scope.row.path"
                 :change="() => (modified = true)"
+                name="file"
               />
             </template>
           </el-table-column>
           <el-table-column
-            fixed="right"
             :label="i18n.ruleDialog.operation"
+            fixed="right"
             width="120"
           >
             <template #default="scope">
               <el-button
                 link
-                type="primary"
                 size="small"
+                type="primary"
                 @click.prevent="
                   () => {
                     rule?.exclude.splice(scope.$index, 1)
@@ -94,21 +94,21 @@ const handleClose = (done: () => void) => {
 
       <el-tab-pane :label="i18n.ruleDialog.includeApp" name="include">
         <el-table :data="rule?.include" style="width: 100%">
-          <el-table-column prop="path" :label="i18n.ruleDialog.path">
+          <el-table-column :label="i18n.ruleDialog.path" prop="path">
             <template #default="scope">
-              <FileSelector name="file" v-model="scope.row.path" />
+              <FileSelector v-model="scope.row.path" name="file" />
             </template>
           </el-table-column>
           <el-table-column
-            fixed="right"
             :label="i18n.ruleDialog.operation"
+            fixed="right"
             width="120"
           >
             <template #default="scope">
               <el-button
                 link
-                type="primary"
                 size="small"
+                type="primary"
                 @click.prevent="
                   () => {
                     rule?.include.splice(scope.$index, 1)
@@ -125,26 +125,26 @@ const handleClose = (done: () => void) => {
 
       <el-tab-pane :label="i18n.ruleDialog.mergeApp" name="merge">
         <el-table :data="rule?.merge" style="width: 100%">
-          <el-table-column prop="path" :label="i18n.ruleDialog.path">
+          <el-table-column :label="i18n.ruleDialog.path" prop="path">
             <template #default="scope">
-              <FileSelector name="file" v-model="scope.row.path" />
+              <FileSelector v-model="scope.row.path" name="file" />
             </template>
           </el-table-column>
-          <el-table-column prop="toPath" :label="i18n.ruleDialog.mergedPath">
+          <el-table-column :label="i18n.ruleDialog.mergedPath" prop="toPath">
             <template #default="scope">
-              <FileSelector name="file" v-model="scope.row.toPath" />
+              <FileSelector v-model="scope.row.toPath" name="file" />
             </template>
           </el-table-column>
           <el-table-column
-            fixed="right"
             :label="i18n.ruleDialog.operation"
+            fixed="right"
             width="120"
           >
             <template #default="scope">
               <el-button
                 link
-                type="primary"
                 size="small"
+                type="primary"
                 @click.prevent="
                   () => {
                     rule?.merge.splice(scope.$index, 1)
@@ -162,7 +162,7 @@ const handleClose = (done: () => void) => {
     <template #footer>
       <div>
         <el-button @click="addItem">{{ i18n.ruleDialog.add }}</el-button>
-        <el-button @click="model = false">{{ i18n.common.cancel }} </el-button>
+        <el-button @click="model = false">{{ i18n.common.cancel }}</el-button>
         <el-button
           type="primary"
           @click="

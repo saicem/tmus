@@ -1,5 +1,5 @@
-<script setup lang="ts">
-import { FileDetail } from "@/script/data.ts"
+<script lang="ts" setup>
+import { FileDetail } from "@/script/models.ts"
 import { Duration } from "moment-timezone"
 import { formatDuration } from "@/script/time-util.ts"
 
@@ -23,7 +23,7 @@ defineProps<{
       "
     >
       <div>
-        <el-image style="width: 64px; height: 64px" :src="detail?.icon ?? ''" />
+        <el-image :src="detail?.icon ?? ''" style="width: 64px; height: 64px" />
       </div>
       <p
         style="

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { FileDetail } from "@/script/data.ts"
+import { FileDetail } from "@/script/models.ts"
 import { Duration } from "moment-timezone"
 import { formatDuration } from "@/script/time-util.ts"
 
@@ -23,7 +23,14 @@ defineProps<{
     <div class="app-header">
       <el-image :src="app.icon" alt="App Icon" class="app-icon" />
     </div>
-    <div style="display: flex; flex-direction: column; width: max-content; color: var(--font-color-bold)">
+    <div
+      style="
+        display: flex;
+        flex-direction: column;
+        width: max-content;
+        color: var(--font-color-bold);
+      "
+    >
       <p class="app-title">{{ app.name }}</p>
       <p class="app-duration">{{ formatDuration(duration) }}</p>
     </div>
@@ -32,8 +39,9 @@ defineProps<{
       :stroke-width="16"
       :text-inside="true"
     >
-      <span style="color: var(--font-color-bold)">{{ formatDuration(duration) }}</span>
-
+      <span style="color: var(--font-color-bold)">{{
+        formatDuration(duration)
+      }}</span>
     </el-progress>
   </div>
 </template>

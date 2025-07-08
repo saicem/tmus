@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import moment, { Duration } from "moment"
 import { formatDuration } from "@/script/time-util.ts"
 import { config } from "@/script/state.ts"
@@ -10,7 +10,7 @@ defineProps<{
 </script>
 
 <template>
-  <el-tooltip :show-after="200" :hide-after="200">
+  <el-tooltip :hide-after="200" :show-after="200">
     <template #content>
       <div style="text-align: center">
         {{ `${moment().dayOfYear(dayOfYear).format(config.dateFormat)} ` }}

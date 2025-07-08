@@ -10,8 +10,8 @@ use windows::Win32::UI::Accessibility::HWINEVENTHOOK;
 use windows::Win32::UI::WindowsAndMessaging::*;
 
 use crate::engine::core::FOCUS_EVENT_SENDER;
+use crate::engine::models::millisecond::Millisecond;
 use crate::engine::models::FocusEvent;
-use crate::engine::models::Millisecond;
 
 pub fn loop_get_current_window(interval: Duration) {
     tauri::async_runtime::spawn(async move {

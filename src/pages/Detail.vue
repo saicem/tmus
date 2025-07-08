@@ -1,5 +1,5 @@
-<script setup lang="ts">
-import { AppDurationAreaModel, FileDetail } from "@/script/data.ts"
+<script lang="ts" setup>
+import { AppDurationAreaModel, FileDetail } from "@/script/models.ts"
 import { onMounted, ref, watch } from "vue"
 import { getAppDetail, getAppDurationArea, showInFolder } from "@/script/cmd.ts"
 import { i18n } from "@/script/i18n.ts"
@@ -109,8 +109,8 @@ watch(
     <el-card>
       <el-descriptions :title="detail?.name" border>
         <el-descriptions-item
-          :rowspan="2"
           :label="i18n.detailPage.icon"
+          :rowspan="2"
           align="center"
         >
           <el-image :src="detail?.icon" />
@@ -121,6 +121,7 @@ watch(
         <el-descriptions-item :label="i18n.detailPage.name">
           {{ detail?.name }}
         </el-descriptions-item>
+        <!--        TODO 通过别的方式表示 而非直接在表格中展示，比如在名称后边加个 感叹号 悬浮时标识文件不存在-->
         <el-descriptions-item :label="i18n.detailPage.exist">
           {{ detail?.exist }}
         </el-descriptions-item>
@@ -143,12 +144,12 @@ watch(
     <el-card>
       <el-tabs v-model="activeName">
         <el-tab-pane
-          name="durationDateArea"
           :label="i18n.detailPage.durationDateAreaTab"
+          name="durationDateArea"
         />
         <el-tab-pane
-          name="durationDayArea"
           :label="i18n.detailPage.durationDayAreaTab"
+          name="durationDayArea"
         />
       </el-tabs>
       <div ref="durationAreaChartContainer" />

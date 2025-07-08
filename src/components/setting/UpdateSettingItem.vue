@@ -1,9 +1,9 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import { ref } from "vue"
 import { fetch_update, install_update } from "@/script/cmd.ts"
 import { i18n } from "@/script/i18n.ts"
 import SettingItem from "@/components/setting/SettingItem.vue"
-import { DownloadEvent, UpdateMetadata } from "@/script/data.ts"
+import { DownloadEvent, UpdateMetadata } from "@/script/models.ts"
 import { ElNotification } from "element-plus"
 
 const checkUpdateLoading = ref(false)
@@ -64,8 +64,8 @@ async function confirmUpdate() {
 
 <template>
   <SettingItem
-    :loading="checkUpdateLoading"
     :label="i18n.configPage.checkUpdate"
+    :loading="checkUpdateLoading"
     @click="checkNeedUpdate"
   />
   <el-dialog
@@ -85,7 +85,7 @@ async function confirmUpdate() {
     >
     </el-progress>
     <template #footer>
-      <div class="dialog-footer" v-if="!downloading">
+      <div v-if="!downloading" class="dialog-footer">
         <el-button @click="dialogVisible = false"
           >{{ i18n.common.cancel }}
         </el-button>

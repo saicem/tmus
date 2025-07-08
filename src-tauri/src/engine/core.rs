@@ -1,8 +1,5 @@
-use super::{
-    tracking,
-    models::{FocusEvent, Millisecond},
-    monitor,
-};
+use super::{models::FocusEvent, monitor, tracking};
+use crate::engine::models::millisecond::Millisecond;
 use crate::engine::monitor::loop_get_current_window;
 use std::{
     path::PathBuf,

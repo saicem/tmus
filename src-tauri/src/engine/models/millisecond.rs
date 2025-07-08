@@ -7,11 +7,13 @@ use std::{
     time::{SystemTime, UNIX_EPOCH},
 };
 
+type Unit = i64;
+
 /// Millisecond is a wrapper of i64, which represents the number of milliseconds since the Unix epoch.
 /// It is used because two defects, [std::time::Duration], cannot represent negative time periods,
 /// [std::time::Duration] Missing some methods, such as as_days.
 #[derive(Clone, Copy, PartialEq, PartialOrd, Eq, Ord)]
-pub struct Millisecond(i64);
+pub struct Millisecond(Unit);
 
 impl Debug for Millisecond {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -34,56 +36,53 @@ impl Debug for Millisecond {
     }
 }
 
+pub const MILLISECOND_PER_SECOND: Unit = 1000;
+pub const MILLISECOND_PER_MINUTE: Unit = 60 * MILLISECOND_PER_SECOND;
+pub const MILLISECOND_PER_HOUR: Unit = 60 * MILLISECOND_PER_MINUTE;
+pub const MILLISECOND_PER_DAY: Unit = 24 * MILLISECOND_PER_HOUR;
+
 impl Millisecond {
     pub fn now() -> Millisecond {
         let duration = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .expect("system time before Unix epoch");
-        Millisecond(duration.as_millis() as i64)
+        Millisecond(duration.as_millis() as Unit)
     }
 
-    pub fn as_days(&self) -> i64 {
-        self.0 / (1000 * 60 * 60 * 24)
+    pub fn as_days(&self) -> Unit {
+        self.0 / MILLISECOND_PER_DAY
     }
 
-    pub const fn from_days(days: i64) -> Millisecond {
-        Millisecond(days * 1000 * 60 * 60 * 24)
+    pub const fn from_days(t: Unit) -> Millisecond {
+        Millisecond(t * MILLISECOND_PER_DAY)
     }
 
-    pub fn as_minute(&self) -> i64 {
-        self.0 / (1000 * 60)
+    pub fn as_minute(&self) -> Unit {
+        self.0 / MILLISECOND_PER_MINUTE
     }
 
-    pub fn as_secs(&self) -> i64 {
-        self.0 / 1000
+    pub fn as_secs(&self) -> Unit {
+        self.0 / MILLISECOND_PER_SECOND
     }
 
-    pub const fn from_secs(secs: i64) -> Millisecond {
-        Millisecond(secs * 1000)
+    pub const fn from_secs(t: Unit) -> Millisecond {
+        Millisecond(t * MILLISECOND_PER_SECOND)
     }
 
-    pub fn as_millis(&self) -> i64 {
+    pub fn as_millis(&self) -> Unit {
         self.0
     }
 
-    pub const fn from_millis(millis: i64) -> Millisecond {
-        Millisecond(millis)
+    pub const fn from_millis(t: Unit) -> Millisecond {
+        Millisecond(t)
     }
 
-    pub fn set_day_offset(&self, offset: Millisecond) -> Millisecond {
-        Millisecond(self.0 / (1000 * 60 * 60 * 24) * (1000 * 60 * 60 * 24) + offset.0)
-    }
-
-    pub fn get_day_offset(&self) -> Millisecond {
-        Millisecond(self.0 % (1000 * 60 * 60 * 24))
-    }
-
-    pub const ONE_DAY: Millisecond = Millisecond(1000 * 60 * 60 * 24);
-    pub const ONE_HOUR: Millisecond = Millisecond(1000 * 60 * 60);
-    pub const ONE_MINUTE: Millisecond = Millisecond(1000 * 60);
-    pub const ONE_SECOND: Millisecond = Millisecond(1000);
+    pub const ONE_DAY: Millisecond = Millisecond(MILLISECOND_PER_DAY);
+    pub const ONE_HOUR: Millisecond = Millisecond(MILLISECOND_PER_HOUR);
+    pub const ONE_MINUTE: Millisecond = Millisecond(MILLISECOND_PER_MINUTE);
+    pub const ONE_SECOND: Millisecond = Millisecond(MILLISECOND_PER_SECOND);
     pub const ZERO: Millisecond = Millisecond(0);
-    pub const MAX: Millisecond = Millisecond(i64::MAX);
+    pub const MAX: Millisecond = Millisecond(Unit::MAX);
 }
 
 impl Display for Millisecond {
@@ -110,7 +109,7 @@ impl<'de> Deserialize<'de> for Millisecond {
     where
         D: serde::Deserializer<'de>,
     {
-        i64::deserialize(deserializer).map(Millisecond)
+        Unit::deserialize(deserializer).map(Millisecond)
     }
 }
 

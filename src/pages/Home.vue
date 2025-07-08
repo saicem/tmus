@@ -1,62 +1,90 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import app from "@/assets/general-card/app.svg"
 import usage from "@/assets/general-card/usage.svg"
 import up from "@/assets/general-card/up.svg"
 import { onMounted, ref } from "vue"
-import moment, { Duration } from "moment"
+import moment from "moment"
 import { i18n } from "@/script/i18n.ts"
-import { durationByDayInThisYear, todayAppGeneral } from "@/script/api.ts"
 import GeneralCard from "@/components/GeneralCard.vue"
 import HeatCalendar from "@/components/HeatCalendar.vue"
 import WeeklyChart from "@/components/WeeklyChart.vue"
-import { formatDuration } from "@/script/time-util.ts"
+import {
+  formatDurationRaw,
+  MILLISECONDS_PER_DAY,
+  timeZoneOffsetMillis,
+} from "@/script/time-util.ts"
+import { getDurationByDate, getDurationById } from "@/script/cmd.ts"
+import { Duration } from "moment-timezone"
 
-const duration = ref<Record<number, Duration>>({})
+const yearData = ref<Duration[]>([])
 const appCount = ref("0")
 const totalUse = ref("0")
 const mostUse = ref("0")
 
 onMounted(async () => {
-  duration.value = await durationByDayInThisYear()
+  await getYearData()
+  await getDayData()
 })
 
-todayAppGeneral().then((res) => {
-  if (res.length == 0) {
-    return
-  }
-  appCount.value = res.length.toString()
-  const durations = res.map((x) => x.duration)
-  mostUse.value = formatDuration(
-    moment.duration(
-      Math.max(...durations.map((x) => x.asMilliseconds())),
-      "milliseconds"
-    )
+async function getYearData() {
+  const now = moment()
+  const startOfYear = now.clone().startOf("year")
+  const endOfYear = now.clone().endOf("year")
+  const data = await getDurationByDate(startOfYear, now)
+  console.log(
+    "durationByDateMap",
+    startOfYear.format(),
+    data.map((x) => moment(x.date).format())
   )
-  totalUse.value = formatDuration(durations.reduce((x, y) => x.add(y)))
-})
+  const durationByDateMap = Object.fromEntries(
+    data.map((x) => [x.date, x.duration])
+  )
+  const result = []
+  for (
+    let i = startOfYear.valueOf();
+    i <= endOfYear.valueOf() - timeZoneOffsetMillis();
+    i += MILLISECONDS_PER_DAY
+  ) {
+    result.push(moment.duration(durationByDateMap[i]))
+  }
+  yearData.value = result
+}
+
+async function getDayData() {
+  const end = moment()
+  const start = end.clone().startOf("day")
+  const records = await getDurationById(start, end)
+  appCount.value = records.length.toString()
+  totalUse.value = formatDurationRaw(
+    records.reduce((acc, cur) => acc + cur.duration, 0)
+  )
+  mostUse.value = formatDurationRaw(
+    records.reduce((acc, cur) => (acc > cur.duration ? acc : cur.duration), 0)
+  )
+}
 </script>
 
 <template>
   <div style="display: flex; flex-direction: column; row-gap: 16px">
     <div class="cards no-select">
       <GeneralCard
-        :icon="app"
         :content="appCount + i18n.homePage.appsUnit"
+        :icon="app"
         :illustration="i18n.homePage.apps"
       />
       <GeneralCard
-        :icon="usage"
         :content="totalUse"
+        :icon="usage"
         :illustration="i18n.homePage.totalUse"
       />
       <GeneralCard
-        :icon="up"
         :content="mostUse"
+        :icon="up"
         :illustration="i18n.homePage.mostUse"
       />
     </div>
     <el-card class="heat-calendar-card">
-      <HeatCalendar :data="duration" v-if="duration" />
+      <HeatCalendar v-if="yearData" :data="yearData" />
     </el-card>
 
     <el-card>

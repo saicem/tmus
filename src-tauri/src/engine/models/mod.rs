@@ -1,7 +1,7 @@
 pub mod focus_record;
-mod millisecond;
+pub mod millisecond;
 
-pub use millisecond::Millisecond;
+use crate::engine::models::millisecond::Millisecond;
 use serde::{Deserialize, Serialize};
 
 pub type AppId = usize;

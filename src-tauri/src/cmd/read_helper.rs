@@ -1,4 +1,5 @@
-use crate::engine::{tracking, models::Millisecond, FocusRecord};
+use crate::engine::models::millisecond::Millisecond;
+use crate::engine::{tracking, FocusRecord};
 use log::debug;
 use std::cmp::{max, min};
 

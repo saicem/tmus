@@ -33,11 +33,20 @@ export interface FocusRecord {
   blurAt: number
 }
 
-export interface FocusData {
-  id: number
-  start: Moment
-  end: Moment
-  duration: Duration
+export interface IdDuration {
+  appId: number
+  duration: number
+}
+
+export interface DateDuration {
+  date: number
+  duration: number
+}
+
+export interface IdDateDuration {
+  appId: number
+  date: number
+  duration: number
 }
 
 export interface DateGroup<T> {

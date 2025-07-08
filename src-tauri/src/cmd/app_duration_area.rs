@@ -1,10 +1,9 @@
 use crate::cmd::read_helper::read_by_timestamp;
-use crate::engine::models::Millisecond;
+use crate::engine::models::millisecond::Millisecond;
 use crate::engine::FocusRecord;
-use chrono::{DateTime, Utc};
+use crate::util::time_util::date_str_from_days;
 use serde::{Deserialize, Serialize};
 use std::cmp::max;
-use std::ops::Add;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -43,7 +42,6 @@ fn compute_date_area(
     vec: &Vec<FocusRecord>,
     time_zone_offset: Millisecond,
 ) -> Vec<AppDurationAreaModelItem> {
-    static UNIX_EPOCH: DateTime<Utc> = DateTime::from_timestamp(0, 0).unwrap();
     let Some(first) = vec.first() else {
         return vec![];
     };
@@ -56,10 +54,7 @@ fn compute_date_area(
     let mut ret: Vec<AppDurationAreaModelItem> = Vec::with_capacity(size);
     for i in 0..size {
         ret.push(AppDurationAreaModelItem {
-            index: UNIX_EPOCH
-                .add(chrono::Duration::days(first_day + i as i64))
-                .format("%Y-%m-%d")
-                .to_string(),
+            index: date_str_from_days(first_day + i as i64),
             value: 0,
         });
     }

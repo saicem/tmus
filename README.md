@@ -48,12 +48,6 @@
   <em>App Detail</em>
 </p>
 
-## 🚀 Tech Stack
-
-- **Frontend**: Vue 3 + Vite + TypeScript + Naive UI
-- **Core**: Rust + Tauri
-- **Package Manager**: pnpm
-
 ## 📦 Installation & Usage
 
 ### Prerequisites

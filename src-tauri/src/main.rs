@@ -35,10 +35,10 @@ fn main() {
         .plugin(tauri_plugin_os::init())
         .setup(setup)
         .invoke_handler(tauri::generate_handler![
-            cmd::duration_by_id,
-            cmd::duration_by_day,
-            cmd::duration_by_day_id,
-            cmd::raw_record,
+            cmd::duration_statistic::get_duration_by_id,
+            cmd::duration_statistic::get_duration_by_date,
+            cmd::duration_statistic::get_duration_by_date_id,
+            cmd::get_raw_record,
             get_app_config,
             set_app_config,
             get_app_rule,

@@ -1,10 +1,13 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import { computed, onMounted, ref } from "vue"
-import { durationByDayId, getAppDetailMap } from "@/script/api.ts"
 import moment, { Moment } from "moment-timezone"
-import { AppDuration, DateGroup, FileDetail } from "@/script/data.ts"
+import { AppDuration, DateGroup, FileDetail } from "@/script/models.ts"
 import AppCardGroup from "@/components/statistic/AppCardGroup.vue"
-import { getTmusMeta } from "@/script/cmd.ts"
+import {
+  getAppDetailMap,
+  getDurationByDateID,
+  getTmusMeta,
+} from "@/script/cmd.ts"
 import { config } from "@/script/state.ts"
 
 const scrollDisable = computed(() => loading.value || noMore.value)
@@ -12,7 +15,6 @@ const noMore = ref(false)
 const loading = ref(true)
 const nextDate = ref<Moment>(moment())
 const data = ref<DateGroup<AppDuration>[]>([])
-const millisInDay = 1000 * 60 * 60 * 24
 const metaStartDate = ref<Moment>(moment())
 const appDetailMap = ref<Record<number, FileDetail>>({})
 
@@ -26,29 +28,32 @@ const load = async () => {
   loading.value = true
   const endDate = nextDate.value
   const startDate = endDate.clone().subtract(1, "week").startOf("day")
-  const result = await durationByDayId(startDate, endDate)
-  let ripeResult: DateGroup<AppDuration>[] = await Promise.all(
-    Object.entries(result).map(async ([k, v]) => {
-      return {
-        moment: moment(millisInDay * +k),
-        data: await Promise.all(
-          Object.entries(v).map(async ([id, duration]) => {
-            return {
-              app: appDetailMap.value[+id],
-              duration: moment.duration(duration),
-            }
-          })
-        ),
-      }
+  const result = await getDurationByDateID(startDate, endDate)
+  const dateMap: Record<string, AppDuration[]> = {}
+  result.forEach((x) => {
+    const detail = appDetailMap.value[x.appId]
+    if (config.value.filterUninstalledApp && !detail.exist) {
+      return
+    }
+    if (dateMap[x.date] == undefined) {
+      dateMap[x.date] = []
+    }
+    dateMap[x.date].push({
+      app: detail,
+      duration: moment.duration(x.duration),
     })
-  )
-  ripeResult.sort((a, b) => b.moment.unix() - a.moment.unix())
-  ripeResult.forEach((dg) => {
-    dg.data = dg.data
-      .filter((d) => !config.value.filterUninstalledApp || d.app.exist)
-      .sort((a, b) => b.duration.asMilliseconds() - a.duration.asMilliseconds())
   })
-  ripeResult = ripeResult.filter((dg) => dg.data.length > 0)
+  let ripeResult: DateGroup<AppDuration>[] = Object.entries(dateMap).map(
+    ([k, v]) => {
+      return { moment: moment(+k), data: v }
+    }
+  )
+  ripeResult.sort((a, b) => b.moment.valueOf() - a.moment.valueOf())
+  ripeResult.forEach((dg) => {
+    dg.data = dg.data.sort(
+      (a, b) => b.duration.asMilliseconds() - a.duration.asMilliseconds()
+    )
+  })
   data.value.push(...ripeResult)
   nextDate.value = startDate.clone().subtract(1, "day")
   if (nextDate.value.isBefore(metaStartDate.value)) {
@@ -69,8 +74,8 @@ const load = async () => {
       <el-timeline-item
         v-for="({ moment: date, data: appData }, i) in data"
         :key="i"
-        placement="top"
         :timestamp="date.format('YYYY-MM-DD')"
+        placement="top"
       >
         <app-card-group :data="appData" />
       </el-timeline-item>

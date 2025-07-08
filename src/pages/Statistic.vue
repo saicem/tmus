@@ -1,12 +1,12 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import { computed, ref, watch } from "vue"
-import { AppDuration } from "@/script/data.ts"
+import { AppDuration } from "@/script/models.ts"
 import moment, { Moment } from "moment-timezone"
 import { i18n } from "@/script/i18n.ts"
 import AppProgressGroup from "@/components/statistic/AppProgressGroup.vue"
 import AppCardGroup from "@/components/statistic/AppCardGroup.vue"
 import { statisticStore } from "@/script/state.ts"
-import { durationById, getAppDetailMap } from "@/script/api.ts"
+import { getAppDetailMap, getDurationById } from "@/script/cmd.ts"
 
 const shortcuts = computed(() => [
   {
@@ -76,18 +76,16 @@ const datetimeRange = ref<[Date, Date]>(
 const data = ref<AppDuration[]>([])
 
 const load = async (startDate: Moment, endDate: Moment) => {
-  const result = await durationById(startDate, endDate)
+  const result = await getDurationById(startDate, endDate)
   const appDetailMap = await getAppDetailMap()
-  data.value = (
-    await Promise.all(
-      Object.entries(result).map(async ([k, v]) => {
-        return {
-          app: appDetailMap[+k],
-          duration: moment.duration(v),
-        }
-      })
-    )
-  ).sort((a, b) => b.duration.asMilliseconds() - a.duration.asMilliseconds())
+  data.value = result
+    .map((x) => {
+      return {
+        app: appDetailMap[x.appId],
+        duration: moment.duration(x.duration),
+      }
+    })
+    .sort((a, b) => b.duration.asMilliseconds() - a.duration.asMilliseconds())
 }
 
 watch(
@@ -102,17 +100,17 @@ watch(
     <div style="display: flex; flex-direction: row; gap: 8px">
       <el-date-picker
         v-model="datetimeRange"
-        type="datetimerange"
         :shortcuts="shortcuts"
+        end-placeholder="End date"
         range-separator="To"
         start-placeholder="Start date"
-        end-placeholder="End date"
         style="flex: 1 0 360px"
+        type="datetimerange"
       />
       <el-select
-        style="flex: 1 0 100px"
-        default-first-option
         v-model="statisticStore"
+        default-first-option
+        style="flex: 1 0 100px"
       >
         <el-option :label="i18n.statisticPage.type.card" value="Card" />
         <el-option :label="i18n.statisticPage.type.progress" value="Progress" />

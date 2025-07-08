@@ -1,6 +1,11 @@
 import moment, { Duration, Moment } from "moment-timezone"
 import { config } from "@/script/state.ts"
 
+export const MILLISECONDS_PER_SECOND = 1000
+export const MILLISECONDS_PER_MINUTE = 60 * MILLISECONDS_PER_SECOND
+export const MILLISECONDS_PER_HOUR = 60 * MILLISECONDS_PER_MINUTE
+export const MILLISECONDS_PER_DAY = 24 * MILLISECONDS_PER_HOUR
+
 export const formatDuration = (duration: Duration) => {
   let parts = []
   if (duration.days() > 0) {
@@ -14,6 +19,31 @@ export const formatDuration = (duration: Duration) => {
   }
   if (duration.seconds() > 0) {
     parts.push(duration.seconds() + "s")
+  }
+  return parts.join(" ")
+}
+
+export const formatDurationRaw = (duration: number) => {
+  let days = Math.floor(duration / MILLISECONDS_PER_DAY)
+  duration = duration % MILLISECONDS_PER_DAY
+  let hours = Math.floor(duration / MILLISECONDS_PER_HOUR)
+  duration = duration % MILLISECONDS_PER_HOUR
+  let minutes = Math.floor(duration / MILLISECONDS_PER_MINUTE)
+  duration = duration % MILLISECONDS_PER_MINUTE
+  let seconds = Math.floor(duration / MILLISECONDS_PER_SECOND)
+
+  let parts = []
+  if (days) {
+    parts.push(days + "d")
+  }
+  if (hours) {
+    parts.push(hours + "h")
+  }
+  if (minutes) {
+    parts.push(minutes + "m")
+  }
+  if (seconds) {
+    parts.push(seconds + "s")
   }
   return parts.join(" ")
 }

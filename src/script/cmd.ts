@@ -7,44 +7,50 @@ import {
 import {
   AppDurationAreaModel,
   AppMeta,
+  DateDuration,
   DownloadEvent,
   FileDetail,
   FileIndexRecord,
+  IdDateDuration,
+  IdDuration,
   RuleConfig,
   TagConfig,
   UpdateMetadata,
-} from "./data"
+} from "./models.ts"
 import { Config } from "@/script/state.ts"
 import { ElMessage } from "element-plus"
+import { timeZoneOffsetMillis } from "@/script/time-util.ts"
+import { Moment } from "moment-timezone"
 
-async function durationById(
-  startMillis: number,
-  endMillis: number
-): Promise<Record<number, number>> {
-  return await ivk("duration_by_id", { startMillis, endMillis })
-}
-
-async function durationByDay(
-  startMillis: number,
-  endMillis: number,
-  timeZoneOffset: number
-): Promise<Record<number, number>> {
-  return await ivk("duration_by_day", {
-    startMillis,
-    endMillis,
-    timeZoneOffset,
+export async function getDurationById(
+  start: Moment,
+  end: Moment
+): Promise<IdDuration[]> {
+  return await ivk("get_duration_by_id", {
+    startMillis: start.valueOf(),
+    endMillis: end.valueOf(),
   })
 }
 
-async function durationByDayId(
-  startMillis: number,
-  endMillis: number,
-  timeZoneOffset: number
-): Promise<Record<number, Record<number, number>>> {
-  return await ivk("duration_by_day_id", {
-    startMillis,
-    endMillis,
-    timeZoneOffset,
+export async function getDurationByDate(
+  start: Moment,
+  end: Moment
+): Promise<DateDuration[]> {
+  return await ivk("get_duration_by_date", {
+    startMillis: start.valueOf(),
+    endMillis: end.valueOf(),
+    timeZoneOffset: timeZoneOffsetMillis(),
+  })
+}
+
+export async function getDurationByDateID(
+  start: Moment,
+  end: Moment
+): Promise<IdDateDuration[]> {
+  return await ivk("get_duration_by_date_id", {
+    startMillis: start.valueOf(),
+    endMillis: end.valueOf(),
+    timeZoneOffset: timeZoneOffsetMillis(),
   })
 }
 
@@ -93,6 +99,16 @@ export async function getAllAppDetail(): Promise<FileDetail[]> {
   return await ivk("get_all_app_detail")
 }
 
+export async function getAppDetailMap() {
+  return (await getAllAppDetail()).reduce(
+    (map, detail) => {
+      map[detail.id] = detail
+      return map
+    },
+    {} as Record<number, FileDetail>
+  )
+}
+
 export async function fetch_update(): Promise<UpdateMetadata | null> {
   return await ivk("fetch_update")
 }
@@ -117,12 +133,6 @@ export async function getAppDurationArea(
     endMillis,
     timeZoneOffset,
   })
-}
-
-export default {
-  durationById,
-  durationByDay,
-  durationByDayId,
 }
 
 async function ivk<T>(

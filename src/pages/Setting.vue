@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import { onMounted, ref } from "vue"
 import { i18n } from "@/script/i18n.ts"
 import { autoStart, config } from "@/script/state.ts"
@@ -8,7 +8,7 @@ import SettingItem from "@/components/setting/SettingItem.vue"
 import SettingGroup from "@/components/setting/SettingGroup.vue"
 import RuleDialog from "@/components/setting/RuleDialog.vue"
 import TagDialog from "@/components/setting/TagDialog.vue"
-import { AppMeta } from "@/script/data.ts"
+import { AppMeta } from "@/script/models.ts"
 import UpdateSettingItem from "@/components/setting/UpdateSettingItem.vue"
 
 const dialogVisibleRule = ref(false)
@@ -32,14 +32,14 @@ function configChange() {
       grid-gap: 16px;
     "
   >
-    <RuleDialog v-model="dialogVisibleRule" v-if="dialogVisibleRule" />
-    <TagDialog v-model="dialogVisibleTag" v-if="dialogVisibleTag" />
+    <RuleDialog v-if="dialogVisibleRule" v-model="dialogVisibleRule" />
+    <TagDialog v-if="dialogVisibleTag" v-model="dialogVisibleTag" />
     <SettingGroup>
       <SettingItem :label="i18n.configPage.language">
         <el-select
           v-model="config.lang"
-          @change="configChange"
           style="width: 100px"
+          @change="configChange"
         >
           <el-option label="English" value="en" />
           <el-option label="简体中文" value="zh" />
@@ -49,8 +49,8 @@ function configChange() {
       <SettingItem :label="i18n.configPage.theme">
         <el-select
           v-model="config.theme"
-          @change="configChange"
           style="width: 100px"
+          @change="configChange"
         >
           <el-option :label="i18n.configPage.themeSystem" value="system" />
           <el-option :label="i18n.configPage.themeLight" value="light" />
@@ -60,8 +60,8 @@ function configChange() {
       <SettingItem :label="i18n.configPage.firstDayOfWeek">
         <el-select
           v-model="config.firstDayOfWeek"
-          @change="configChange"
           style="width: 100px"
+          @change="configChange"
         >
           <el-option :label="i18n.configPage.monday" :value="0" />
           <el-option :label="i18n.configPage.tuesday" :value="1" />
@@ -75,8 +75,8 @@ function configChange() {
       <SettingItem :label="i18n.configPage.dateFormat">
         <el-select
           v-model="config.dateFormat"
-          @change="configChange"
           style="width: 100px"
+          @change="configChange"
         >
           <el-option label="2025-07-05" value="YYYY-MM-DD" />
           <el-option label="2025/07/05" value="YYYY/MM/DD" />
@@ -85,8 +85,8 @@ function configChange() {
       <SettingItem :label="i18n.configPage.timeFormat">
         <el-select
           v-model="config.timeFormat"
-          @change="configChange"
           style="width: 100px"
+          @change="configChange"
         >
           <el-option label="9:40 / 14:40" value="H:mm:ss" />
           <el-option label="09:40 / 14:40" value="HH:mm:ss" />
@@ -96,8 +96,8 @@ function configChange() {
     <SettingGroup>
       <SettingItem
         :label="i18n.configPage.appRule"
-        @click="dialogVisibleRule = true"
         :tip="i18n.configPage.appRuleTip"
+        @click="dialogVisibleRule = true"
       />
       <!--      <SettingMoreItem-->
       <!--        :label="i18n.configPage.appTag"-->

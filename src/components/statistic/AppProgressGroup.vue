@@ -1,6 +1,6 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import { computed } from "vue"
-import { AppDuration } from "@/script/data.ts"
+import { AppDuration } from "@/script/models.ts"
 import AppProgress from "@/components/statistic/AppProgress.vue"
 
 const props = defineProps<{

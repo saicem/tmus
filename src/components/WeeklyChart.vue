@@ -1,11 +1,11 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import { Chart } from "@antv/g2"
 import { onMounted, ref, watch } from "vue"
 import { colorMode, config } from "@/script/state.ts"
 import { i18n } from "@/script/i18n.ts"
 import moment from "moment-timezone"
-import { durationByDay } from "@/script/api.ts"
-import { dayFromEpoch, dayOfWeekOffset } from "@/script/time-util.ts"
+import { dayOfWeekOffset } from "@/script/time-util.ts"
+import { getDurationByDate } from "@/script/cmd.ts"
 
 const chartContainer = ref<HTMLDivElement | null>(null)
 
@@ -22,8 +22,13 @@ async function loadData() {
     .clone()
     .startOf("day")
     .subtract(todayDayOfWeekOffset + 7, "days")
-  let result = await durationByDay(lastWeekStart, now)
-  let lastWeekDayFromEpoch = dayFromEpoch(lastWeekStart)
+  let result = Object.fromEntries(
+    (await getDurationByDate(lastWeekStart, now)).map((x) => [
+      x.date,
+      x.duration,
+    ])
+  )
+
   return Array(14)
     .fill(0)
     .map((_, idx) => {
@@ -38,7 +43,9 @@ async function loadData() {
           ],
         duration: Number(
           moment
-            .duration(result[lastWeekDayFromEpoch + idx] ?? 0)
+            .duration(
+              result[lastWeekStart.clone().add(idx, "day").valueOf()] ?? 0
+            )
             .asHours()
             .toFixed(2)
         ),
