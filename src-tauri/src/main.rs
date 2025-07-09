@@ -13,12 +13,12 @@ use std::{env, fs};
 use tauri::{AppHandle, Manager, RunEvent};
 use tauri_plugin_autostart::MacosLauncher;
 use tauri_plugin_log;
+use tmus_engine::{self as engine, init as engine_init, start as engine_start};
 use tokio::sync::Mutex;
 
 mod app;
 mod cmd;
 mod config;
-mod engine;
 mod util;
 
 fn main() {
@@ -70,14 +70,14 @@ pub fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     config::rule::init_rule(&RULE.get());
     app::tray::tray(&app_handle).expect("Error while initializing tray");
 
-    engine::start(
+    engine_start(
         |app_path| {
             if app_path.is_empty() || (is_exclude(&app_path) && !is_include(&app_path)) {
                 return None;
             }
             config::rule::get_merged_path(&app_path).or(Some(app_path.to_owned()))
         },
-        engine::init(&PathBuf::from(data_dir())),
+        engine_init(&PathBuf::from(data_dir())),
     );
     handle_start_args(&app_handle);
     set_app_handle(app_handle);

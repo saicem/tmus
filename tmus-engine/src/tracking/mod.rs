@@ -3,10 +3,10 @@ pub mod focus_index;
 pub mod focus_record;
 
 use super::{models, FocusRecord};
-use crate::engine::core::FocusRecordRaw;
-use crate::engine::models::{AppMeta, CursorPosition};
-use crate::engine::tracking::focus_app::get_id_by_path;
-use crate::engine::util::{d_as_ms, ms_as_d, s_as_ms, Timestamp};
+use crate::core::FocusRecordRaw;
+use crate::models::{AppMeta, CursorPosition};
+use crate::tracking::focus_app::get_id_by_path;
+use crate::util::{d_as_ms, ms_as_d, s_as_ms, Timestamp};
 use std::path::PathBuf;
 
 pub(crate) fn init(data_dir: &PathBuf) {
@@ -18,7 +18,7 @@ pub(crate) fn init(data_dir: &PathBuf) {
 /// Read records. Include records which blur_at >= start and focus_at <= end,
 /// which means if only need records focus_at >= start and blur_at <= end,
 /// you need to crop the return data.
-pub(crate) fn read_by_timestamp(start: Timestamp, end: Timestamp) -> Vec<FocusRecord> {
+pub fn read_by_timestamp(start: Timestamp, end: Timestamp) -> Vec<FocusRecord> {
     let start_index: CursorPosition = focus_index::query_index(ms_as_d(start) as u64);
     let end_index = focus_index::query_index((ms_as_d(end) + 1) as u64);
     if start_index == CursorPosition::End || end_index == CursorPosition::Start {
@@ -63,7 +63,7 @@ pub(crate) fn write_record(raw: FocusRecordRaw) {
     }
 }
 
-pub(crate) fn get_tmus_meta() -> AppMeta {
+pub fn get_tmus_meta() -> AppMeta {
     AppMeta {
         initial_timestamp: d_as_ms(focus_index::start_day() as i64),
         tmus_version: env!("CARGO_PKG_VERSION").to_string(),

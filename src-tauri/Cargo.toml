@@ -41,11 +41,12 @@ tauri-plugin-shell = "2"
 tauri-plugin-log = "2"
 tauri-plugin-os = "2"
 tokio = { version = "1", features = ["full"] }
-memmap2 = "0.9.5"
 tauri-plugin-dialog = "2"
 thiserror = "1.0.69"
 url = "2.5.4"
 winreg = "0.55.0"
+tmus-engine = { path = "../tmus-engine" }
+
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem

@@ -1,7 +1,7 @@
 use super::{models::FocusEvent, monitor, tracking};
-use crate::engine::config::{INVALID_INTERVAL_BOUND, LOOP_GET_CURRENT_WINDOW_INTERVAL};
-use crate::engine::monitor::loop_get_current_window;
-use crate::engine::util::Timestamp;
+use crate::config::{INVALID_INTERVAL_BOUND, LOOP_GET_CURRENT_WINDOW_INTERVAL};
+use crate::monitor::loop_get_current_window;
+use crate::util::Timestamp;
 use std::{
     path::PathBuf,
     sync::{
@@ -104,6 +104,6 @@ pub fn start(filter: fn(&str) -> Option<String>, receiver: Receiver<FocusEvent>)
             last_focus = cur_focus;
         }
     });
-    loop_get_current_window(LOOP_GET_CURRENT_WINDOW_INTERVAL);
+    thread::spawn(move || loop_get_current_window(LOOP_GET_CURRENT_WINDOW_INTERVAL));
     monitor::set_event_hook();
 }

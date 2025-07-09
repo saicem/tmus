@@ -1,6 +1,5 @@
 use super::models::CursorPosition;
-use crate::engine::util::now_day;
-use chrono::{DateTime, TimeZone, Utc};
+use crate::util::{d_as_ms, now_day, Timestamp};
 use serde::{Deserialize, Serialize};
 use std::fs::{File, OpenOptions};
 use std::io::{Read, Write};
@@ -114,7 +113,7 @@ fn read_index(file: &mut File) -> Vec<IndexUnit> {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FileIndexRecord {
-    pub(crate) date_time: DateTime<Utc>,
+    pub(crate) date_time: Timestamp,
     pub(crate) start_index: IndexUnit,
 }
 
@@ -130,10 +129,7 @@ pub fn all_record() -> Vec<FileIndexRecord> {
         .iter()
         .enumerate()
         .map(|(i, &start_index)| FileIndexRecord {
-            date_time: Utc
-                .timestamp_opt(((base_day + i as IndexUnit) * 24 * 60 * 60) as i64, 0)
-                .unwrap()
-                .to_utc(),
+            date_time: d_as_ms((base_day + i as IndexUnit) as i64),
             start_index,
         })
         .collect()

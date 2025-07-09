@@ -1,7 +1,7 @@
 pub mod focus_record;
 
-use crate::engine::util::Timestamp;
 use serde::{Deserialize, Serialize};
+use crate::util::Timestamp;
 
 pub type AppId = usize;
 

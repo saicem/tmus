@@ -1,4 +1,4 @@
-use chrono::{DateTime, Utc};
+use crate::util::Timestamp;
 use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::{self, Read, Write};
@@ -7,7 +7,7 @@ use std::sync::OnceLock;
 #[derive(Serialize, Deserialize, Debug)]
 pub struct EngineMetadata {
     pub version: String,
-    pub first_start_time: DateTime<Utc>,
+    pub first_start_time: Timestamp,
 }
 
 impl EngineMetadata {

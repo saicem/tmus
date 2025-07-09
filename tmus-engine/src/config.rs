@@ -1,5 +1,5 @@
-use crate::engine::util::{m_as_ms, Timestamp};
 use std::time::Duration;
+use crate::util::{m_as_ms, Timestamp};
 
 /// If foreground change event interval above this threshold, it's invalid.
 pub const INVALID_INTERVAL_BOUND: Timestamp = m_as_ms(3);

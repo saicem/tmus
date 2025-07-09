@@ -1,10 +1,10 @@
-use crate::engine::models::focus_record::RecordByte;
 use log;
 use memmap2::MmapMut;
 use std::fs::OpenOptions;
 use std::mem::size_of;
 use std::path::{Path, PathBuf};
 use std::sync::{Mutex, MutexGuard, OnceLock};
+use crate::models::focus_record::RecordByte;
 
 const RECORD_SIZE: usize = size_of::<RecordByte>();
 /// The size use for mmap expand every time.

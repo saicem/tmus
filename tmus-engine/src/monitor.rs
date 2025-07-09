@@ -1,3 +1,6 @@
+use crate::core::FOCUS_EVENT_SENDER;
+use crate::models::FocusEvent;
+use crate::util::now_timestamp;
 use log;
 use std::time::Duration;
 use tokio::time;
@@ -9,19 +12,13 @@ use windows::Win32::UI::Accessibility::SetWinEventHook;
 use windows::Win32::UI::Accessibility::HWINEVENTHOOK;
 use windows::Win32::UI::WindowsAndMessaging::*;
 
-use crate::engine::core::FOCUS_EVENT_SENDER;
-use crate::engine::models::FocusEvent;
-use crate::engine::util::now_timestamp;
-
-pub fn loop_get_current_window(interval: Duration) {
-    tauri::async_runtime::spawn(async move {
-        let mut interval = time::interval(interval);
-        loop {
-            interval.tick().await;
-            let hwnd = unsafe { GetForegroundWindow() };
-            on_window_focus(&hwnd);
-        }
-    });
+pub async fn loop_get_current_window(interval: Duration) {
+    let mut interval = time::interval(interval);
+    loop {
+        interval.tick().await;
+        let hwnd = unsafe { GetForegroundWindow() };
+        on_window_focus(&hwnd);
+    }
 }
 
 pub fn set_event_hook() {
