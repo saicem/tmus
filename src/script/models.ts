@@ -82,7 +82,7 @@ export interface TagConfig {
 }
 
 export interface AppMeta {
-  startMsEpoch: number
+  initialTimestamp: number
   tmusVersion: string
 }
 

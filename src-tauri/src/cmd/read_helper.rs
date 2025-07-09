@@ -1,13 +1,10 @@
-use crate::engine::models::millisecond::Millisecond;
+use crate::engine::util::Timestamp;
 use crate::engine::{tracking, FocusRecord};
 use log::debug;
 use std::cmp::{max, min};
 
 // For compute convenience, remember convert them back after compute.
-pub fn timezone_convert(
-    mut vec: Vec<FocusRecord>,
-    timezone_offset: Millisecond,
-) -> Vec<FocusRecord> {
+pub fn timezone_convert(mut vec: Vec<FocusRecord>, timezone_offset: Timestamp) -> Vec<FocusRecord> {
     for item in vec.iter_mut() {
         item.focus_at = item.focus_at - timezone_offset;
         item.blur_at = item.blur_at - timezone_offset;
@@ -24,10 +21,7 @@ pub fn timezone_convert(
 ///
 /// # Returns
 /// A vector of `FocusRecord` instances.
-pub fn read_by_timestamp(
-    start_timestamp: Millisecond,
-    end_timestamp: Millisecond,
-) -> Vec<FocusRecord> {
+pub fn read_by_timestamp(start_timestamp: Timestamp, end_timestamp: Timestamp) -> Vec<FocusRecord> {
     debug_assert!(
         start_timestamp <= end_timestamp,
         "start_timestamp must be less than or equal to end_timestamp"
@@ -58,8 +52,8 @@ pub fn read_by_timestamp(
 /// - A new vector containing focus records within the defined time range.
 fn trim_focus_records(
     mut records: Vec<FocusRecord>,
-    start_timestamp: Millisecond,
-    end_timestamp: Millisecond,
+    start_timestamp: Timestamp,
+    end_timestamp: Timestamp,
 ) -> Vec<FocusRecord> {
     if records.is_empty() {
         return records;
@@ -130,17 +124,11 @@ mod tests {
         records: Vec<FocusRecord>,
         result: Vec<FocusRecord>,
     ) {
-        let start_millis = Millisecond::from_millis(start);
-        let end_millis = Millisecond::from_millis(end);
-        let trimmed_records = trim_focus_records(records, start_millis, end_millis);
+        let trimmed_records = trim_focus_records(records, start, end);
         assert_eq!(trimmed_records, result);
     }
 
     fn ms(focus_at: i64, blur_at: i64) -> FocusRecord {
-        FocusRecord::new(
-            0,
-            Millisecond::from_millis(focus_at),
-            Millisecond::from_millis(blur_at),
-        )
+        FocusRecord::new(0, focus_at, blur_at)
     }
 }

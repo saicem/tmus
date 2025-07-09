@@ -1,5 +1,5 @@
 use crate::cmd::read_helper::{read_by_timestamp, timezone_convert};
-use crate::engine::models::millisecond::Millisecond;
+use crate::engine::util::{d_as_ms, ms_as_d, ms_as_m, Timestamp};
 use crate::engine::FocusRecord;
 use crate::util::time_util::date_str_from_days;
 use serde::{Deserialize, Serialize};
@@ -23,9 +23,9 @@ pub struct AppDurationAreaModelItem {
 #[tauri::command]
 pub async fn get_app_duration_area(
     app_id: usize,
-    start_timestamp: Millisecond,
-    end_timestamp: Millisecond,
-    timezone_offset: Millisecond,
+    start_timestamp: Timestamp,
+    end_timestamp: Timestamp,
+    timezone_offset: Timestamp,
 ) -> AppDurationAreaModel {
     let result: Vec<FocusRecord> = timezone_convert(
         read_by_timestamp(start_timestamp, end_timestamp),
@@ -48,8 +48,8 @@ fn compute_date_area(vec: &Vec<FocusRecord>) -> Vec<AppDurationAreaModelItem> {
     let Some(last) = vec.last() else {
         return vec![];
     };
-    let first_day = (first.focus_at).as_days();
-    let last_day = (last.blur_at).as_days();
+    let first_day = ms_as_d(first.focus_at);
+    let last_day = ms_as_d(last.blur_at);
     let size = (last_day - first_day + 1) as usize;
     let mut ret: Vec<AppDurationAreaModelItem> = Vec::with_capacity(size);
     for i in 0..size {
@@ -63,15 +63,14 @@ fn compute_date_area(vec: &Vec<FocusRecord>) -> Vec<AppDurationAreaModelItem> {
         let mut focus_at = record.focus_at;
         let blur_at = record.blur_at;
         while focus_at < blur_at {
-            let focus_at_day = focus_at.as_days();
-            let blur_at_day = blur_at.as_days();
+            let focus_at_day = ms_as_d(focus_at);
+            let blur_at_day = ms_as_d(blur_at);
             if focus_at_day == blur_at_day {
-                ret[(focus_at_day - first_day) as usize].value += (blur_at - focus_at).as_millis();
+                ret[(focus_at_day - first_day) as usize].value += blur_at - focus_at;
                 break;
             }
-            let next_day_start = Millisecond::from_days(focus_at_day + 1);
-            ret[(focus_at_day - first_day) as usize].value +=
-                (next_day_start - focus_at).as_millis();
+            let next_day_start = d_as_ms(focus_at_day + 1);
+            ret[(focus_at_day - first_day) as usize].value += next_day_start - focus_at;
             focus_at = next_day_start;
         }
     }
@@ -94,11 +93,11 @@ fn compute_day_area(vec: &Vec<FocusRecord>) -> Vec<AppDurationAreaModelItem> {
         let mut focus_at = record.focus_at;
         let blur_at = record.blur_at;
         while focus_at < blur_at {
-            let focus_at_day = focus_at.as_days();
-            let blur_at_day = blur_at.as_days();
-            let base_day_minute = Millisecond::from_days(focus_at_day).as_minute();
-            let focus_at_minute = max(focus_at.as_minute(), pre_blur_at_minute) - base_day_minute;
-            pre_blur_at_minute = blur_at.as_minute() + 1;
+            let focus_at_day = ms_as_d(focus_at);
+            let blur_at_day = ms_as_d(blur_at);
+            let base_day_minute = ms_as_m(d_as_ms(focus_at_day));
+            let focus_at_minute = max(ms_as_m(focus_at), pre_blur_at_minute) - base_day_minute;
+            pre_blur_at_minute = ms_as_m(blur_at) + 1;
             let blur_at_minute = pre_blur_at_minute - base_day_minute;
             pre_blur_at_minute = blur_at_minute;
             if focus_at_day == blur_at_day {
@@ -111,7 +110,7 @@ fn compute_day_area(vec: &Vec<FocusRecord>) -> Vec<AppDurationAreaModelItem> {
             if focus_at_minute < size as i64 {
                 ret[focus_at_minute as usize].value += 1;
             }
-            focus_at = Millisecond::from_days(focus_at_day + 1);
+            focus_at = d_as_ms(focus_at_day + 1);
         }
     }
 

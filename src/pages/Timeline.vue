@@ -19,7 +19,7 @@ const metaStartDate = ref<Date>(new Date())
 const appDetailMap = ref<Record<number, FileDetail>>({})
 
 onMounted(async () => {
-  metaStartDate.value = new Date((await getTmusMeta()).startMsEpoch)
+  metaStartDate.value = new Date((await getTmusMeta()).initialTimestamp)
   appDetailMap.value = await getAppDetailMap()
   loading.value = false
 })

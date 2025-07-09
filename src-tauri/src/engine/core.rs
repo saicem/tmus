@@ -1,6 +1,7 @@
 use super::{models::FocusEvent, monitor, tracking};
-use crate::engine::models::millisecond::Millisecond;
+use crate::engine::config::{INVALID_INTERVAL_BOUND, LOOP_GET_CURRENT_WINDOW_INTERVAL};
 use crate::engine::monitor::loop_get_current_window;
+use crate::engine::util::Timestamp;
 use std::{
     path::PathBuf,
     sync::{
@@ -8,7 +9,6 @@ use std::{
         OnceLock,
     },
     thread,
-    time::Duration,
 };
 
 pub static FOCUS_EVENT_SENDER: OnceLock<Sender<FocusEvent>> = OnceLock::new();
@@ -34,12 +34,12 @@ pub fn init(data_dir: &PathBuf) -> Receiver<FocusEvent> {
 
 pub struct FocusRecordRaw {
     pub app_path: String,
-    pub focus_at: Millisecond,
-    pub blur_at: Millisecond,
+    pub focus_at: Timestamp,
+    pub blur_at: Timestamp,
 }
 
 impl FocusRecordRaw {
-    fn new(app_path: String, focus_at: Millisecond, blur_at: Millisecond) -> Self {
+    fn new(app_path: String, focus_at: Timestamp, blur_at: Timestamp) -> Self {
         Self {
             app_path,
             focus_at,
@@ -62,15 +62,11 @@ pub fn start(filter: fn(&str) -> Option<String>, receiver: Receiver<FocusEvent>)
         }
     };
 
-    /// Check the current window every 1 minute
-    static LOOP_GET_CURRENT_WINDOW_INTERVAL: Duration = Duration::from_secs(1 * 60);
-    /// If foreground change event interval above this threshold, it's invalid.
-    static INVALID_INTERVAL_BOUND: Millisecond = Millisecond::from_secs(3 * 60);
     thread::spawn(move || {
-        let mut last_receive = Millisecond::ZERO;
+        let mut last_receive = 0;
         let mut last_focus = FocusEvent {
             app_path: String::default(),
-            focus_at: Millisecond::MAX,
+            focus_at: Timestamp::MAX,
         };
         loop {
             let cur_focus = receiver.recv().unwrap();

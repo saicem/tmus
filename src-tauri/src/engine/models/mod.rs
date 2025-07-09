@@ -1,7 +1,6 @@
 pub mod focus_record;
-pub mod millisecond;
 
-use crate::engine::models::millisecond::Millisecond;
+use crate::engine::util::Timestamp;
 use serde::{Deserialize, Serialize};
 
 pub type AppId = usize;
@@ -9,7 +8,7 @@ pub type AppId = usize;
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AppMeta {
-    pub(crate) start_ms_epoch: u64,
+    pub(crate) initial_timestamp: Timestamp,
     pub(crate) tmus_version: String,
 }
 
@@ -29,5 +28,5 @@ pub struct FocusEvent {
     /// The path of the executable of the focused window.
     pub(crate) app_path: String,
     /// The time when the window gained focus.
-    pub(crate) focus_at: Millisecond,
+    pub(crate) focus_at: Timestamp,
 }

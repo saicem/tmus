@@ -10,8 +10,8 @@ use windows::Win32::UI::Accessibility::HWINEVENTHOOK;
 use windows::Win32::UI::WindowsAndMessaging::*;
 
 use crate::engine::core::FOCUS_EVENT_SENDER;
-use crate::engine::models::millisecond::Millisecond;
 use crate::engine::models::FocusEvent;
+use crate::engine::util::now_timestamp;
 
 pub fn loop_get_current_window(interval: Duration) {
     tauri::async_runtime::spawn(async move {
@@ -61,7 +61,7 @@ fn on_window_focus(hwnd: &HWND) {
                 .expect("Not init focus event sender.")
                 .send(FocusEvent {
                     app_path: process_path,
-                    focus_at: Millisecond::now(),
+                    focus_at: now_timestamp(),
                 })
                 .expect("[Monitor] Failed to send focus event.");
         }

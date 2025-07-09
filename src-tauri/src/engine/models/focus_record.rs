@@ -1,9 +1,9 @@
+use crate::engine::models::AppId;
+use crate::engine::util::{ms_as_d, ms_as_s, s_as_ms, start_of_next_d, Timestamp};
 use serde::Serialize;
 use std::fmt::Debug;
 
-use crate::engine::models::Millisecond;
-
-const DURATION_MAX: Millisecond = Millisecond::from_secs(u16::MAX as i64);
+const DURATION_MAX: Timestamp = s_as_ms(u16::MAX as i64);
 
 pub type RecordByte = [u8; 8];
 
@@ -13,9 +13,9 @@ pub type RecordByte = [u8; 8];
 #[derive(Clone, Copy, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct FocusRecord {
-    pub id: usize,
-    pub focus_at: Millisecond,
-    pub blur_at: Millisecond,
+    pub id: AppId,
+    pub focus_at: Timestamp,
+    pub blur_at: Timestamp,
 }
 
 impl Debug for FocusRecord {
@@ -30,7 +30,7 @@ impl Debug for FocusRecord {
 }
 
 impl FocusRecord {
-    pub fn new(id: usize, focus_at: Millisecond, blur_at: Millisecond) -> FocusRecord {
+    pub fn new(id: usize, focus_at: Timestamp, blur_at: Timestamp) -> FocusRecord {
         FocusRecord {
             id,
             focus_at,
@@ -38,7 +38,7 @@ impl FocusRecord {
         }
     }
 
-    pub fn duration(&self) -> Millisecond {
+    pub fn duration(&self) -> Timestamp {
         self.blur_at - self.focus_at
     }
 
@@ -46,8 +46,8 @@ impl FocusRecord {
     pub fn unsafe_to_byte(&self) -> RecordByte {
         let mut ret = RecordByte::default();
         let id = self.id as u16;
-        let focus_at = self.focus_at.as_secs() as u32;
-        let duration = self.duration().as_secs() as u16;
+        let focus_at = ms_as_s(self.focus_at) as u32;
+        let duration = ms_as_s(self.duration()) as u16;
         ret[..2].copy_from_slice(&id.to_le_bytes());
         ret[2..4].copy_from_slice(&duration.to_le_bytes());
         ret[4..].copy_from_slice(&focus_at.to_le_bytes());
@@ -56,10 +56,9 @@ impl FocusRecord {
 
     fn from_byte(bytes: RecordByte) -> Self {
         let id = u16::from_le_bytes(bytes[..2].try_into().unwrap()) as usize;
-        let focus_at =
-            Millisecond::from_secs(u32::from_le_bytes(bytes[4..].try_into().unwrap()) as i64);
-        let blur_at = focus_at
-            + Millisecond::from_secs(u16::from_le_bytes(bytes[2..4].try_into().unwrap()) as i64);
+        let focus_at = s_as_ms(u32::from_le_bytes(bytes[4..].try_into().unwrap()) as i64);
+        let blur_at =
+            focus_at + s_as_ms(u16::from_le_bytes(bytes[2..4].try_into().unwrap()) as i64);
         Self {
             id,
             focus_at,
@@ -104,11 +103,11 @@ impl FocusRecord {
         let blur_at = self.blur_at;
         let mut ret = Vec::new();
         loop {
-            if focus_at.as_days() == blur_at.as_days() {
+            if ms_as_d(focus_at) == ms_as_d(blur_at) {
                 ret.push(FocusRecord::new(self.id, focus_at, blur_at));
                 break;
             } else {
-                let blur_at = Millisecond::from_days(focus_at.as_days() + 1);
+                let blur_at = start_of_next_d(focus_at);
                 ret.push(FocusRecord::new(self.id, focus_at, blur_at));
                 focus_at = blur_at;
             }

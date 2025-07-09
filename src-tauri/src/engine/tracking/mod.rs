@@ -4,9 +4,9 @@ pub mod focus_record;
 
 use super::{models, FocusRecord};
 use crate::engine::core::FocusRecordRaw;
-use crate::engine::models::millisecond::Millisecond;
 use crate::engine::models::{AppMeta, CursorPosition};
 use crate::engine::tracking::focus_app::get_id_by_path;
+use crate::engine::util::{d_as_ms, ms_as_d, s_as_ms, Timestamp};
 use std::path::PathBuf;
 
 pub(crate) fn init(data_dir: &PathBuf) {
@@ -18,9 +18,9 @@ pub(crate) fn init(data_dir: &PathBuf) {
 /// Read records. Include records which blur_at >= start and focus_at <= end,
 /// which means if only need records focus_at >= start and blur_at <= end,
 /// you need to crop the return data.
-pub(crate) fn read_by_timestamp(start: Millisecond, end: Millisecond) -> Vec<FocusRecord> {
-    let start_index: CursorPosition = focus_index::query_index(start.as_days() as u64);
-    let end_index = focus_index::query_index((end.as_days() + 1) as u64);
+pub(crate) fn read_by_timestamp(start: Timestamp, end: Timestamp) -> Vec<FocusRecord> {
+    let start_index: CursorPosition = focus_index::query_index(ms_as_d(start) as u64);
+    let end_index = focus_index::query_index((ms_as_d(end) + 1) as u64);
     if start_index == CursorPosition::End || end_index == CursorPosition::Start {
         return vec![];
     }
@@ -46,7 +46,7 @@ pub(crate) fn write_record(raw: FocusRecordRaw) {
         focus_at,
         blur_at,
     } = raw;
-    if app_path == String::default() || blur_at - focus_at < Millisecond::ONE_SECOND {
+    if app_path == String::default() || blur_at - focus_at < s_as_ms(1) {
         return;
     }
 
@@ -59,13 +59,13 @@ pub(crate) fn write_record(raw: FocusRecordRaw) {
 
     for sub_record in record.split_record() {
         let index = focus_record::write(sub_record.unsafe_to_byte());
-        focus_index::update_index(sub_record.focus_at.as_days() as u64, index)
+        focus_index::update_index(ms_as_d(sub_record.focus_at) as u64, index)
     }
 }
 
 pub(crate) fn get_tmus_meta() -> AppMeta {
     AppMeta {
-        start_ms_epoch: Millisecond::from_days(focus_index::start_day() as i64).as_millis() as u64,
+        initial_timestamp: d_as_ms(focus_index::start_day() as i64),
         tmus_version: env!("CARGO_PKG_VERSION").to_string(),
     }
 }

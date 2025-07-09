@@ -1,10 +1,10 @@
 use crate::cmd::read_helper::read_by_timestamp;
-use crate::engine::models::millisecond::Millisecond;
 use crate::engine::models::AppId;
+use crate::engine::util::Timestamp;
 use crate::engine::FocusRecord;
+use serde::{Deserialize, Serialize};
 use std::cmp::{max, min};
 use std::collections::{HashMap, HashSet};
-use serde::{Deserialize, Serialize};
 
 /// MergeOperation defines the type of aggregation operation to perform.
 #[derive(Serialize, Deserialize)]
@@ -35,11 +35,11 @@ pub enum MergeOperation {
 /// - Computed value based on operation
 #[tauri::command]
 pub async fn complex_query(
-    start_timestamp: Millisecond,
-    end_timestamp: Millisecond,
+    start_timestamp: Timestamp,
+    end_timestamp: Timestamp,
     is_merge_apps: bool,
     app_ids: Option<HashSet<AppId>>,
-    interval: Millisecond,
+    interval: Timestamp,
     operation: MergeOperation,
 ) -> Vec<(usize, i64, i64)> {
     let mut raw = read_by_timestamp(start_timestamp, end_timestamp);
@@ -64,8 +64,8 @@ pub async fn complex_query(
 
 fn aggregate_by_interval(
     ordered_data: &Vec<FocusRecord>,
-    start_timestamp: Millisecond,
-    interval: Millisecond,
+    start_timestamp: Timestamp,
+    interval: Timestamp,
     operation: MergeOperation,
 ) -> HashMap<(usize, i64), i64> {
     if ordered_data.is_empty() {
@@ -74,23 +74,13 @@ fn aggregate_by_interval(
 
     ordered_data
         .iter()
-        .flat_map(|x| {
-            SplitRecord::new(
-                x.id,
-                x.focus_at.as_millis(),
-                x.blur_at.as_millis(),
-                start_timestamp.as_millis(),
-                interval.as_millis(),
-            )
-        })
+        .flat_map(|x| SplitRecord::new(x.id, x.focus_at, x.blur_at, start_timestamp, interval))
         .fold(HashMap::new(), |mut acc, (app_id, index, duration)| {
             let val = acc.entry((app_id, index)).or_insert(0);
             *val = match operation {
                 MergeOperation::Sum => *val + duration,
                 MergeOperation::Count => 1,
-                MergeOperation::CountIfCompletelyContain => {
-                    *val + (duration == interval.as_millis()) as i64
-                }
+                MergeOperation::CountIfCompletelyContain => *val + (duration == interval) as i64,
             };
             acc
         })

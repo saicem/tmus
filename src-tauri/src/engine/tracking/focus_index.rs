@@ -1,5 +1,5 @@
 use super::models::CursorPosition;
-use crate::engine::models::millisecond::Millisecond;
+use crate::engine::util::now_day;
 use chrono::{DateTime, TimeZone, Utc};
 use serde::{Deserialize, Serialize};
 use std::fs::{File, OpenOptions};
@@ -41,7 +41,7 @@ pub fn init(data_dir: &PathBuf) {
         .expect("open index.bin failed.");
     let mut index = read_index(&mut file);
     let base_day = if index.is_empty() {
-        let today = Millisecond::now().as_days() as IndexUnit;
+        let today = now_day() as IndexUnit;
         file.write(&today.to_le_bytes()).unwrap();
         index.push(0);
         today
