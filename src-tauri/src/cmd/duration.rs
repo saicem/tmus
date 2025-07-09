@@ -1,10 +1,10 @@
 use crate::cmd::read_helper::read_by_timestamp;
-use tmus_engine::models::AppId;
-use tmus_engine::util::Timestamp;
-use tmus_engine::FocusRecord;
 use serde::{Deserialize, Serialize};
 use std::cmp::{max, min};
 use std::collections::{HashMap, HashSet};
+use tmus_engine::models::AppId;
+use tmus_engine::util::Timestamp;
+use tmus_engine::FocusRecord;
 
 /// MergeOperation defines the type of aggregation operation to perform.
 #[derive(Serialize, Deserialize)]

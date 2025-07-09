@@ -1,4 +1,3 @@
-use tmus_engine::tracking::focus_app;
 use crate::util;
 use crate::util::FileVersion;
 use base64::engine::general_purpose;
@@ -9,6 +8,7 @@ use std::collections::HashMap;
 use std::io::Cursor;
 use std::path::Path;
 use std::sync::OnceLock;
+use tmus_engine::tracking::focus_app;
 use tokio::sync::Mutex;
 
 static APP_DETAIL_CACHE: OnceLock<Mutex<HashMap<usize, FileDetail>>> = OnceLock::new();

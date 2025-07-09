@@ -16,37 +16,21 @@ tauri = { version = "2", features = ["tray-icon"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 chrono = { version = "0.4", features = ["serde"] }
-windows = { version = "0.61", features = [
-    "Win32",
-    "Win32_Foundation",
-    "Win32_Globalization",
-    "Win32_Graphics_Gdi",
-    "Win32_System_LibraryLoader",
-    "Win32_System_SystemServices",
-    "Win32_System_Threading",
-    "Win32_System_Pipes",
-    "Win32_System_IO",
-    "Win32_Security",
-    "Win32_Storage_FileSystem",
-    "Win32_UI_Accessibility",
-    "Win32_UI_Shell",
-    "Win32_UI_WindowsAndMessaging",
-] }
+windows = { version = "0.61", features = ["Win32_Storage_FileSystem", "Win32_Security"] }
 log = "0.4"
 dirs-next = "2.0.0"
 image = "0.25"
 base64 = "0.22"
-itertools = "0.14.0"
+itertools = "0.14"
 tauri-plugin-shell = "2"
 tauri-plugin-log = "2"
 tauri-plugin-os = "2"
 tokio = { version = "1", features = ["full"] }
 tauri-plugin-dialog = "2"
-thiserror = "1.0.69"
+thiserror = "2.0"
 url = "2.5.4"
 winreg = "0.55.0"
 tmus-engine = { path = "../tmus-engine" }
-
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem
