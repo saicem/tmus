@@ -53,6 +53,7 @@ fn main() {
             update::fetch_update,
             update::install_update,
             cmd::app_duration_area::get_app_duration_area,
+            cmd::duration::complex_query
         ])
         .build(tauri::generate_context!())
         .expect("Error while building application");

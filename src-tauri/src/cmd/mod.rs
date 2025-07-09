@@ -7,6 +7,7 @@ use crate::util;
 
 pub mod app_detail;
 pub mod app_duration_area;
+pub mod duration;
 pub mod duration_statistic;
 mod read_helper;
 

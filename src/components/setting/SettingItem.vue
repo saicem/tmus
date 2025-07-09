@@ -46,7 +46,4 @@ const slots = useSlots()
 </template>
 
 <style scoped>
-.root:hover {
-  background-color: var(--el-color-primary-light-9);
-}
 </style>
