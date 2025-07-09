@@ -13,7 +13,7 @@ use std::{env, fs};
 use tauri::{AppHandle, Manager, RunEvent};
 use tauri_plugin_autostart::MacosLauncher;
 use tauri_plugin_log;
-use tmus_engine::{self as engine, init as engine_init, start as engine_start};
+use tmus_engine::{engine_init, engine_start};
 use tokio::sync::Mutex;
 
 mod app;

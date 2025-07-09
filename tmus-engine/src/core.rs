@@ -5,8 +5,8 @@ use crate::util::Timestamp;
 use std::{
     path::PathBuf,
     sync::{
-        mpsc::{channel, Receiver, Sender},
         OnceLock,
+        mpsc::{Receiver, Sender, channel},
     },
     thread,
 };
@@ -25,7 +25,7 @@ pub static FOCUS_EVENT_SENDER: OnceLock<Sender<FocusEvent>> = OnceLock::new();
 ///
 /// # Panics
 /// This function will panic if the `FOCUS_EVENT_SENDER` or `ENGINE` cannot be set.
-pub fn init(data_dir: &PathBuf) -> Receiver<FocusEvent> {
+pub fn engine_init(data_dir: &PathBuf) -> Receiver<FocusEvent> {
     let (sender, receiver) = channel::<FocusEvent>();
     FOCUS_EVENT_SENDER.set(sender).unwrap();
     tracking::init(data_dir);
@@ -48,7 +48,7 @@ impl FocusRecordRaw {
     }
 }
 
-pub fn start(filter: fn(&str) -> Option<String>, receiver: Receiver<FocusEvent>) {
+pub fn engine_start(filter: fn(&str) -> Option<String>, receiver: Receiver<FocusEvent>) {
     let write_record = move |raw: FocusRecordRaw| {
         if let Some(app_path) = filter(&raw.app_path) {
             tracking::write_record(FocusRecordRaw::new(app_path, raw.focus_at, raw.blur_at))

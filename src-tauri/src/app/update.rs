@@ -51,7 +51,7 @@ pub struct UpdateMetadata {
 
 #[tauri::command]
 pub async fn fetch_update(
-    app: AppHandle,
+    _app: AppHandle,
     pending_update: State<'_, PendingUpdate>,
 ) -> Result<Option<UpdateMetadata>> {
     let update = get_updater().check().await?;
