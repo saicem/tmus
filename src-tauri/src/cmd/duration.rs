@@ -1,132 +1,113 @@
 use crate::cmd::read_helper::read_by_timestamp;
-use serde::{Deserialize, Serialize};
-use std::cmp::{max, min};
+use serde::Serialize;
 use std::collections::{HashMap, HashSet};
+use std::ops::Not;
 use tmus_engine::models::AppId;
 use tmus_engine::util::Timestamp;
 use tmus_engine::FocusRecord;
 
-/// MergeOperation defines the type of aggregation operation to perform.
-#[derive(Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub enum MergeOperation {
-    /// Sums up all durations within intervals
-    Sum,
-    /// Counts each interval that contains any activity
-    Count,
-    /// Counts only intervals where activity completely fills the interval
-    CountIfCompletelyContain,
+/// Represents a duration statistic for a specific application within a time interval
+#[derive(Serialize)]
+pub struct DurationStat {
+    /// Application ID (None if apps are merged)
+    app_id: Option<usize>,
+    /// Start timestamp of the interval (in milliseconds)
+    interval_start: i64,
+    /// Total focused duration within this interval (in milliseconds)
+    duration: i64,
 }
 
-/// complex_query processes focus records with customizable filters and aggregation operations.
+/// Query duration statistics with customizable filters and aggregation.
 ///
 /// # Arguments
-/// * `start_timestamp` - Start time for filtering records (inclusive)
-/// * `end_timestamp` - End time for filtering records (inclusive)
-/// * `is_merge_apps` - Whether to merge data across all apps into one result set
-/// * `app_ids` - Optional list of app IDs to filter by
-/// * `interval` - Time interval in milliseconds to split records into
-/// * `operation` - The aggregation operation to apply
 ///
-/// # Returns
-/// A vector of tuples containing:
-/// - App ID (or 0 if merged)
-/// - Interval index
-/// - Computed value based on operation
+/// * `start_timestamp` - The start time (inclusive) for filtering focus records.
+/// * `end_timestamp` - The end time (inclusive) for filtering focus records.
+/// * `merge_apps` - Whether to merge data across all applications into a single result set.  
+///   Set this to `true` if application-specific details are not required.
+/// * `app_ids` - An optional list of application IDs to filter by.  
+///   If only specific applications are of interest, provide their IDs here.
+/// * `granularity` - The time interval (in milliseconds) used to split records for aggregation.  
+///   For example:
+///   - Use `86400000` to aggregate by day.
+///   - Use `3600000` to aggregate by hour.
+/// * `cycle` - An optional cycle length in units of `granularity`.  
+///   This allows grouping intervals into repeating cycles.  
+///   For example:
+///   - To analyze how much time is spent each hour within a day, use `granularity=3600000` and `cycle=24`.
+///   - To analyze how much time is spent each day within a week, use `granularity=86400000` and `cycle=7`.
 #[tauri::command]
-pub async fn complex_query(
+pub async fn query_duration_statistic(
     start_timestamp: Timestamp,
     end_timestamp: Timestamp,
-    is_merge_apps: bool,
+    merge_apps: bool,
     app_ids: Option<HashSet<AppId>>,
-    interval: Timestamp,
-    operation: MergeOperation,
-) -> Vec<(usize, i64, i64)> {
-    let mut raw = read_by_timestamp(start_timestamp, end_timestamp);
+    granularity: Timestamp,
+    cycle: Option<i64>,
+) -> Result<Vec<DurationStat>, &'static str> {
+    if start_timestamp >= end_timestamp {
+        return Err("start_timestamp must be greater than end_timestamp");
+    }
 
-    if let Some(app_ids) = app_ids {
-        raw = raw
+    let mut raw_data = read_by_timestamp(start_timestamp, end_timestamp);
+
+    if let Some(selected_app_ids) = app_ids {
+        raw_data = raw_data
             .into_iter()
-            .filter(|item| app_ids.contains(&item.id))
+            .filter(|record| selected_app_ids.contains(&record.id))
             .collect();
     }
 
-    if is_merge_apps {
-        raw.iter_mut().for_each(|item| item.id = 0)
-    }
+    let aggregated_data =
+        aggregate_by_interval(&raw_data, start_timestamp, granularity, merge_apps, cycle);
 
-    let data_map = aggregate_by_interval(&raw, start_timestamp, interval, operation);
-    data_map
+    Ok(aggregated_data
         .into_iter()
-        .map(|((id, index), value)| (id, index, value))
-        .collect()
+        .map(|((app_id, interval_start), duration)| DurationStat {
+            app_id,
+            interval_start,
+            duration,
+        })
+        .collect())
 }
 
 fn aggregate_by_interval(
-    ordered_data: &Vec<FocusRecord>,
-    start_timestamp: Timestamp,
-    interval: Timestamp,
-    operation: MergeOperation,
-) -> HashMap<(usize, i64), i64> {
-    if ordered_data.is_empty() {
+    focus_records: &Vec<FocusRecord>,
+    base_timestamp: Timestamp,
+    interval_millis: Timestamp,
+    merge_apps: bool,
+    cycle: Option<i64>,
+) -> HashMap<(Option<usize>, i64), i64> {
+    if focus_records.is_empty() {
         return HashMap::new();
     }
-
-    ordered_data
-        .iter()
-        .flat_map(|x| SplitRecord::new(x.id, x.focus_at, x.blur_at, start_timestamp, interval))
-        .fold(HashMap::new(), |mut acc, (app_id, index, duration)| {
-            let val = acc.entry((app_id, index)).or_insert(0);
-            *val = match operation {
-                MergeOperation::Sum => *val + duration,
-                MergeOperation::Count => 1,
-                MergeOperation::CountIfCompletelyContain => *val + (duration == interval) as i64,
-            };
-            acc
-        })
-}
-
-struct SplitRecord {
-    app_id: usize,
-    focus_at: i64,
-    blur_at: i64,
-    cursor: i64,
-    interval: i64,
-}
-
-impl SplitRecord {
-    fn new(
-        app_id: usize,
-        focus_at: i64,
-        blur_at: i64,
-        start_timestamp: i64,
-        interval: i64,
-    ) -> Self {
-        Self {
-            app_id,
-            focus_at,
-            blur_at,
-            cursor: focus_at - (focus_at - start_timestamp) % interval,
-            interval,
+    let cycle_duration = cycle.map(|cycle| cycle * interval_millis);
+    let mut aggregated_data = HashMap::new();
+    let mut add_data = |app_id: usize, interval_start: i64, duration: i64| {
+        let id = merge_apps.not().then_some(app_id);
+        let interval_start = cycle_duration.map_or(interval_start, |cycle_duration| {
+            (interval_start - interval_millis) % cycle_duration
+        });
+        aggregated_data
+            .entry((id, interval_start))
+            .and_modify(|value| *value += duration)
+            .or_insert(duration);
+    };
+    for record in focus_records {
+        let mut interval_start =
+            record.focus_at - (record.focus_at - base_timestamp) % interval_millis;
+        let mut interval_end = interval_start + interval_millis;
+        if record.blur_at < interval_end {
+            add_data(record.id, interval_start, record.blur_at - record.focus_at);
+        } else {
+            add_data(record.id, interval_start, interval_end - record.focus_at);
+            (interval_start, interval_end) = (interval_end, interval_end + interval_millis);
+            while interval_end < record.blur_at {
+                add_data(record.id, interval_start, interval_millis);
+                (interval_start, interval_end) = (interval_end, interval_end + interval_millis);
+            }
+            add_data(record.id, interval_start, record.blur_at - interval_start);
         }
     }
-}
-
-impl Iterator for SplitRecord {
-    type Item = (usize, i64, i64);
-
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.cursor >= self.blur_at {
-            return None;
-        }
-
-        let next_cursor = self.cursor + self.interval;
-        let ret = (
-            self.app_id,
-            self.cursor,
-            min(self.blur_at, next_cursor) - max(self.focus_at, self.cursor),
-        );
-        self.cursor = next_cursor;
-        Some(ret)
-    }
+    aggregated_data
 }

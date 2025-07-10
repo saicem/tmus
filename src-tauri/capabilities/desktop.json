@@ -46,7 +46,6 @@
     "core:webview:allow-print",
     "shell:allow-open",
     "shell:default",
-    "log:default",
     "autostart:default",
     "os:allow-locale",
     "os:default",

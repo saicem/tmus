@@ -37,7 +37,7 @@ where
     }
 }
 
-pub(crate) fn load<T, P>(path: P) -> T
+pub fn load<T, P>(path: P) -> T
 where
     T: Default + DeserializeOwned,
     P: AsRef<Path>,
@@ -47,7 +47,7 @@ where
         .unwrap_or(T::default())
 }
 
-pub(crate) fn dump<T, P>(config: &T, path: P) -> bool
+pub fn dump<T, P>(config: &T, path: P) -> bool
 where
     T: Serialize,
     P: AsRef<Path>,

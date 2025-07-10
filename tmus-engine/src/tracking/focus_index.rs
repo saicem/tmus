@@ -1,5 +1,5 @@
 use super::models::CursorPosition;
-use crate::util::{d_as_ms, now_day, Timestamp};
+use crate::util::{Timestamp, d_as_ms, now_day};
 use serde::{Deserialize, Serialize};
 use std::fs::{File, OpenOptions};
 use std::io::{Read, Write};
@@ -113,8 +113,8 @@ fn read_index(file: &mut File) -> Vec<IndexUnit> {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FileIndexRecord {
-    pub(crate) date_time: Timestamp,
-    pub(crate) start_index: IndexUnit,
+    pub date_time: Timestamp,
+    pub start_index: IndexUnit,
 }
 
 pub fn all_record() -> Vec<FileIndexRecord> {

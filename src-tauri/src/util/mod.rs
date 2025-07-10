@@ -4,7 +4,6 @@ mod force_singleton;
 mod locale;
 mod show_in_folder;
 mod str_util;
-pub mod test_util;
 pub mod time_util;
 
 pub use extract_icon::extract_icon;

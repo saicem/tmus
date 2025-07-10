@@ -1,8 +1,8 @@
 use crate::util::str_util::load_wstring_vec;
 use core::slice;
-use log::info;
 use serde::{Deserialize, Serialize};
 use std::{ffi::c_void, ptr};
+use tracing::info;
 use windows::core::HSTRING;
 use windows::Win32::Storage::FileSystem::GetFileVersionInfoSizeW;
 use windows::Win32::Storage::FileSystem::GetFileVersionInfoW;

@@ -1,7 +1,7 @@
-use log::debug;
 use std::cmp::{max, min};
 use tmus_engine::util::Timestamp;
 use tmus_engine::{tracking, FocusRecord};
+use tracing::debug;
 
 // For compute convenience, remember convert them back after compute.
 pub fn timezone_convert(mut vec: Vec<FocusRecord>, timezone_offset: Timestamp) -> Vec<FocusRecord> {

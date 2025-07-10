@@ -1,9 +1,9 @@
 use crate::app;
-use log;
 use std::io;
 use std::process::exit;
 use tauri::async_runtime::JoinHandle;
 use tokio::net::windows::named_pipe::{ClientOptions, ServerOptions};
+use tracing::{error, info};
 use windows::{
     core::HSTRING,
     Win32::{
@@ -21,7 +21,7 @@ pub async fn force_singleton() {
     let last_error = unsafe { GetLastError() };
 
     if last_error == ERROR_ALREADY_EXISTS {
-        log::info!("Another instance is already running.");
+        info!("Another instance is already running.");
         run_client()
             .await
             .expect("Connect to pipeline server failed.");
@@ -29,7 +29,7 @@ pub async fn force_singleton() {
     }
 
     if mutex.is_err() {
-        log::error!("Failed to create mutex, {}", mutex.err().unwrap());
+        error!("Failed to create mutex, {}", mutex.err().unwrap());
         exit(1);
     }
 
@@ -48,7 +48,7 @@ fn run_server() -> Result<(), io::Error> {
     let _server_task: JoinHandle<Result<(), io::Error>> = tauri::async_runtime::spawn(async move {
         loop {
             server.connect().await?;
-            log::info!("Another instance is trying start.");
+            info!("Another instance is trying start.");
             focus_main_window();
             let _connected_client = server;
             server = ServerOptions::new().create(PIPE_NAME)?;

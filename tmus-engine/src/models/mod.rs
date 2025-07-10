@@ -7,9 +7,9 @@ pub type AppId = usize;
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct AppMeta {
-    pub(crate) initial_timestamp: Timestamp,
-    pub(crate) tmus_version: String,
+pub struct EngineMeta {
+    pub initial_timestamp: Timestamp,
+    pub engine_version: String,
 }
 
 #[derive(Debug, PartialEq)]
@@ -26,7 +26,7 @@ pub enum CursorPosition {
 #[derive(Debug)]
 pub struct FocusEvent {
     /// The path of the executable of the focused window.
-    pub(crate) app_path: String,
+    pub app_path: String,
     /// The time when the window gained focus.
-    pub(crate) focus_at: Timestamp,
+    pub focus_at: Timestamp,
 }

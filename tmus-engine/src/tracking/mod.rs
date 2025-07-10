@@ -2,14 +2,14 @@ pub mod focus_app;
 pub mod focus_index;
 pub mod focus_record;
 
-use super::{models, FocusRecord};
+use super::{FocusRecord, models};
 use crate::core::FocusRecordRaw;
-use crate::models::{AppMeta, CursorPosition};
+use crate::models::{CursorPosition, EngineMeta};
 use crate::tracking::focus_app::get_id_by_path;
-use crate::util::{d_as_ms, ms_as_d, s_as_ms, Timestamp};
+use crate::util::{Timestamp, d_as_ms, ms_as_d, s_as_ms};
 use std::path::PathBuf;
 
-pub(crate) fn init(data_dir: &PathBuf) {
+pub fn init(data_dir: &PathBuf) {
     focus_app::init(data_dir);
     focus_index::init(data_dir);
     focus_record::init(data_dir);
@@ -40,7 +40,7 @@ pub fn read_by_timestamp(start: Timestamp, end: Timestamp) -> Vec<FocusRecord> {
         .collect()
 }
 
-pub(crate) fn write_record(raw: FocusRecordRaw) {
+pub fn write_record(raw: FocusRecordRaw) {
     let FocusRecordRaw {
         app_path,
         focus_at,
@@ -63,9 +63,9 @@ pub(crate) fn write_record(raw: FocusRecordRaw) {
     }
 }
 
-pub fn get_tmus_meta() -> AppMeta {
-    AppMeta {
+pub fn get_tmus_meta() -> EngineMeta {
+    EngineMeta {
         initial_timestamp: d_as_ms(focus_index::start_day() as i64),
-        tmus_version: env!("CARGO_PKG_VERSION").to_string(),
+        engine_version: env!("CARGO_PKG_VERSION").to_string(),
     }
 }

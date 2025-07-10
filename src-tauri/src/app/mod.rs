@@ -1,6 +1,8 @@
 pub mod constant;
 pub mod global;
-pub(crate) mod tray;
+pub mod mcp;
+pub mod mcp_service;
+pub mod tray;
 pub mod update;
 mod window;
 
