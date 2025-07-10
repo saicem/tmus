@@ -1,5 +1,4 @@
 import { listen } from "@tauri-apps/api/event"
-import { ref, watch } from "vue"
 import { isEnabled } from "@tauri-apps/plugin-autostart"
 import { useColorMode } from "@vueuse/core"
 

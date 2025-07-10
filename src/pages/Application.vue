@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { getAllAppDetail } from "@/script/cmd.ts"
-import { onMounted, ref } from "vue"
 import { FileDetail } from "@/script/models.ts"
 import { config } from "@/script/state.ts"
 
@@ -17,7 +16,7 @@ onMounted(async () => {
 
 <template>
   <div style="display: flex; flex-wrap: wrap; gap: 16px">
-    <RouterLink v-for="app in appList" :key="app.id" :to="'/detail/' + app.id">
+    <router-link v-for="app in appList" :key="app.id" :to="'/detail/' + app.id">
       <el-card>
         <div
           style="
@@ -49,7 +48,7 @@ onMounted(async () => {
           </p>
         </div>
       </el-card>
-    </RouterLink>
+    </router-link>
   </div>
 </template>
 

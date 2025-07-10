@@ -1,10 +1,12 @@
 <script lang="ts" setup>
 import { AppDurationAreaModel, FileDetail } from "@/script/models.ts"
-import { onMounted, ref, watch } from "vue"
 import { getAppDetail, getAppDurationArea, showInFolder } from "@/script/cmd.ts"
 import { i18n } from "@/script/i18n.ts"
 import { Chart } from "@antv/g2"
-import { formatDurationRough, timeZoneOffsetMillis } from "@/script/time-util.ts"
+import {
+  formatDurationRough,
+  timeZoneOffsetMillis,
+} from "@/script/time-util.ts"
 import { colorMode, config } from "@/script/state.ts"
 
 const props = defineProps<{

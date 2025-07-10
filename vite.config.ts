@@ -12,6 +12,7 @@ export default defineConfig(async () => ({
   plugins: [
     vue(),
     AutoImport({
+      imports: ["vue", "date-fns"],
       resolvers: [ElementPlusResolver()],
     }),
     Components({

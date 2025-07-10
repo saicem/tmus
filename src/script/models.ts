@@ -36,14 +36,9 @@ export interface IdDuration {
   duration: number
 }
 
-export interface DateDuration {
-  date: number
-  duration: number
-}
-
-export interface IdDateDuration {
-  appId: number
-  date: number
+export interface DurationStat {
+  appId: number | null
+  intervalStart: number
   duration: number
 }
 

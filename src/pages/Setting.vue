@@ -4,12 +4,7 @@ import { i18n } from "@/script/i18n.ts"
 import { autoStart, config } from "@/script/state.ts"
 import { getTmusMeta, setAppConfig } from "@/script/cmd.ts"
 import { disable, enable } from "@tauri-apps/plugin-autostart"
-import SettingItem from "@/components/setting/SettingItem.vue"
-import SettingGroup from "@/components/setting/SettingGroup.vue"
-import RuleDialog from "@/components/setting/RuleDialog.vue"
-import TagDialog from "@/components/setting/TagDialog.vue"
 import { AppMeta } from "@/script/models.ts"
-import UpdateSettingItem from "@/components/setting/UpdateSettingItem.vue"
 
 const dialogVisibleRule = ref(false)
 const dialogVisibleTag = ref(false)
@@ -32,10 +27,10 @@ function configChange() {
       grid-gap: 16px;
     "
   >
-    <RuleDialog v-if="dialogVisibleRule" v-model="dialogVisibleRule" />
-    <TagDialog v-if="dialogVisibleTag" v-model="dialogVisibleTag" />
-    <SettingGroup>
-      <SettingItem :label="i18n.configPage.language">
+    <rule-dialog v-if="dialogVisibleRule" v-model="dialogVisibleRule" />
+    <tag-dialog v-if="dialogVisibleTag" v-model="dialogVisibleTag" />
+    <setting-group>
+      <setting-item :label="i18n.configPage.language">
         <el-select
           v-model="config.lang"
           style="width: 100px"
@@ -45,8 +40,8 @@ function configChange() {
           <el-option label="简体中文" value="zh" />
           <el-option :label="i18n.configPage.langSystem" value="system" />
         </el-select>
-      </SettingItem>
-      <SettingItem :label="i18n.configPage.theme">
+      </setting-item>
+      <setting-item :label="i18n.configPage.theme">
         <el-select
           v-model="config.theme"
           style="width: 100px"
@@ -56,8 +51,8 @@ function configChange() {
           <el-option :label="i18n.configPage.themeLight" value="light" />
           <el-option :label="i18n.configPage.themeDark" value="dark" />
         </el-select>
-      </SettingItem>
-      <SettingItem :label="i18n.configPage.firstDayOfWeek">
+      </setting-item>
+      <setting-item :label="i18n.configPage.firstDayOfWeek">
         <el-select
           v-model="config.firstDayOfWeek"
           style="width: 100px"
@@ -71,8 +66,8 @@ function configChange() {
           <el-option :label="i18n.configPage.saturday" :value="5" />
           <el-option :label="i18n.configPage.sunday" :value="6" />
         </el-select>
-      </SettingItem>
-      <SettingItem :label="i18n.configPage.dateFormat">
+      </setting-item>
+      <setting-item :label="i18n.configPage.dateFormat">
         <el-select
           v-model="config.dateFormat"
           style="width: 100px"
@@ -81,8 +76,8 @@ function configChange() {
           <el-option label="2025-07-05" value="yyyy-MM-dd" />
           <el-option label="2025/07/05" value="yyyy/MM/dd" />
         </el-select>
-      </SettingItem>
-      <SettingItem :label="i18n.configPage.timeFormat">
+      </setting-item>
+      <setting-item :label="i18n.configPage.timeFormat">
         <el-select
           v-model="config.timeFormat"
           style="width: 100px"
@@ -91,10 +86,10 @@ function configChange() {
           <el-option label="9:40 / 14:40" value="H:mm:ss" />
           <el-option label="09:40 / 14:40" value="HH:mm:ss" />
         </el-select>
-      </SettingItem>
-    </SettingGroup>
-    <SettingGroup>
-      <SettingItem
+      </setting-item>
+    </setting-group>
+    <setting-group>
+      <setting-item
         :label="i18n.configPage.appRule"
         :tip="i18n.configPage.appRuleTip"
         @click="dialogVisibleRule = true"
@@ -103,20 +98,20 @@ function configChange() {
       <!--        :label="i18n.configPage.appTag"-->
       <!--        @click="dialogVisibleTag = true"-->
       <!--      />-->
-      <SettingItem :label="i18n.configPage.filterUninstalledApp">
+      <setting-item :label="i18n.configPage.filterUninstalledApp">
         <el-switch v-model="config.filterUninstalledApp" />
-      </SettingItem>
-      <SettingItem :label="i18n.configPage.autoStart">
+      </setting-item>
+      <setting-item :label="i18n.configPage.autoStart">
         <el-switch
           v-model="autoStart"
           @change="(val) => (val ? enable() : disable())"
         />
-      </SettingItem>
-      <UpdateSettingItem />
-      <SettingItem :label="i18n.configPage.version">
+      </setting-item>
+      <update-setting-item />
+      <setting-item :label="i18n.configPage.version">
         <el-text> {{ tmusMeta?.tmusVersion }}</el-text>
-      </SettingItem>
-    </SettingGroup>
+      </setting-item>
+    </setting-group>
   </div>
 </template>
 <style scoped></style>

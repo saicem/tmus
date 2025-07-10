@@ -1,8 +1,6 @@
 <script lang="ts" setup>
 import { getAppRule, setAppRule } from "@/script/cmd.ts"
-import { onMounted, ref } from "vue"
 import { RuleConfig } from "@/script/models.ts"
-import FileSelector from "@/components/common/FileSelector.vue"
 import { i18n } from "@/script/i18n.ts"
 
 const rule = ref<RuleConfig>({
@@ -66,7 +64,7 @@ function setRule() {
         <el-table :data="rule?.exclude" max-height="300" style="width: 100%">
           <el-table-column :label="i18n.ruleDialog.path" prop="path">
             <template #default="scope">
-              <FileSelector
+              <file-selector
                 v-model="scope.row.path"
                 :change="() => (modified = true)"
                 name="file"

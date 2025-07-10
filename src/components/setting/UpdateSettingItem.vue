@@ -1,8 +1,6 @@
 <script lang="ts" setup>
-import { ref } from "vue"
 import { fetchUpdate, installUpdate } from "@/script/cmd.ts"
 import { i18n } from "@/script/i18n.ts"
-import SettingItem from "@/components/setting/SettingItem.vue"
 import { DownloadEvent, UpdateMetadata } from "@/script/models.ts"
 import { ElNotification } from "element-plus"
 

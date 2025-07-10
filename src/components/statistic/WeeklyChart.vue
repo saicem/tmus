@@ -1,11 +1,13 @@
 <script lang="ts" setup>
 import { Chart } from "@antv/g2"
-import { onMounted, ref, watch } from "vue"
 import { colorMode, config } from "@/script/state.ts"
 import { i18n } from "@/script/i18n.ts"
-import { dayOfWeekOffset, formatDurationRough } from "@/script/time-util.ts"
-import { getDurationByDate } from "@/script/cmd.ts"
-import { addDays, startOfDay, subDays } from "date-fns"
+import {
+  dayOfWeekOffset,
+  formatDurationRough,
+  MILLISECONDS_PER_DAY,
+} from "@/script/time-util.ts"
+import { queryDurationStatistic } from "@/script/cmd.ts"
 
 const chartContainer = ref<HTMLDivElement | null>(null)
 
@@ -20,9 +22,16 @@ async function loadData() {
   let todayDayOfWeekOffset = dayOfWeekOffset(now)
   let lastWeekStart = subDays(startOfDay(now), todayDayOfWeekOffset + 7)
   let result = Object.fromEntries(
-    (await getDurationByDate(lastWeekStart.getTime(), now.getTime())).map(
-      (x) => [x.date, x.duration]
-    )
+    (
+      await queryDurationStatistic(
+        lastWeekStart.getTime(),
+        now.getTime(),
+        true,
+        null,
+        MILLISECONDS_PER_DAY,
+        null
+      )
+    ).map((x) => [x.intervalStart, x.duration])
   )
 
   return Array(14)

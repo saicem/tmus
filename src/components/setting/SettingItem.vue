@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { InfoFilled, Loading } from "@element-plus/icons-vue"
-import { useSlots } from "vue"
 
 defineProps<{
   label: string
@@ -45,5 +44,4 @@ const slots = useSlots()
   </div>
 </template>
 
-<style scoped>
-</style>
+<style scoped></style>

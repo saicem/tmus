@@ -9,7 +9,6 @@ use tmus_engine::{tracking, FocusRecord};
 pub mod app_detail;
 pub mod app_duration_area;
 pub mod duration;
-pub mod duration_statistic;
 mod read_helper;
 
 #[derive(Debug, Serialize, Deserialize)]

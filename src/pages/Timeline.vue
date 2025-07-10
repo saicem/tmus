@@ -1,14 +1,13 @@
 <script lang="ts" setup>
-import { computed, onMounted, ref } from "vue"
 import { AppDuration, DateGroup, FileDetail } from "@/script/models.ts"
-import AppCardGroup from "@/components/statistic/AppCardGroup.vue"
 import {
   getAppDetailMap,
-  getDurationByDateID,
   getTmusMeta,
+  queryDurationStatistic,
 } from "@/script/cmd.ts"
 import { config } from "@/script/state.ts"
-import { format, isBefore, startOfDay, subDays, subWeeks } from "date-fns"
+import { MILLISECONDS_PER_DAY } from "@/script/time-util.ts"
+import { format } from "date-fns"
 
 const scrollDisable = computed(() => loading.value || noMore.value)
 const noMore = ref(false)
@@ -28,20 +27,24 @@ const load = async () => {
   loading.value = true
   const endDate = nextDate.value
   const startDate = subWeeks(startOfDay(endDate), 1)
-  const result = await getDurationByDateID(
+  const result = await queryDurationStatistic(
     startDate.getTime(),
-    endDate.getTime()
+    endDate.getTime(),
+    false,
+    null,
+    MILLISECONDS_PER_DAY,
+    null
   )
   const dateMap: Record<string, AppDuration[]> = {}
   result.forEach((x) => {
-    const detail = appDetailMap.value[x.appId]
+    const detail = appDetailMap.value[x.appId!]
     if (config.value.filterUninstalledApp && !detail.exist) {
       return
     }
-    if (dateMap[x.date] == undefined) {
-      dateMap[x.date] = []
+    if (dateMap[x.intervalStart] == undefined) {
+      dateMap[x.intervalStart] = []
     }
-    dateMap[x.date].push({
+    dateMap[x.intervalStart].push({
       app: detail,
       duration: x.duration,
     })

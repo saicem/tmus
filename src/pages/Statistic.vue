@@ -1,9 +1,6 @@
 <script lang="ts" setup>
-import { computed, ref, watch } from "vue"
 import { AppDuration } from "@/script/models.ts"
 import { i18n } from "@/script/i18n.ts"
-import AppProgressGroup from "@/components/statistic/AppProgressGroup.vue"
-import AppCardGroup from "@/components/statistic/AppCardGroup.vue"
 import { statisticStore } from "@/script/state.ts"
 import { getAppDetailMap, getDurationById } from "@/script/cmd.ts"
 

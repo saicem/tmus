@@ -2,14 +2,9 @@
 import app from "@/assets/general-card/app.svg"
 import usage from "@/assets/general-card/usage.svg"
 import up from "@/assets/general-card/up.svg"
-import { onMounted, ref } from "vue"
 import { i18n } from "@/script/i18n.ts"
-import GeneralCard from "@/components/GeneralCard.vue"
-import HeatCalendar from "@/components/HeatCalendar.vue"
-import WeeklyChart from "@/components/WeeklyChart.vue"
 import { formatDuration, MILLISECONDS_PER_DAY } from "@/script/time-util.ts"
-import { getDurationByDate, getDurationById } from "@/script/cmd.ts"
-import { endOfYear, startOfDay, startOfYear } from "date-fns"
+import { getDurationById, queryDurationStatistic } from "@/script/cmd.ts"
 
 const yearData = ref<number[]>([])
 const appCount = ref("0")
@@ -25,9 +20,16 @@ async function getYearData() {
   const now = new Date()
   const yearStart = startOfYear(now)
   const yearEnd = endOfYear(now)
-  const data = await getDurationByDate(yearStart.getTime(), now.getTime())
+  const data = await queryDurationStatistic(
+    yearStart.getTime(),
+    now.getTime(),
+    true,
+    null,
+    MILLISECONDS_PER_DAY,
+    null
+  )
   const durationByDateMap = Object.fromEntries(
-    data.map((x) => [x.date, x.duration])
+    data.map((x) => [x.intervalStart, x.duration])
   )
   const result = []
   for (
@@ -57,28 +59,28 @@ async function getDayData() {
 <template>
   <div style="display: flex; flex-direction: column; row-gap: 16px">
     <div class="cards no-select">
-      <GeneralCard
+      <general-card
         :content="appCount + i18n.homePage.appsUnit"
         :icon="app"
         :illustration="i18n.homePage.apps"
       />
-      <GeneralCard
+      <general-card
         :content="totalUse"
         :icon="usage"
         :illustration="i18n.homePage.totalUse"
       />
-      <GeneralCard
+      <general-card
         :content="mostUse"
         :icon="up"
         :illustration="i18n.homePage.mostUse"
       />
     </div>
     <el-card class="heat-calendar-card">
-      <HeatCalendar v-if="yearData" :data="yearData" />
+      <heat-calendar v-if="yearData" :data="yearData" />
     </el-card>
 
     <el-card>
-      <WeeklyChart />
+      <weekly-chart />
     </el-card>
   </div>
 </template>

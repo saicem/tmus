@@ -1,5 +1,4 @@
 import { config } from "@/script/state.ts"
-import { getDay } from "date-fns"
 
 export const MILLISECONDS_PER_SECOND = 1000
 export const MILLISECONDS_PER_MINUTE = 60 * MILLISECONDS_PER_SECOND

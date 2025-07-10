@@ -1,7 +1,5 @@
 <script lang="ts" setup>
-import { computed } from "vue"
 import { AppDuration } from "@/script/models.ts"
-import AppProgress from "@/components/statistic/AppProgress.vue"
 
 const props = defineProps<{
   data: AppDuration[]

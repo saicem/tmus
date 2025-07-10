@@ -7,11 +7,10 @@ import {
 import {
   AppDurationAreaModel,
   AppMeta,
-  DateDuration,
   DownloadEvent,
+  DurationStat,
   FileDetail,
   FileIndexRecord,
-  IdDateDuration,
   IdDuration,
   RuleConfig,
   TagConfig,
@@ -19,7 +18,6 @@ import {
 } from "./models.ts"
 import { Config } from "@/script/state.ts"
 import { ElMessage } from "element-plus"
-import { timeZoneOffsetMillis } from "@/script/time-util.ts"
 
 export async function getDurationById(
   startTimestamp: number,
@@ -31,25 +29,21 @@ export async function getDurationById(
   })
 }
 
-export async function getDurationByDate(
+export async function queryDurationStatistic(
   startTimestamp: number,
-  endTimestamp: number
-): Promise<DateDuration[]> {
-  return await ivk("get_duration_by_date", {
+  endTimestamp: number,
+  mergeApps: boolean,
+  appIds: number[] | null,
+  granularity: number,
+  cycle: number | null
+): Promise<DurationStat[]> {
+  return await ivk("query_duration_statistic", {
     startTimestamp,
     endTimestamp,
-    timezoneOffset: timeZoneOffsetMillis(),
-  })
-}
-
-export async function getDurationByDateID(
-  startTimestamp: number,
-  endTimestamp: number
-): Promise<IdDateDuration[]> {
-  return await ivk("get_duration_by_date_id", {
-    startTimestamp,
-    endTimestamp,
-    timezoneOffset: timeZoneOffsetMillis(),
+    mergeApps,
+    appIds,
+    granularity,
+    cycle,
   })
 }
 

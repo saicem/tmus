@@ -1,6 +1,5 @@
 import { config, LanguageEnum } from "@/script/state.ts"
 import { locale } from "@tauri-apps/plugin-os"
-import { ref, watch } from "vue"
 
 type I18nMessageType = {
   common: {

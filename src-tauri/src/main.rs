@@ -37,9 +37,6 @@ fn main() {
         .plugin(tauri_plugin_os::init())
         .setup(setup)
         .invoke_handler(tauri::generate_handler![
-            cmd::duration_statistic::get_duration_by_id,
-            cmd::duration_statistic::get_duration_by_date,
-            cmd::duration_statistic::get_duration_by_date_id,
             cmd::get_raw_record,
             get_app_config,
             set_app_config,
@@ -55,6 +52,7 @@ fn main() {
             update::fetch_update,
             update::install_update,
             cmd::app_duration_area::get_app_duration_area,
+            cmd::duration::get_duration_by_id,
             cmd::duration::query_duration_statistic
         ])
         .build(tauri::generate_context!())

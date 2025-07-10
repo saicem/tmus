@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { formatDuration, MILLISECONDS_PER_HOUR } from "@/script/time-util.ts"
 import { config } from "@/script/state.ts"
-import { format, setDayOfYear } from "date-fns"
 
 defineProps<{
   dayOfYear: number

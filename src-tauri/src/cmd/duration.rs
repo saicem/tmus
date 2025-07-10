@@ -1,13 +1,39 @@
 use crate::cmd::read_helper::read_by_timestamp;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::ops::Not;
 use tmus_engine::models::AppId;
 use tmus_engine::util::Timestamp;
 use tmus_engine::FocusRecord;
 
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct IdDuration {
+    app_id: usize,
+    duration: i64,
+}
+
+#[tauri::command]
+pub fn get_duration_by_id(start_timestamp: Timestamp, end_timestamp: Timestamp) -> Vec<IdDuration> {
+    read_by_timestamp(start_timestamp, end_timestamp)
+        .into_iter()
+        .fold(HashMap::new(), |mut acc, record| {
+            acc.entry(record.id)
+                .and_modify(|x| *x += record.duration())
+                .or_insert(record.duration());
+            acc
+        })
+        .into_iter()
+        .map(|(id, duration)| IdDuration {
+            app_id: id,
+            duration,
+        })
+        .collect()
+}
+
 /// Represents a duration statistic for a specific application within a time interval
-#[derive(Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct DurationStat {
     /// Application ID (None if apps are merged)
     app_id: Option<usize>,
