@@ -7,7 +7,6 @@ import { disable, enable } from "@tauri-apps/plugin-autostart"
 import { AppMeta } from "@/script/models.ts"
 
 const dialogVisibleRule = ref(false)
-const dialogVisibleTag = ref(false)
 const tmusMeta = ref<AppMeta>()
 
 onMounted(async () => {
@@ -28,7 +27,6 @@ function configChange() {
     "
   >
     <rule-dialog v-if="dialogVisibleRule" v-model="dialogVisibleRule" />
-    <tag-dialog v-if="dialogVisibleTag" v-model="dialogVisibleTag" />
     <setting-group>
       <setting-item :label="i18n.configPage.language">
         <el-select
