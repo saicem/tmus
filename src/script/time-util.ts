@@ -1,4 +1,4 @@
-import { config } from "@/script/state.ts"
+import { configStore } from "@/script/state.ts"
 
 export const MILLISECONDS_PER_SECOND = 1000
 export const MILLISECONDS_PER_MINUTE = 60 * MILLISECONDS_PER_SECOND
@@ -43,7 +43,7 @@ export const formatDurationRough = (ms: number) => {
 }
 
 export const dayOfWeekOffset = (day: Date) => {
-  return (getDay(day) - 1 - config.value.firstDayOfWeek + 14) % 7
+  return (getDay(day) - 1 - configStore.firstDayOfWeek + 14) % 7
 }
 
 export const timeZoneOffsetMillis = (): number =>

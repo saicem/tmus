@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { onMounted, ref } from "vue"
 import { i18n } from "@/script/i18n.ts"
-import { autoStart, config } from "@/script/state.ts"
+import { configStore, passiveStore } from "@/script/state.ts"
 import { getTmusMeta, setAppConfig } from "@/script/cmd.ts"
 import { disable, enable } from "@tauri-apps/plugin-autostart"
 import { AppMeta } from "@/script/models.ts"
@@ -15,7 +15,7 @@ onMounted(async () => {
 })
 
 function configChange() {
-  setAppConfig(config.value)
+  setAppConfig(configStore)
 }
 </script>
 
@@ -32,7 +32,7 @@ function configChange() {
     <setting-group>
       <setting-item :label="i18n.configPage.language">
         <el-select
-          v-model="config.lang"
+          v-model="configStore.lang"
           style="width: 100px"
           @change="configChange"
         >
@@ -43,7 +43,7 @@ function configChange() {
       </setting-item>
       <setting-item :label="i18n.configPage.theme">
         <el-select
-          v-model="config.theme"
+          v-model="configStore.theme"
           style="width: 100px"
           @change="configChange"
         >
@@ -54,7 +54,7 @@ function configChange() {
       </setting-item>
       <setting-item :label="i18n.configPage.firstDayOfWeek">
         <el-select
-          v-model="config.firstDayOfWeek"
+          v-model="configStore.firstDayOfWeek"
           style="width: 100px"
           @change="configChange"
         >
@@ -69,7 +69,7 @@ function configChange() {
       </setting-item>
       <setting-item :label="i18n.configPage.dateFormat">
         <el-select
-          v-model="config.dateFormat"
+          v-model="configStore.dateFormat"
           style="width: 100px"
           @change="configChange"
         >
@@ -79,7 +79,7 @@ function configChange() {
       </setting-item>
       <setting-item :label="i18n.configPage.timeFormat">
         <el-select
-          v-model="config.timeFormat"
+          v-model="configStore.timeFormat"
           style="width: 100px"
           @change="configChange"
         >
@@ -94,16 +94,12 @@ function configChange() {
         :tip="i18n.configPage.appRuleTip"
         @click="dialogVisibleRule = true"
       />
-      <!--      <SettingMoreItem-->
-      <!--        :label="i18n.configPage.appTag"-->
-      <!--        @click="dialogVisibleTag = true"-->
-      <!--      />-->
       <setting-item :label="i18n.configPage.filterUninstalledApp">
-        <el-switch v-model="config.filterUninstalledApp" />
+        <el-switch v-model="configStore.filterUninstalledApp" />
       </setting-item>
       <setting-item :label="i18n.configPage.autoStart">
         <el-switch
-          v-model="autoStart"
+          v-model="passiveStore.autoStart"
           @change="(val) => (val ? enable() : disable())"
         />
       </setting-item>

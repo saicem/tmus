@@ -1,20 +1,23 @@
 <script lang="ts" setup>
 import { formatDuration, MILLISECONDS_PER_HOUR } from "@/script/time-util.ts"
-import { config } from "@/script/state.ts"
+import { configStore } from "@/script/state.ts"
 
-defineProps<{
+const props = defineProps<{
   dayOfYear: number
   duration: number
 }>()
+
+const dateStr = format(
+  setDayOfYear(new Date(), props.dayOfYear),
+  configStore.dateFormat
+)
 </script>
 
 <template>
   <el-tooltip :hide-after="200" :show-after="200">
     <template #content>
       <div style="text-align: center">
-        {{
-          `${format(setDayOfYear(new Date(), dayOfYear), config.dateFormat)} `
-        }}
+        {{ dateStr }}
         <br />{{ formatDuration(duration) }}
       </div>
     </template>

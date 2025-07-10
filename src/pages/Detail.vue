@@ -7,7 +7,7 @@ import {
   formatDurationRough,
   timeZoneOffsetMillis,
 } from "@/script/time-util.ts"
-import { colorMode, config } from "@/script/state.ts"
+import { configStore, passiveStore } from "@/script/state.ts"
 
 const props = defineProps<{
   id: number
@@ -44,7 +44,7 @@ function renderDateAreaChart() {
     autoFit: true,
   })
   chart
-    .theme({ type: colorMode.value })
+    .theme({ type: passiveStore.theme })
     .area()
     .data(durationAreaData.value?.dateArea)
     .encode("x", "index")
@@ -68,7 +68,7 @@ function renderDayAreaChart() {
     autoFit: true,
   })
   chart
-    .theme({ type: colorMode.value })
+    .theme({ type: passiveStore.theme })
     .area()
     .data(durationAreaData.value?.dayArea)
     .encode("x", "index")
@@ -85,7 +85,7 @@ function renderDayAreaChart() {
 }
 
 watch(
-  [() => config.value.theme, activeName, i18n],
+  [() => configStore.theme, activeName, i18n],
   (_old, _new) => {
     renderAreaChart()
   },

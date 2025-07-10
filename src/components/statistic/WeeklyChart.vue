@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { Chart } from "@antv/g2"
-import { colorMode, config } from "@/script/state.ts"
 import { i18n } from "@/script/i18n.ts"
 import {
   dayOfWeekOffset,
@@ -8,6 +7,7 @@ import {
   MILLISECONDS_PER_DAY,
 } from "@/script/time-util.ts"
 import { queryDurationStatistic } from "@/script/cmd.ts"
+import { configStore, passiveStore } from "@/script/state.ts"
 
 const chartContainer = ref<HTMLDivElement | null>(null)
 
@@ -21,17 +21,16 @@ async function loadData() {
   let now = new Date()
   let todayDayOfWeekOffset = dayOfWeekOffset(now)
   let lastWeekStart = subDays(startOfDay(now), todayDayOfWeekOffset + 7)
-  let result = Object.fromEntries(
-    (
-      await queryDurationStatistic(
-        lastWeekStart.getTime(),
-        now.getTime(),
-        true,
-        null,
-        MILLISECONDS_PER_DAY,
-        null
-      )
-    ).map((x) => [x.intervalStart, x.duration])
+  let resultMap = toMap(
+    await queryDurationStatistic(
+      lastWeekStart.getTime(),
+      now.getTime(),
+      true,
+      null,
+      MILLISECONDS_PER_DAY,
+      null
+    ),
+    (x) => [x.intervalStart, x.duration]
   )
 
   return Array(14)
@@ -44,9 +43,9 @@ async function loadData() {
             : i18n.value.weeklyChart.thisWeek,
         dayOfWeek:
           i18n.value.weeklyChart.dayOfWeekNames[
-            (idx + config.value.firstDayOfWeek) % 7
+            (idx + configStore.firstDayOfWeek) % 7
           ],
-        duration: result[addDays(lastWeekStart, idx).getTime()] ?? 0,
+        duration: resultMap.get(addDays(lastWeekStart, idx).getTime()) ?? 0,
       }
     })
 }
@@ -60,7 +59,7 @@ function renderBarChart(
   }[]
 ) {
   const chart = new Chart({ container })
-  chart.theme({ type: colorMode.value })
+  chart.theme({ type: passiveStore.theme })
   chart.options({
     title: i18n.value.weeklyChart.title,
     type: "interval",
@@ -91,7 +90,7 @@ function renderBarChart(
 }
 
 watch(
-  [() => config.value.firstDayOfWeek, () => config.value.theme, i18n],
+  [() => configStore.firstDayOfWeek, () => configStore.theme, i18n],
   async (_old, _new) => {
     if (chartContainer?.value) {
       renderBarChart(chartContainer.value, await loadData())

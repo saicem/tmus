@@ -5,7 +5,7 @@ import {
   getTmusMeta,
   queryDurationStatistic,
 } from "@/script/cmd.ts"
-import { config } from "@/script/state.ts"
+import { configStore } from "@/script/state.ts"
 import { MILLISECONDS_PER_DAY } from "@/script/time-util.ts"
 import { format } from "date-fns"
 
@@ -35,23 +35,16 @@ const load = async () => {
     MILLISECONDS_PER_DAY,
     null
   )
-  const dateMap: Record<string, AppDuration[]> = {}
-  result.forEach((x) => {
-    const detail = appDetailMap.value[x.appId!]
-    if (config.value.filterUninstalledApp && !detail.exist) {
-      return
-    }
-    if (dateMap[x.intervalStart] == undefined) {
-      dateMap[x.intervalStart] = []
-    }
-    dateMap[x.intervalStart].push({
-      app: detail,
+  const dateMap = groupBy(result, (x) => [
+    x.intervalStart,
+    {
+      app: appDetailMap.value[x.appId!],
       duration: x.duration,
-    })
-  })
-  let ripeResult: DateGroup<AppDuration>[] = Object.entries(dateMap).map(
+    },
+  ])
+  let ripeResult: DateGroup<AppDuration>[] = Array.from(dateMap).map(
     ([k, v]) => {
-      return { moment: new Date(+k), data: v }
+      return { moment: new Date(k), data: v }
     }
   )
   ripeResult.sort((a, b) => b.moment.valueOf() - a.moment.valueOf())
@@ -78,7 +71,7 @@ const load = async () => {
       <el-timeline-item
         v-for="({ moment: date, data: appData }, i) in data"
         :key="i"
-        :timestamp="format(date, config.dateFormat)"
+        :timestamp="format(date, configStore.dateFormat)"
         placement="top"
       >
         <app-card-group :data="appData" />

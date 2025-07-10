@@ -10,7 +10,6 @@ const yearData = ref<number[]>([])
 const appCount = ref("0")
 const totalUse = ref("0")
 const mostUse = ref("0")
-
 onMounted(async () => {
   await getYearData()
   await getDayData()
@@ -28,16 +27,14 @@ async function getYearData() {
     MILLISECONDS_PER_DAY,
     null
   )
-  const durationByDateMap = Object.fromEntries(
-    data.map((x) => [x.intervalStart, x.duration])
-  )
+  const durationByDateMap = toMap(data, (x) => [x.intervalStart, x.duration])
   const result = []
   for (
     let i = yearStart.getTime();
     i <= yearEnd.getTime();
     i += MILLISECONDS_PER_DAY
   ) {
-    result.push(durationByDateMap[+i])
+    result.push(durationByDateMap.get(i)!)
   }
   yearData.value = result
 }

@@ -1,10 +1,12 @@
 import { listen } from "@tauri-apps/api/event"
 import { isEnabled } from "@tauri-apps/plugin-autostart"
-import { useColorMode } from "@vueuse/core"
+import { locale } from "@tauri-apps/plugin-os"
+import { getAppConfig } from "@/script/cmd.ts"
 
 export type LanguageEnum = "en" | "zh"
+export type ThemeEnum = "dark" | "light"
 export type LanguageConfig = LanguageEnum | "system"
-export type ThemeConfig = "dark" | "light" | "system"
+export type ThemeConfig = ThemeEnum | "system"
 export type Config = {
   lang: LanguageConfig
   theme: ThemeConfig
@@ -14,8 +16,13 @@ export type Config = {
   timeFormat: string
 }
 
-export const statisticStore = ref<"Card" | "Progress">("Progress")
-export const config = ref<Config>({
+export const statisticStore = reactive<{
+  statisticType: "Progress" | "Card"
+}>({
+  statisticType: "Progress",
+})
+
+export const configStore = reactive<Config>({
   lang: "system",
   theme: "system",
   filterUninstalledApp: true,
@@ -24,45 +31,92 @@ export const config = ref<Config>({
   timeFormat: "HH:mm:ss",
 })
 
-export const autoStart = ref<boolean>(false)
-isEnabled().then((value) => (autoStart.value = value))
-
-export function setThemeListener() {
-  const themeMedia = window.matchMedia("(prefers-color-scheme: light)")
-  themeMedia.addEventListener("change", (e) => {
-    if (config.value.theme === "system") {
-      colorMode.value = e.matches ? "light" : "dark"
-    }
-  })
-}
+export const passiveStore = reactive<{
+  autoStart: boolean
+  lang: LanguageEnum
+  theme: ThemeEnum
+}>({
+  autoStart: false,
+  lang: "en",
+  theme: "light",
+})
 
 watch(
-  () => config.value.theme,
-  () => {
-    if (config.value.theme === "system") {
-      const themeMedia = window.matchMedia("(prefers-color-scheme: light)")
-      colorMode.value = themeMedia.matches ? "light" : "dark"
+  () => configStore.lang,
+  async (newValue) => {
+    if (newValue != "system") {
+      passiveStore.lang = newValue
     } else {
-      colorMode.value = config.value.theme
+      const lang = await locale()
+      passiveStore.lang = lang?.startsWith("zh") ? "zh" : "en"
     }
+  },
+  {
+    immediate: true,
   }
 )
 
-export const colorMode = useColorMode({
-  selector: "html",
-  attribute: "class",
-  modes: {
-    dark: "dark",
-    light: "light",
+watch(
+  () => configStore.theme,
+  (newValue) => {
+    let theme: ThemeEnum
+    if (newValue != "system") {
+      theme = newValue
+    } else {
+      theme = window.matchMedia("(prefers-color-scheme: light)").matches
+        ? "light"
+        : "dark"
+    }
+    passiveStore.theme = theme
   },
-})
-
-await listen("menuItemClick", (e: { payload: string }) => {
-  console.log("menuItemClick", e.payload)
-  const id = e.payload
-  if (id.startsWith("lang")) {
-    config.value.lang = id.substring("lang_".length) as LanguageConfig
-  } else if (id.startsWith("theme")) {
-    config.value.theme = id.substring("theme_".length) as ThemeConfig
+  {
+    immediate: true,
   }
-})
+)
+
+watch(
+  () => passiveStore.theme,
+  (newValue) => {
+    updateHtmlTheme(newValue)
+  }
+)
+
+// --- listen ---
+export async function init() {
+  Object.assign(configStore, await getAppConfig())
+
+  await listen("menuItemClick", (e: { payload: string }) => {
+    console.log("try menu click", e.payload)
+    const id = e.payload
+    if (id.startsWith("lang")) {
+      configStore.lang = id.substring("lang_".length) as LanguageConfig
+    } else if (id.startsWith("theme")) {
+      configStore.theme = id.substring("theme_".length) as ThemeConfig
+    }
+  })
+
+  window
+    .matchMedia("(prefers-color-scheme: light)")
+    .addEventListener("change", (e) => {
+      if (configStore.theme === "system") {
+        passiveStore.theme = e.matches ? "light" : "dark"
+      }
+    })
+
+  isEnabled().then((value) => (passiveStore.autoStart = value))
+}
+
+// --- helper ---
+
+function updateHtmlTheme(theme: ThemeEnum) {
+  if (typeof document !== "undefined") {
+    const htmlEl = document.documentElement
+    if (theme === "dark") {
+      htmlEl.classList.remove("light")
+      htmlEl.classList.add("dark")
+    } else {
+      htmlEl.classList.remove("dark")
+      htmlEl.classList.add("light")
+    }
+  }
+}

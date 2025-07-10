@@ -1,5 +1,4 @@
-import { config, LanguageEnum } from "@/script/state.ts"
-import { locale } from "@tauri-apps/plugin-os"
+import { LanguageEnum, passiveStore } from "@/script/state.ts"
 
 type I18nMessageType = {
   common: {
@@ -49,7 +48,6 @@ type I18nMessageType = {
     themeLight: string
     themeDark: string
     appRule: string
-    appTag: string
     appRuleTip: string
     filterUninstalledApp: string
     firstDayOfWeek: string
@@ -159,7 +157,6 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
       themeLight: "Light",
       themeDark: "Dark",
       appRule: "App Rule",
-      appTag: "App Tag",
       appRuleTip:
         "Application rules. Exclude applications, all applications containing the configured prefix will be excluded. Include applications, takes precedence over excluded applications, preventing them from being excluded. Merge applications, converts all applications under a specific path to another path, allowing for unified statistics of application duration under a directory. Restart Tmus takes effect.",
       filterUninstalledApp: "Filter Uninstalled App",
@@ -271,7 +268,6 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
       themeLight: "浅色",
       themeDark: "深色",
       appRule: "应用规则",
-      appTag: "应用标签",
       appRuleTip:
         "应用规则。排除应用，所有包含其中配置前缀的应用都会被排除。包含应用，优先级高于排除应用，避免应用被排除。合并应用，将某路径下的所有应用转化为另一路径，以便某一目录下的应用统一统计时长。重启 Tmus 生效。",
       filterUninstalledApp: "过滤已卸载应用",
@@ -329,27 +325,10 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
 
 export const i18n = ref<I18nMessageType>(messages["en"])
 
-const getLang = async (): Promise<LanguageEnum> => {
-  if (config.value.lang === "system") {
-    return await getLocaleLang()
-  } else {
-    return config.value.lang
-  }
-}
-
-const getLocaleLang = async () => {
-  const lang = await locale()
-  if (lang?.startsWith("zh")) {
-    return "zh"
-  } else {
-    return "en"
-  }
-}
-
 watch(
-  () => config.value.lang,
-  async () => {
-    i18n.value = messages[await getLang()]
+  () => passiveStore.lang,
+  async (lang) => {
+    i18n.value = messages[lang]
   },
   { immediate: true }
 )

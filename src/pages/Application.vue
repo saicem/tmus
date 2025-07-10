@@ -1,13 +1,13 @@
 <script lang="ts" setup>
 import { getAllAppDetail } from "@/script/cmd.ts"
 import { FileDetail } from "@/script/models.ts"
-import { config } from "@/script/state.ts"
+import { configStore } from "@/script/state.ts"
 
 const appList = ref<FileDetail[]>([])
 
 onMounted(async () => {
   let result = await getAllAppDetail()
-  if (config.value.filterUninstalledApp) {
+  if (configStore.filterUninstalledApp) {
     result = result.filter((app) => app.exist)
   }
   appList.value = result
