@@ -29,10 +29,7 @@ onMounted(async () => {
           "
         >
           <div>
-            <el-image
-              :src="app?.icon ?? ''"
-              style="width: 32px; height: 32px"
-            />
+            <app-icon :icon="app.icon" :size="32" />
           </div>
           <p
             style="

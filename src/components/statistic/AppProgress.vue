@@ -19,9 +19,7 @@ defineProps<{
       padding: 8px;
     "
   >
-    <div class="app-header">
-      <el-image :src="app.icon" alt="App Icon" class="app-icon" />
-    </div>
+    <app-icon :icon="app.icon" :size="48" />
     <div
       style="
         display: flex;

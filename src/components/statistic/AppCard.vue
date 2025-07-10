@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { FileDetail } from "@/script/models.ts"
 import { formatDuration } from "@/script/time-util.ts"
-import { Box } from "@element-plus/icons-vue"
 
 defineProps<{
   duration: number
@@ -23,12 +22,7 @@ defineProps<{
       "
     >
       <div>
-        <el-image
-          v-if="detail?.icon"
-          :src="detail?.icon"
-          style="width: 64px; height: 64px"
-        />
-        <Box v-if="!detail?.icon" style="width: 64px; height: 64px" />
+        <app-icon :icon="detail.icon" :size="64" />
       </div>
       <p
         style="

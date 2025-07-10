@@ -102,7 +102,7 @@ watch(datetimeRange, ([startDate, endDate]) => load(startDate, endDate), {
         type="datetimerange"
       />
       <el-select
-        v-model="statisticStore"
+        v-model="statisticStore.statisticType"
         default-first-option
         style="flex: 1 0 100px"
       >
