@@ -8,7 +8,7 @@ use std::collections::HashMap;
 use std::io::Cursor;
 use std::path::Path;
 use std::sync::OnceLock;
-use tmus_engine::tracking::focus_app;
+use tmus_engine::storage::focus_app;
 use tokio::sync::Mutex;
 
 static APP_DETAIL_CACHE: OnceLock<Mutex<HashMap<usize, FileDetail>>> = OnceLock::new();
@@ -29,6 +29,7 @@ pub fn get_app_detail_cache<'a>() -> &'a Mutex<HashMap<usize, FileDetail>> {
 }
 
 #[tauri::command]
+#[tracing::instrument]
 pub async fn get_app_detail(id: usize) -> FileDetail {
     let path = focus_app::get_path_by_id(id);
     let detail = query_file_detail(id, &path);
@@ -40,6 +41,7 @@ pub async fn get_app_detail(id: usize) -> FileDetail {
 }
 
 #[tauri::command]
+#[tracing::instrument]
 pub async fn get_all_app_detail() -> Result<Vec<FileDetail>, String> {
     let app_vec = focus_app::get_all_app();
     let mut app_detail_cache = get_app_detail_cache().lock().await;

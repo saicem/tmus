@@ -1,12 +1,12 @@
+use super::models::AppId;
+use crate::storage::FILE_SHARE_READ;
 use std::collections::HashMap;
 use std::fs::{File, OpenOptions};
 use std::io::{Read, Write};
 use std::os::windows::prelude::OpenOptionsExt;
 use std::path::PathBuf;
 use std::sync::{Mutex, OnceLock};
-use windows::Win32::Storage::FileSystem::FILE_SHARE_READ;
-
-use super::models::AppId;
+use tracing::info;
 
 static STATE: OnceLock<State> = OnceLock::new();
 
@@ -26,7 +26,7 @@ pub fn init(data_dir: &PathBuf) {
         .create(true)
         .append(true)
         .read(true)
-        .share_mode(FILE_SHARE_READ.0)
+        .share_mode(FILE_SHARE_READ)
         .open(data_dir.join("app.txt"))
         .expect("open app.txt failed.");
     let id_path_map = read_apps(&mut file);
@@ -76,6 +76,7 @@ pub fn get_all_app() -> Vec<String> {
 
 /// Returns the app id which was written.
 fn write_app(name: &str) -> AppId {
+    info!("new app found, write app: {}", name);
     let state = get_state();
     let mut id_name_map = state.id_path_map.lock().unwrap();
     let mut name_id_map = state.path_id_map.lock().unwrap();

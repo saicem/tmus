@@ -2,8 +2,8 @@ use crate::cmd::read_helper::{read_by_timestamp, timezone_convert};
 use crate::util::time_util::date_str_from_days;
 use serde::{Deserialize, Serialize};
 use std::cmp::max;
+use tmus_engine::models::FocusRecord;
 use tmus_engine::util::{d_as_ms, ms_as_d, ms_as_m, Timestamp};
-use tmus_engine::FocusRecord;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -21,6 +21,7 @@ pub struct AppDurationAreaModelItem {
 }
 
 #[tauri::command]
+#[tracing::instrument]
 pub async fn get_app_duration_area(
     app_id: usize,
     start_timestamp: Timestamp,

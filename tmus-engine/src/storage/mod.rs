@@ -2,12 +2,14 @@ pub mod focus_app;
 pub mod focus_index;
 pub mod focus_record;
 
-use super::{FocusRecord, models};
-use crate::core::FocusRecordRaw;
-use crate::models::{CursorPosition, EngineMeta};
-use crate::tracking::focus_app::get_id_by_path;
+use super::models;
+use crate::models::{CursorPosition, EngineMeta, FocusRecord};
+use crate::storage::focus_app::get_id_by_path;
+use crate::tracker::TrackingSpanEvent;
 use crate::util::{Timestamp, d_as_ms, ms_as_d, s_as_ms};
 use std::path::PathBuf;
+
+const FILE_SHARE_READ: u32 = 1u32;
 
 pub fn init(data_dir: &PathBuf) {
     focus_app::init(data_dir);
@@ -40,21 +42,16 @@ pub fn read_by_timestamp(start: Timestamp, end: Timestamp) -> Vec<FocusRecord> {
         .collect()
 }
 
-pub fn write_record(raw: FocusRecordRaw) {
-    let FocusRecordRaw {
-        app_path,
-        focus_at,
-        blur_at,
-    } = raw;
-    if app_path == String::default() || blur_at - focus_at < s_as_ms(1) {
+pub fn write_record(event: TrackingSpanEvent) {
+    if event.name == String::default() || event.blur_at - event.focus_at < s_as_ms(1) {
         return;
     }
 
-    let app_id = get_id_by_path(&app_path);
+    let app_id = get_id_by_path(&event.name);
     let record = FocusRecord {
         id: app_id,
-        focus_at,
-        blur_at,
+        focus_at: event.focus_at,
+        blur_at: event.blur_at,
     };
 
     for sub_record in record.split_record() {

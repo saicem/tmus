@@ -72,6 +72,7 @@ impl<T: Clone> RadixNode<T> {
         }
     }
 
+    #[allow(dead_code)]
     fn contain(&self, s: &str) -> bool {
         let common_chars = common_prefix(&self.prefix, s);
         if common_chars < self.prefix.chars().count() {
@@ -137,6 +138,7 @@ impl<T: Clone> RadixTree<T> {
         self.root.insert(s, meta);
     }
 
+    #[allow(dead_code)]
     pub fn contain(&self, s: &str) -> bool {
         if s.is_empty() {
             return self.root.meta.is_some();

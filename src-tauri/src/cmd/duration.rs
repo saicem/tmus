@@ -2,9 +2,8 @@ use crate::cmd::read_helper::read_by_timestamp;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::ops::Not;
-use tmus_engine::models::AppId;
+use tmus_engine::models::{AppId, FocusRecord};
 use tmus_engine::util::Timestamp;
-use tmus_engine::FocusRecord;
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -14,6 +13,7 @@ pub struct IdDuration {
 }
 
 #[tauri::command]
+#[tracing::instrument]
 pub fn get_duration_by_id(start_timestamp: Timestamp, end_timestamp: Timestamp) -> Vec<IdDuration> {
     read_by_timestamp(start_timestamp, end_timestamp)
         .into_iter()
@@ -63,6 +63,7 @@ pub struct DurationStat {
 ///   - To analyze how much time is spent each hour within a day, use `granularity=3600000` and `cycle=24`.
 ///   - To analyze how much time is spent each day within a week, use `granularity=86400000` and `cycle=7`.
 #[tauri::command]
+#[tracing::instrument]
 pub async fn query_duration_statistic(
     start_timestamp: Timestamp,
     end_timestamp: Timestamp,

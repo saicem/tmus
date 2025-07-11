@@ -1,10 +1,10 @@
-use crate::models::focus_record::RecordByte;
-use log;
+use crate::models::RecordByte;
 use memmap2::MmapMut;
 use std::fs::OpenOptions;
 use std::mem::size_of;
 use std::path::{Path, PathBuf};
 use std::sync::{Mutex, MutexGuard, OnceLock};
+use tracing::debug;
 
 const RECORD_SIZE: usize = size_of::<RecordByte>();
 /// The size use for mmap expand every time.
@@ -48,7 +48,7 @@ pub fn write(record: RecordByte) -> u64 {
     let range = state.len..state.len + RECORD_SIZE;
     state.mmap[range].copy_from_slice(&record);
     state.len += 8;
-    log::debug!(
+    debug!(
         "write record:{}",
         record
             .iter()

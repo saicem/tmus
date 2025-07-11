@@ -12,7 +12,7 @@ use std::path::PathBuf;
 use std::{env, fs};
 use tauri::{AppHandle, Manager, RunEvent};
 use tauri_plugin_autostart::MacosLauncher;
-use tmus_engine::{engine_init, engine_start};
+use tmus_engine::{async_runtime, engine_start};
 use tokio::sync::Mutex;
 
 mod app;
@@ -20,11 +20,17 @@ mod cmd;
 mod config;
 mod util;
 
-fn main() {
+#[tokio::main]
+async fn main() {
+    tauri::async_runtime::set(tokio::runtime::Handle::current());
+    async_runtime::set_runtime(tokio::runtime::Handle::current());
     tracing_subscriber::fmt()
-        .with_max_level(tracing::Level::INFO)
+        .with_max_level(tracing::Level::DEBUG)
         .init();
-    tauri::async_runtime::block_on(util::force_singleton());
+    util::force_singleton().await;
+    // tauri::async_runtime::block_on(async {
+    //     util::force_singleton().await;
+    // });
     tauri::async_runtime::spawn(start_mcp_service());
     let app = tauri::Builder::default()
         .plugin(tauri_plugin_updater::Builder::new().build())
@@ -70,15 +76,12 @@ pub fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     config::rule::init_rule(&RULE.get());
     app::tray::tray(&app_handle).expect("Error while initializing tray");
 
-    engine_start(
-        |app_path| {
-            if app_path.is_empty() || (is_exclude(&app_path) && !is_include(&app_path)) {
-                return None;
-            }
-            config::rule::get_merged_path(&app_path).or(Some(app_path.to_owned()))
-        },
-        engine_init(&PathBuf::from(data_dir())),
-    );
+    engine_start(PathBuf::from(data_dir()), |app_path| {
+        if app_path.is_empty() || (is_exclude(&app_path) && !is_include(&app_path)) {
+            return None;
+        }
+        config::rule::get_merged_path(&app_path).or(Some(app_path.to_owned()))
+    });
     handle_start_args(&app_handle);
     set_app_handle(app_handle);
     Ok(())

@@ -17,6 +17,7 @@ pub struct LocaleInfo {
     pub short_time_format: String,
 }
 
+#[allow(dead_code)]
 pub fn get_user_default_locale_info() -> LocaleInfo {
     let mut locale = LocaleInfo {
         name: "en-US".to_string(),
@@ -45,6 +46,7 @@ pub fn get_user_default_locale_info() -> LocaleInfo {
     locale
 }
 
+#[allow(dead_code)]
 fn get_user_default_locale_name() -> Option<String> {
     let mut locale_name_buffer = vec![0u16; MAX_LOCALE_NAME as usize];
     let len = unsafe { GetUserDefaultLocaleName(&mut locale_name_buffer) };
@@ -54,6 +56,7 @@ fn get_user_default_locale_name() -> Option<String> {
     Some(load_wstring_vec(&locale_name_buffer))
 }
 
+#[allow(dead_code)]
 fn get_locale_info(locale_name: &str, lc_type: u32) -> Option<String> {
     let locale_name_w: Vec<u16> = dump_wstring_vec(locale_name);
 

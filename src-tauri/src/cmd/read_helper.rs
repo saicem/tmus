@@ -1,6 +1,7 @@
 use std::cmp::{max, min};
+use tmus_engine::models::FocusRecord;
+use tmus_engine::storage;
 use tmus_engine::util::Timestamp;
-use tmus_engine::{tracking, FocusRecord};
 use tracing::debug;
 
 // For compute convenience, remember convert them back after compute.
@@ -26,7 +27,7 @@ pub fn read_by_timestamp(start_timestamp: Timestamp, end_timestamp: Timestamp) -
         start_timestamp <= end_timestamp,
         "start_timestamp must be less than or equal to end_timestamp"
     );
-    let rough_records = tracking::read_by_timestamp(start_timestamp, end_timestamp);
+    let rough_records = storage::read_by_timestamp(start_timestamp, end_timestamp);
     debug!(
         "Read rough records, start: {:?}, end: {:?}, len: {:?}",
         start_timestamp,
@@ -129,6 +130,10 @@ mod tests {
     }
 
     fn ms(focus_at: i64, blur_at: i64) -> FocusRecord {
-        FocusRecord::new(0, focus_at, blur_at)
+        FocusRecord {
+            id: 0,
+            focus_at,
+            blur_at,
+        }
     }
 }

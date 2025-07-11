@@ -5,7 +5,7 @@ use std::fmt::Debug;
 
 const DURATION_MAX: Timestamp = s_as_ms(u16::MAX as i64);
 
-pub type RecordByte = [u8; 8];
+pub(crate) type RecordByte = [u8; 8];
 
 /// - app_id: 2^16, 8192 applications support.
 /// - focus_at: 2^32, The time when the focus starts. About 136 year from unix epoch.
@@ -30,20 +30,12 @@ impl Debug for FocusRecord {
 }
 
 impl FocusRecord {
-    pub fn new(id: usize, focus_at: Timestamp, blur_at: Timestamp) -> FocusRecord {
-        FocusRecord {
-            id,
-            focus_at,
-            blur_at,
-        }
-    }
-
     pub fn duration(&self) -> Timestamp {
         self.blur_at - self.focus_at
     }
 
     /// Convert to bytes. Use [`Self::split_record`] method ensure that the duration value is safe.
-    pub fn unsafe_to_byte(&self) -> RecordByte {
+    pub(crate) fn unsafe_to_byte(&self) -> RecordByte {
         let mut ret = RecordByte::default();
         let id = self.id as u16;
         let focus_at = ms_as_s(self.focus_at) as u32;
@@ -52,6 +44,27 @@ impl FocusRecord {
         ret[2..4].copy_from_slice(&duration.to_le_bytes());
         ret[4..].copy_from_slice(&focus_at.to_le_bytes());
         ret
+    }
+
+    /// Split record into multiple records.
+    /// Ensure that the duration of each record is less than 0.76 day(The maximum time that can be represented)
+    /// and not span across one day which could make index easier.
+    /// TODO: Optimizing with iterators!
+    pub(crate) fn split_record(&self) -> Vec<FocusRecord> {
+        assert!(self.blur_at >= self.focus_at);
+        self.split_by_not_across_day()
+            .iter()
+            .map(|x| x.split_by_max_duration())
+            .flatten()
+            .collect()
+    }
+
+    fn new(id: usize, focus_at: Timestamp, blur_at: Timestamp) -> FocusRecord {
+        FocusRecord {
+            id,
+            focus_at,
+            blur_at,
+        }
     }
 
     fn from_byte(bytes: RecordByte) -> Self {
@@ -64,19 +77,6 @@ impl FocusRecord {
             focus_at,
             blur_at,
         }
-    }
-
-    /// Split record into multiple records.
-    /// Ensure that the duration of each record is less than 0.76 day(The maximum time that can be represented)
-    /// and not span across one day which could make index easier.
-    /// TODO: Optimizing with iterators
-    pub fn split_record(&self) -> Vec<FocusRecord> {
-        assert!(self.blur_at >= self.focus_at);
-        self.split_by_not_across_day()
-            .iter()
-            .map(|x| x.split_by_max_duration())
-            .flatten()
-            .collect()
     }
 
     fn split_by_max_duration(&self) -> Vec<FocusRecord> {

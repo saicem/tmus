@@ -66,7 +66,7 @@ impl Server {
     )]
     async fn query_duration_statistic(
         &self,
-        Parameters(mut payload): Parameters<DurationStatisticQuery>,
+        Parameters(payload): Parameters<DurationStatisticQuery>,
     ) -> Result<CallToolResult, McpError> {
         let start_ts = payload.start.timestamp_millis();
         let end_ts = payload.end.timestamp_millis();

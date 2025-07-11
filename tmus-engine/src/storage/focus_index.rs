@@ -1,4 +1,5 @@
 use super::models::CursorPosition;
+use crate::storage::FILE_SHARE_READ;
 use crate::util::{Timestamp, d_as_ms, now_day};
 use serde::{Deserialize, Serialize};
 use std::fs::{File, OpenOptions};
@@ -6,7 +7,6 @@ use std::io::{Read, Write};
 use std::os::windows::prelude::OpenOptionsExt;
 use std::path::PathBuf;
 use std::sync::{Mutex, OnceLock};
-use windows::Win32::Storage::FileSystem::FILE_SHARE_READ;
 
 type IndexUnitByte = [u8; 8];
 type IndexUnit = u64;
@@ -35,7 +35,7 @@ pub fn init(data_dir: &PathBuf) {
         .create(true)
         .append(true)
         .read(true)
-        .share_mode(FILE_SHARE_READ.0)
+        .share_mode(FILE_SHARE_READ)
         .open(data_dir.join("index.bin"))
         .expect("open index.bin failed.");
     let mut index = read_index(&mut file);
@@ -58,7 +58,7 @@ pub fn init(data_dir: &PathBuf) {
         .unwrap();
 }
 
-pub fn query_index(day: IndexUnit) -> CursorPosition {
+pub(crate) fn query_index(day: IndexUnit) -> CursorPosition {
     let state = get_state();
     let base_day = state.base_day;
     let size = state.record_index_vec.lock().unwrap().len();

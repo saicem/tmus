@@ -1,9 +1,20 @@
-mod config;
-mod core;
+pub mod async_runtime;
 pub mod models;
-mod monitor;
-pub mod tracking;
+pub mod storage;
+mod tracker;
 pub mod util;
 
-pub use core::{engine_init, engine_start};
-pub use models::focus_record::FocusRecord;
+use crate::storage::write_record;
+use std::path::PathBuf;
+use tracing::debug;
+
+pub fn engine_start(data_dir: PathBuf, filter: fn(&str) -> Option<String>) {
+    storage::init(&data_dir);
+    tracker::start_tracking(move |tracking_span_event| {
+        if let Some(_) = filter(&tracking_span_event.name) {
+            write_record(tracking_span_event);
+        } else {
+            debug!("App is filtered out. {:?}", tracking_span_event);
+        }
+    });
+}
