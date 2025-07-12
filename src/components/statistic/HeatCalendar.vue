@@ -1,12 +1,15 @@
 <script lang="ts" setup>
 import {
+  format,
   getDay,
   getDayOfYear,
   isLeapYear,
+  setDayOfYear,
   setMonth,
   startOfMonth,
   startOfYear,
 } from "date-fns"
+import { configStore } from "@/script/state.ts"
 
 const props = defineProps<{
   data: number[]
@@ -46,6 +49,14 @@ function showCell(week: number, dow: number) {
   const doy = dayOfYear(week, dow)
   return doy > 0 && doy <= daysInYearCount
 }
+
+function getCellDate(week: number, dow: number) {
+  console.log("getCellDate", week, dow, configStore.dateFormat)
+  return format(
+    setDayOfYear(new Date(), dayOfYear(week, dow)),
+    configStore.dateFormat
+  )
+}
 </script>
 
 <template>
@@ -79,7 +90,7 @@ function showCell(week: number, dow: number) {
         >
           <HeatCalendarCell
             v-if="showCell(week, dow)"
-            :day-of-year="dayOfYear(week, dow)"
+            :date="getCellDate(week, dow)"
             :duration="props.data[dayOfYear(week, dow)] ?? 0"
           />
         </td>

@@ -5,6 +5,8 @@ import { getAppConfig } from "@/script/cmd.ts"
 
 export type LanguageEnum = "en" | "zh"
 export type ThemeEnum = "dark" | "light"
+export type DateFormatEnum = "yyyy-MM-dd" | "yyyy/MM/dd"
+export type TimeFormatEnum = "H:mm:ss" | "HH:mm:ss"
 export type LanguageConfig = LanguageEnum | "system"
 export type ThemeConfig = ThemeEnum | "system"
 export type Config = {
@@ -12,8 +14,8 @@ export type Config = {
   theme: ThemeConfig
   filterUninstalledApp: boolean
   firstDayOfWeek: 0 | 1 | 2 | 3 | 4 | 5 | 6
-  dateFormat: string
-  timeFormat: string
+  dateFormat: DateFormatEnum
+  timeFormat: TimeFormatEnum
 }
 
 export const statisticStore = reactive<{
@@ -28,7 +30,7 @@ export const configStore = reactive<Config>({
   filterUninstalledApp: true,
   firstDayOfWeek: 0,
   dateFormat: "yyyy-MM-dd",
-  timeFormat: "HH:mm:ss",
+  timeFormat: "H:mm:ss",
 })
 
 export const passiveStore = reactive<{
@@ -83,7 +85,7 @@ watch(
 
 // --- listen ---
 export async function init() {
-  Object.assign(configStore, await getAppConfig())
+  assignConfig(await getAppConfig())
 
   await listen("menuItemClick", (e: { payload: string }) => {
     console.log("try menu click", e.payload)
@@ -119,4 +121,14 @@ function updateHtmlTheme(theme: ThemeEnum) {
       htmlEl.classList.add("light")
     }
   }
+}
+
+function assignConfig(config: Config) {
+  if (config.dateFormat != "yyyy-MM-dd" && config.dateFormat != "yyyy/MM/dd") {
+    config.dateFormat = "yyyy-MM-dd"
+  }
+  if (config.timeFormat != "H:mm:ss" && config.timeFormat != "HH:mm:ss") {
+    config.timeFormat = "H:mm:ss"
+  }
+  Object.assign(configStore, config)
 }

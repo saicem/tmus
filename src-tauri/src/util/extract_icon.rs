@@ -190,11 +190,15 @@ fn bgra_to_rgba(data: &mut [u8]) {
 #[cfg(test)]
 mod tests {
     use crate::util::extract_icon::extract_icon;
+    use std::env;
 
     #[test]
     fn test_convert_hicon_to_rgba_image() {
-        let exe_path = r"C:\Program Files (x86)\Microsoft\EdgeWebView\Application\131.0.2903.86\msedgewebview2.exe";
+        let exe_path = r"C:\Users\saice\AppData\Local\Programs\Microsoft VS Code\Code.exe";
         let image = extract_icon(exe_path).unwrap();
-        image.save("target/icon.png").unwrap();
+        let mut path = env::temp_dir();
+        path.push("icon.png");
+        assert!(image.save(&path).is_ok());
+        println!("Saved image to {}", path.display())
     }
 }

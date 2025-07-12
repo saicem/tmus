@@ -7,11 +7,15 @@ use crate::models::{CursorPosition, EngineMeta, FocusRecord};
 use crate::storage::focus_app::get_id_by_path;
 use crate::tracker::TrackingSpanEvent;
 use crate::util::{Timestamp, d_as_ms, ms_as_d, s_as_ms};
+use std::fs;
 use std::path::PathBuf;
 
 const FILE_SHARE_READ: u32 = 1u32;
 
 pub fn init(data_dir: &PathBuf) {
+    if !data_dir.is_dir() {
+        fs::create_dir_all(&data_dir).expect("create date directory failed.");
+    }
     focus_app::init(data_dir);
     focus_index::init(data_dir);
     focus_record::init(data_dir);

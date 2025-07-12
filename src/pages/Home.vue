@@ -5,6 +5,7 @@ import up from "@/assets/general-card/up.svg"
 import { i18n } from "@/script/i18n.ts"
 import { formatDuration, MILLISECONDS_PER_DAY } from "@/script/time-util.ts"
 import { getDurationById, queryDurationStatistic } from "@/script/cmd.ts"
+import { endOfYear, startOfDay, startOfYear } from "date-fns"
 
 const yearData = ref<number[]>([])
 const appCount = ref("0")

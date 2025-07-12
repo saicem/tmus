@@ -8,8 +8,8 @@ use crate::storage::write_record;
 use std::path::PathBuf;
 use tracing::debug;
 
-pub fn engine_start(data_dir: PathBuf, filter: fn(&str) -> Option<String>) {
-    storage::init(&data_dir);
+pub fn engine_start(data_dir: &PathBuf, filter: fn(&str) -> Option<String>) {
+    storage::init(data_dir);
     tracker::start_tracking(move |tracking_span_event| {
         if let Some(_) = filter(&tracking_span_event.name) {
             write_record(tracking_span_event);

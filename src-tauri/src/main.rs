@@ -7,9 +7,9 @@ use crate::app::mcp::start_mcp_service;
 use crate::app::update;
 use crate::config::rule::{is_exclude, is_include};
 use crate::config::{get_app_config, set_app_config, RULE};
-use config::{get_app_rule, get_app_tag, set_app_rule, set_app_tag};
+use config::{get_app_rule, set_app_rule};
+use std::env;
 use std::path::PathBuf;
-use std::{env, fs};
 use tauri::{AppHandle, Manager, RunEvent};
 use tauri_plugin_autostart::MacosLauncher;
 use tmus_engine::{async_runtime, engine_start};
@@ -28,9 +28,6 @@ async fn main() {
         .with_max_level(tracing::Level::DEBUG)
         .init();
     util::force_singleton().await;
-    // tauri::async_runtime::block_on(async {
-    //     util::force_singleton().await;
-    // });
     tauri::async_runtime::spawn(start_mcp_service());
     let app = tauri::Builder::default()
         .plugin(tauri_plugin_updater::Builder::new().build())
@@ -48,8 +45,6 @@ async fn main() {
             set_app_config,
             get_app_rule,
             set_app_rule,
-            get_app_tag,
-            set_app_tag,
             cmd::show_in_folder,
             cmd::get_tmus_meta,
             cmd::focus_index_record,
@@ -69,14 +64,14 @@ async fn main() {
 
 pub fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     app.manage(update::PendingUpdate(Mutex::new(None)));
+
     let app_handle = app.app_handle().clone();
 
-    init_data_dir();
     config::init();
     config::rule::init_rule(&RULE.get());
     app::tray::tray(&app_handle).expect("Error while initializing tray");
 
-    engine_start(PathBuf::from(data_dir()), |app_path| {
+    engine_start(data_dir(), |app_path| {
         if app_path.is_empty() || (is_exclude(&app_path) && !is_include(&app_path)) {
             return None;
         }
@@ -100,12 +95,5 @@ fn handle_start_args(app_handle: &AppHandle) {
     let no_window = env::args().any(|x| x == "nw");
     if !no_window {
         app::focus_main_window(app_handle);
-    }
-}
-
-pub fn init_data_dir() {
-    let data_dir = PathBuf::from(data_dir());
-    if !data_dir.is_dir() {
-        fs::create_dir_all(data_dir.clone()).expect("create date directory failed.");
     }
 }

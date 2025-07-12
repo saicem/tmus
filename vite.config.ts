@@ -12,7 +12,7 @@ export default defineConfig(async () => ({
   plugins: [
     vue(),
     AutoImport({
-      imports: ["vue", "date-fns", "@vueuse/core"],
+      imports: ["vue", "@vueuse/core"],
       dirs: ["./src/script/util.ts"],
       resolvers: [ElementPlusResolver()],
     }),

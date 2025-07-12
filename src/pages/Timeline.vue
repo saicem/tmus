@@ -7,7 +7,7 @@ import {
 } from "@/script/cmd.ts"
 import { configStore } from "@/script/state.ts"
 import { MILLISECONDS_PER_DAY } from "@/script/time-util.ts"
-import { format } from "date-fns"
+import { format, isBefore, startOfDay, subDays, subWeeks } from "date-fns"
 
 const scrollDisable = computed(() => loading.value || noMore.value)
 const noMore = ref(false)
