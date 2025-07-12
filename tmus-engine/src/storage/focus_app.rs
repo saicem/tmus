@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use std::fs::{File, OpenOptions};
 use std::io::{Read, Write};
 use std::os::windows::prelude::OpenOptionsExt;
-use std::path::PathBuf;
+use std::path::Path;
 use std::sync::{Mutex, OnceLock};
 use tracing::info;
 
@@ -21,13 +21,13 @@ fn get_state<'a>() -> &'a State {
     STATE.get().unwrap()
 }
 
-pub fn init(data_dir: &PathBuf) {
+pub fn init(data_dir: impl AsRef<Path>) {
     let mut file = OpenOptions::new()
         .create(true)
         .append(true)
         .read(true)
         .share_mode(FILE_SHARE_READ)
-        .open(data_dir.join("app.txt"))
+        .open(data_dir.as_ref().join("app.txt"))
         .expect("open app.txt failed.");
     let id_path_map = read_apps(&mut file);
     let mut app_count = 0;

@@ -24,8 +24,8 @@ fn get_state<'a>() -> MutexGuard<'a, State> {
     STATE.get().unwrap().lock().unwrap()
 }
 
-pub fn init(data_dir: &PathBuf) {
-    let file_path = data_dir.join("record.bin");
+pub fn init(data_dir: impl AsRef<Path>) {
+    let file_path = data_dir.as_ref().join("record.bin");
     let mmap = map_file(&file_path, None);
     let size = mmap.len() / 8 * 8;
     let search_start = size.saturating_sub(4 * 1024);

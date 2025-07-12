@@ -5,7 +5,7 @@ use crate::config::loader::Loadable;
 
 pub mod config;
 pub mod i18n;
-mod loader;
+pub mod loader;
 mod radix;
 pub mod rule;
 

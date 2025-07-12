@@ -8,17 +8,17 @@ use crate::storage::focus_app::get_id_by_path;
 use crate::tracker::TrackingSpanEvent;
 use crate::util::{Timestamp, d_as_ms, ms_as_d, s_as_ms};
 use std::fs;
-use std::path::PathBuf;
+use std::path::Path;
 
 const FILE_SHARE_READ: u32 = 1u32;
 
-pub fn init(data_dir: &PathBuf) {
-    if !data_dir.is_dir() {
+pub fn init(data_dir: impl AsRef<Path>) {
+    if !data_dir.as_ref().is_dir() {
         fs::create_dir_all(&data_dir).expect("create date directory failed.");
     }
-    focus_app::init(data_dir);
-    focus_index::init(data_dir);
-    focus_record::init(data_dir);
+    focus_app::init(&data_dir);
+    focus_index::init(&data_dir);
+    focus_record::init(&data_dir);
 }
 
 /// Read records. Include records which blur_at >= start and focus_at <= end,

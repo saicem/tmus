@@ -5,10 +5,10 @@ mod tracker;
 pub mod util;
 
 use crate::storage::write_record;
-use std::path::PathBuf;
+use std::path::Path;
 use tracing::debug;
 
-pub fn engine_start(data_dir: &PathBuf, filter: fn(&str) -> Option<String>) {
+pub fn engine_start(data_dir: impl AsRef<Path>, filter: fn(&str) -> Option<String>) {
     storage::init(data_dir);
     tracker::start_tracking(move |tracking_span_event| {
         if let Some(_) = filter(&tracking_span_event.name) {

@@ -22,3 +22,8 @@ pub fn rule_file_path() -> &'static PathBuf {
     static RULE_FILE_PATH: OnceLock<PathBuf> = OnceLock::new();
     RULE_FILE_PATH.get_or_init(|| data_dir().join("rule.json"))
 }
+
+pub fn app_detail_cache_path() -> &'static PathBuf {
+    static APP_DETAIL_CACHE_PATH: OnceLock<PathBuf> = OnceLock::new();
+    APP_DETAIL_CACHE_PATH.get_or_init(|| cache_dir().join("app_detail.json"))
+}

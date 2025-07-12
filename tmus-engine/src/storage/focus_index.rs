@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use std::fs::{File, OpenOptions};
 use std::io::{Read, Write};
 use std::os::windows::prelude::OpenOptionsExt;
-use std::path::PathBuf;
+use std::path::Path;
 use std::sync::{Mutex, OnceLock};
 
 type IndexUnitByte = [u8; 8];
@@ -30,13 +30,13 @@ fn get_state<'a>() -> &'a State {
     STATE.get().unwrap()
 }
 
-pub fn init(data_dir: &PathBuf) {
+pub fn init(data_dir: impl AsRef<Path>) {
     let mut file = OpenOptions::new()
         .create(true)
         .append(true)
         .read(true)
         .share_mode(FILE_SHARE_READ)
-        .open(data_dir.join("index.bin"))
+        .open(data_dir.as_ref().join("index.bin"))
         .expect("open index.bin failed.");
     let mut index = read_index(&mut file);
     let base_day = if index.is_empty() {
