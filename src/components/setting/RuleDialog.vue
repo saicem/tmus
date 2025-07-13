@@ -2,6 +2,7 @@
 import { getAppRule, setAppRule } from "@/script/cmd.ts"
 import { RuleConfig } from "@/script/models.ts"
 import { i18n } from "@/script/i18n.ts"
+import { ElMessageBox } from "element-plus"
 
 const rule = ref<RuleConfig>({
   exclude: [],
