@@ -1,8 +1,5 @@
-use crate::app::constant::config_file_path;
 use crate::app::window::focus_main_window;
-use crate::config::config::{LangConfig, ThemeConfig};
-use crate::config::i18n::I18n;
-use crate::config::CONFIG;
+use crate::state::{get_config, I18n, LangConfig, ThemeConfig};
 use std::error::Error;
 use std::sync::LazyLock;
 use tauri::menu::{CheckMenuItem, Menu, MenuBuilder, MenuEvent, MenuItemBuilder, SubmenuBuilder};
@@ -30,13 +27,14 @@ pub fn refresh_tray_menu(app_handle: &AppHandle) {
 }
 
 fn build_menu(app_handle: &AppHandle) -> Result<Menu<Wry>, Box<dyn Error>> {
-    let config = CONFIG.get();
-    let lang_menu = SubmenuBuilder::new(app_handle, I18n::get().language)
+    let config = { get_config().lock().unwrap().clone() };
+    let i18n = I18n::get(&config.lang);
+    let lang_menu = SubmenuBuilder::new(app_handle, i18n.language)
         .items(&[
             &CheckMenuItem::with_id(
                 app_handle,
                 "lang_system",
-                I18n::get().language_system,
+                i18n.language_system,
                 true,
                 config.lang == LangConfig::System,
                 None::<&str>,
@@ -59,12 +57,12 @@ fn build_menu(app_handle: &AppHandle) -> Result<Menu<Wry>, Box<dyn Error>> {
             )?,
         ])
         .build()?;
-    let theme_menu = SubmenuBuilder::new(app_handle, I18n::get().theme)
+    let theme_menu = SubmenuBuilder::new(app_handle, i18n.theme)
         .items(&[
             &CheckMenuItem::with_id(
                 app_handle,
                 "theme_system",
-                I18n::get().theme_system,
+                i18n.theme_system,
                 true,
                 config.theme == ThemeConfig::System,
                 None::<&str>,
@@ -72,7 +70,7 @@ fn build_menu(app_handle: &AppHandle) -> Result<Menu<Wry>, Box<dyn Error>> {
             &CheckMenuItem::with_id(
                 app_handle,
                 "theme_light",
-                I18n::get().theme_light,
+                i18n.theme_light,
                 true,
                 config.theme == ThemeConfig::Light,
                 None::<&str>,
@@ -80,7 +78,7 @@ fn build_menu(app_handle: &AppHandle) -> Result<Menu<Wry>, Box<dyn Error>> {
             &CheckMenuItem::with_id(
                 app_handle,
                 "theme_dark",
-                I18n::get().theme_dark,
+                i18n.theme_dark,
                 true,
                 config.theme == ThemeConfig::Dark,
                 None::<&str>,
@@ -91,7 +89,7 @@ fn build_menu(app_handle: &AppHandle) -> Result<Menu<Wry>, Box<dyn Error>> {
         .items(&[
             &lang_menu,
             &theme_menu,
-            &MenuItemBuilder::with_id("quit", I18n::get().exit).build(app_handle)?,
+            &MenuItemBuilder::with_id("quit", i18n.exit).build(app_handle)?,
         ])
         .build()?;
     Ok(menu)
@@ -116,28 +114,30 @@ fn on_menu_event(app_handle: &AppHandle, event: MenuEvent) {
             std::process::exit(0);
         }
         _ => {
-            match event_id {
-                "lang_en" => {
-                    CONFIG.set_field(|x| x.lang = LangConfig::En);
+            {
+                let mut config = get_config().lock().unwrap();
+                match event_id {
+                    "lang_en" => {
+                        config.lang = LangConfig::En;
+                    }
+                    "lang_zh" => {
+                        config.lang = LangConfig::Zh;
+                    }
+                    "lang_system" => {
+                        config.lang = LangConfig::System;
+                    }
+                    "theme_system" => {
+                        config.theme = ThemeConfig::System;
+                    }
+                    "theme_light" => {
+                        config.theme = ThemeConfig::Light;
+                    }
+                    "theme_dark" => {
+                        config.theme = ThemeConfig::Dark;
+                    }
+                    _ => {}
                 }
-                "lang_zh" => {
-                    CONFIG.set_field(|x| x.lang = LangConfig::Zh);
-                }
-                "lang_system" => {
-                    CONFIG.set_field(|x| x.lang = LangConfig::System);
-                }
-                "theme_system" => {
-                    CONFIG.set_field(|x| x.theme = ThemeConfig::System);
-                }
-                "theme_light" => {
-                    CONFIG.set_field(|x| x.theme = ThemeConfig::Light);
-                }
-                "theme_dark" => {
-                    CONFIG.set_field(|x| x.theme = ThemeConfig::Dark);
-                }
-                _ => {}
             }
-            CONFIG.dump(config_file_path());
             refresh_tray_menu(app_handle);
         }
     }

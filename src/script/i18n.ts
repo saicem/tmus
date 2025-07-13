@@ -4,6 +4,8 @@ type I18nMessageType = {
   common: {
     cancel: string
     ok: string
+    start: string
+    stop: string
   }
   navigateMenu: {
     home: string
@@ -65,6 +67,10 @@ type I18nMessageType = {
     currentVersionIsAlreadyTheLatestVersion: string
     updateAvailable: (version: string, currentVersion: string) => string
     versionUpdateTitle: string
+    autoCheckUpdate: string
+    autoStartMcpServer: string
+    mcpServer: string
+    usePort: string
   }
   detailPage: {
     icon: string
@@ -105,6 +111,8 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
     common: {
       cancel: "Cancel",
       ok: "OK",
+      start: "Start",
+      stop: "Stop",
     },
     navigateMenu: {
       home: "Home",
@@ -177,6 +185,10 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
       updateAvailable: (version, currentVersion) =>
         `Update available: ${version} (current: ${currentVersion})`,
       versionUpdateTitle: "Version Update",
+      autoCheckUpdate: "Auto Check Update",
+      autoStartMcpServer: "Auto Start MCP Server",
+      mcpServer: "MCP Server",
+      usePort: "Use Port",
     },
     detailPage: {
       icon: "Icon",
@@ -216,6 +228,8 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
     common: {
       cancel: "取消",
       ok: "确定",
+      start: "启动",
+      stop: "停止",
     },
     navigateMenu: {
       home: "主页",
@@ -287,6 +301,10 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
       updateAvailable: (version, currentVersion) =>
         `有新版本 ${version}，当前版本为 ${currentVersion}，是否更新？`,
       versionUpdateTitle: "版本更新",
+      autoCheckUpdate: "自动检查更新",
+      autoStartMcpServer: "自动启动 MCP 服务器",
+      mcpServer: "MCP 服务器",
+      usePort: "使用端口",
     },
     detailPage: {
       icon: "图标",

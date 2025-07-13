@@ -109,3 +109,8 @@ export interface AppDurationAreaModelItem {
   index: string
   value: number
 }
+
+export interface McpServerStatus {
+  running: boolean
+  port?: number
+}

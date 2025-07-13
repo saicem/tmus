@@ -20,8 +20,8 @@ pub struct StructRequest {
 }
 
 #[derive(Clone)]
-pub struct Server {
-    tool_router: ToolRouter<Server>,
+pub struct McpService {
+    tool_router: ToolRouter<McpService>,
 }
 
 #[derive(Serialize, Deserialize, schemars::JsonSchema)]
@@ -36,7 +36,7 @@ pub struct DurationStatisticQuery {
 }
 
 #[tool_router]
-impl Server {
+impl McpService {
     #[allow(dead_code)]
     pub fn new() -> Self {
         Self {
@@ -98,7 +98,7 @@ impl Server {
 }
 
 #[tool_handler]
-impl ServerHandler for Server {
+impl ServerHandler for McpService {
     fn get_info(&self) -> ServerInfo {
         ServerInfo {
             protocol_version: ProtocolVersion::V_2024_11_05,
@@ -120,7 +120,7 @@ impl ServerHandler for Server {
         if let Some(http_request_part) = context.extensions.get::<axum::http::request::Parts>() {
             let initialize_headers = &http_request_part.headers;
             let initialize_uri = &http_request_part.uri;
-            tracing::info!(?initialize_headers, %initialize_uri, "initialize from http server");
+            tracing::info!(?initialize_headers, %initialize_uri, "Initialize from http server");
         }
         Ok(self.get_info())
     }

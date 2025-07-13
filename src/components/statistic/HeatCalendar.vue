@@ -51,7 +51,6 @@ function showCell(week: number, dow: number) {
 }
 
 function getCellDate(week: number, dow: number) {
-  console.log("getCellDate", week, dow, configStore.dateFormat)
   return format(
     setDayOfYear(new Date(), dayOfYear(week, dow)),
     configStore.dateFormat

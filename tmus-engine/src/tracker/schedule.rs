@@ -56,6 +56,7 @@ pub async fn handle_window_event<F>(
 
         // Consider computer is sleep.
         if this_recv.focus_at - span_last_recv_at > config.invalid_interval_bound {
+            debug!("[TrackingSpan] Invalid interval bound.");
             on_span_event(TrackingSpanEvent {
                 name: span_first_recv.app_path.to_string(),
                 focus_at: span_first_recv.focus_at,

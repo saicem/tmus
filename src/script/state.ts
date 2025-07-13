@@ -1,7 +1,8 @@
 import { listen } from "@tauri-apps/api/event"
 import { isEnabled } from "@tauri-apps/plugin-autostart"
 import { locale } from "@tauri-apps/plugin-os"
-import { getAppConfig } from "@/script/cmd.ts"
+import { getAppConfig, setAppConfig } from "@/script/cmd.ts"
+import { UpdateMetadata } from "@/script/models.ts"
 
 export type LanguageEnum = "en" | "zh"
 export type ThemeEnum = "dark" | "light"
@@ -16,7 +17,18 @@ export type Config = {
   firstDayOfWeek: 0 | 1 | 2 | 3 | 4 | 5 | 6
   dateFormat: DateFormatEnum
   timeFormat: TimeFormatEnum
+  autoCheckUpdate: boolean
+  autoStartMcpServer: boolean
+  mcpServerPort: number
 }
+
+export const updateDialogStore = reactive<{
+  show: boolean
+  meta: UpdateMetadata | null
+}>({
+  show: false,
+  meta: null,
+})
 
 export const statisticStore = reactive<{
   statisticType: "Progress" | "Card"
@@ -31,16 +43,25 @@ export const configStore = reactive<Config>({
   firstDayOfWeek: 0,
   dateFormat: "yyyy-MM-dd",
   timeFormat: "H:mm:ss",
+  autoCheckUpdate: true,
+  autoStartMcpServer: false,
+  mcpServerPort: 2371,
 })
 
 export const passiveStore = reactive<{
   autoStart: boolean
+  mcpServerRunning: boolean
   lang: LanguageEnum
   theme: ThemeEnum
 }>({
   autoStart: false,
+  mcpServerRunning: true,
   lang: "en",
   theme: "light",
+})
+
+watch(configStore, async (config) => {
+  await setAppConfig(config)
 })
 
 watch(

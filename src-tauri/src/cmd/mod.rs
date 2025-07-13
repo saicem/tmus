@@ -1,3 +1,4 @@
+use crate::app::constant::{cache_dir, data_dir};
 use crate::cmd::read_helper::read_by_timestamp;
 use crate::util;
 use serde::{Deserialize, Serialize};
@@ -28,7 +29,7 @@ pub fn get_raw_record(start_timestamp: Timestamp, end_timestamp: Timestamp) -> V
 #[tauri::command]
 #[tracing::instrument]
 pub async fn show_in_folder(path: String) {
-    util::show_in_folder(path)
+    util::show_in_folder(&path)
 }
 
 #[tauri::command]

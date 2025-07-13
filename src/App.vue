@@ -2,10 +2,22 @@
 import { i18n } from "@/script/i18n.ts"
 import zhCn from "element-plus/es/locale/lang/zh-cn"
 import en from "element-plus/es/locale/lang/en"
-import { passiveStore } from "@/script/state.ts"
+import { configStore, passiveStore, updateDialogStore } from "@/script/state.ts"
+import { fetchUpdate } from "@/script/cmd.ts"
+
+onMounted(async () => {
+  if (configStore.autoCheckUpdate) {
+    let update = await fetchUpdate()
+    if (update != null) {
+      updateDialogStore.meta = update
+      updateDialogStore.show = true
+    }
+  }
+})
 </script>
 
 <template>
+  <update-dialog />
   <el-config-provider :locale="passiveStore.lang === 'en' ? en : zhCn">
     <el-container :class="passiveStore.theme">
       <el-header>

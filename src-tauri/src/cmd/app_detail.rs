@@ -1,7 +1,6 @@
 use crate::app::constant::app_detail_cache_path;
-use crate::config::loader::{dump, load};
 use crate::util;
-use crate::util::FileVersion;
+use crate::util::{dump_json, load_json, FileVersion};
 use base64::engine::general_purpose;
 use base64::Engine;
 use image::ImageFormat;
@@ -27,7 +26,7 @@ pub struct FileDetail {
 pub fn get_app_detail_cache<'a>() -> &'a Mutex<HashMap<usize, FileDetail>> {
     static APP_DETAIL_CACHE: OnceLock<Mutex<HashMap<usize, FileDetail>>> = OnceLock::new();
     APP_DETAIL_CACHE.get_or_init(|| {
-        let details: Vec<FileDetail> = load(app_detail_cache_path());
+        let details: Vec<FileDetail> = load_json(app_detail_cache_path());
         Mutex::new(
             details
                 .into_iter()
@@ -44,7 +43,7 @@ pub async fn update_app_detail_cache(
     for detail in details {
         app_detail_map.insert(detail.id, detail);
     }
-    dump(
+    dump_json(
         &app_detail_map
             .values()
             .map(|x| x.to_owned())
@@ -68,6 +67,9 @@ pub async fn get_app_detail(id: usize) -> FileDetail {
 pub async fn get_all_app_detail() -> Vec<FileDetail> {
     let app_vec = focus_app::get_all_app();
     let mut app_detail_cache = get_app_detail_cache().lock().await;
+    app_detail_cache.values_mut().for_each(|detail| {
+        detail.exist = Path::new(&detail.path).exists();
+    });
     let not_exist_app_detail: Vec<FileDetail> = app_vec
         .iter()
         .enumerate()

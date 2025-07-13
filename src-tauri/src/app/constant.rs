@@ -15,7 +15,7 @@ pub fn cache_dir() -> &'static PathBuf {
 
 pub fn config_file_path() -> &'static PathBuf {
     static CONFIG_FILE_PATH: OnceLock<PathBuf> = OnceLock::new();
-    CONFIG_FILE_PATH.get_or_init(|| data_dir().join("config.json"))
+    CONFIG_FILE_PATH.get_or_init(|| data_dir().join("state.json"))
 }
 
 pub fn rule_file_path() -> &'static PathBuf {

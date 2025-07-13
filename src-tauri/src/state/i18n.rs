@@ -1,5 +1,4 @@
-use crate::config::config::LangConfig;
-use crate::config::CONFIG;
+use crate::state::config::LangConfig;
 use tauri_plugin_os::locale;
 
 #[derive(Debug, Clone)]
@@ -35,8 +34,8 @@ static LANG_ZH: I18n = I18n {
 
 /// IETF BCP-47 language tag
 impl I18n {
-    pub fn get() -> &'static I18n {
-        match CONFIG.get().lang {
+    pub fn get(lang: &LangConfig) -> &'static I18n {
+        match lang {
             LangConfig::Zh => &LANG_ZH,
             LangConfig::En => &LANG_EN,
             LangConfig::System => match locale() {

@@ -76,7 +76,7 @@ pub fn get_all_app() -> Vec<String> {
 
 /// Returns the app id which was written.
 fn write_app(name: &str) -> AppId {
-    info!("new app found, write app: {}", name);
+    info!("New app found, write app: {}", name);
     let state = get_state();
     let mut id_name_map = state.id_path_map.lock().unwrap();
     let mut name_id_map = state.path_id_map.lock().unwrap();
