@@ -11,12 +11,14 @@ use rmcp::{
 };
 use serde::{Deserialize, Serialize};
 use std::future::Future;
+use tmus_engine::storage::focus_app;
 use tmus_engine::util::Timestamp;
 
-#[derive(Debug, serde::Deserialize, schemars::JsonSchema)]
-pub struct StructRequest {
-    pub a: i32,
-    pub b: i32,
+#[derive(Debug, serde::Serialize, serde::Deserialize, schemars::JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct App {
+    pub id: usize,
+    pub path: String,
 }
 
 #[derive(Clone)]
@@ -30,9 +32,7 @@ pub struct DurationStatisticQuery {
     start: DateTime<Utc>,
     end: DateTime<Utc>,
     merge_apps: bool,
-    // app_ids: Option<HashSet<AppId>>,
     granularity: Timestamp,
-    // cycle: Option<i64>,
 }
 
 #[tool_router]
@@ -52,17 +52,10 @@ impl McpService {
     * `end` - The end time (inclusive) for filtering focus records, use ISO 8601 format.
     * `merge_apps` - Whether to merge data across all applications into a single result set.
       Set this to `true` if application-specific details are not required.
-    * `app_ids` - An optional list of application IDs to filter by.
-      If only specific applications are of interest, provide their IDs here.
     * `granularity` - The time interval (in milliseconds) used to split records for aggregation.
       For example:
       - Use `86400000` to aggregate by day.
-      - Use `3600000` to aggregate by hour.
-    * `cycle` - An optional cycle length in units of `granularity`.
-      This allows grouping intervals into repeating cycles.
-      For example:
-      - To analyze how much time is spent each hour within a day, use `granularity=3600000` and `cycle=24`.
-      - To analyze how much time is spent each day within a week, use `granularity=86400000` and `cycle=7`."
+      - Use `3600000` to aggregate by hour."
     )]
     async fn query_duration_statistic(
         &self,
@@ -78,10 +71,8 @@ impl McpService {
                     end_ts,
                     payload.merge_apps,
                     None,
-                    // payload.app_ids,
                     payload.granularity,
                     None,
-                    // payload.cycle,
                 )
                 .await,
             )
@@ -89,10 +80,28 @@ impl McpService {
         )]))
     }
 
-    #[tool(description = "Get the current system local time and output it in ISO-8601 format.")]
+    #[tool(
+        description = "Get current system local time with timezone and output it in ISO-8601 format."
+    )]
     async fn get_current_time(&self) -> Result<CallToolResult, McpError> {
         Ok(CallToolResult::success(vec![Content::text(
             Local::now().to_rfc3339(),
+        )]))
+    }
+
+    #[tool(description = "Get all app with `id` and `path`.\
+    Id is same with the result of `query_duration_statistic`.\
+    When you need get the exact app name from `query_duration_statistic`.\
+    Match the id and the extract name from path.")]
+    async fn get_all_app(&self) -> Result<CallToolResult, McpError> {
+        let app_vec = focus_app::get_all_app();
+        let result = app_vec
+            .into_iter()
+            .enumerate()
+            .map(|(id, path)| App { id, path })
+            .collect::<Vec<_>>();
+        Ok(CallToolResult::success(vec![Content::text(
+            serde_json::to_string(&result).unwrap(),
         )]))
     }
 }

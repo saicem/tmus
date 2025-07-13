@@ -7,6 +7,7 @@ use tokio_util::sync::CancellationToken;
 use tracing::{error, info};
 
 #[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct McpServerState {
     port: u16,
     #[serde(skip)]
@@ -14,6 +15,7 @@ pub struct McpServerState {
 }
 
 #[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct McpServerStatus {
     running: bool,
     port: Option<u16>,
