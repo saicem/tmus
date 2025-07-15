@@ -53,6 +53,7 @@ impl Default for Rule {
     }
 }
 
+#[derive(Debug)]
 pub struct RuleRadixTree {
     exclude: RadixTree<()>,
     include: RadixTree<()>,
@@ -74,9 +75,9 @@ impl RuleRadixTree {
             merge.insert(&expand_path(&item.path), Some(expand_path(&item.to_path)));
         }
         Self {
-            exclude: RadixTree::new(),
-            include: RadixTree::new(),
-            merge: RadixTree::new(),
+            exclude,
+            include,
+            merge,
         }
     }
 
