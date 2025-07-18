@@ -12,6 +12,7 @@ pub fn tray(app_handle: &AppHandle) -> Result<(), Box<dyn Error>> {
     let menu = build_menu(app_handle)?;
     let tray = app_handle.tray_by_id(&*TRAY_ICON_ID).unwrap();
     tray.set_menu(Some(menu))?;
+    tray.set_show_menu_on_left_click(false)?;
     tray.on_tray_icon_event(on_tray_icon_event);
     tray.on_menu_event(on_menu_event);
     Ok(())
