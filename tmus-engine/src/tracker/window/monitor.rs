@@ -65,9 +65,13 @@ unsafe extern "system" fn on_foreground_changed(
     _: u32,
 ) {
     debug!("On foreground changed {:?}", hwnd);
-    let process_path = get_process_path_from_hwnd(&hwnd).expect("Failed to get process path");
-    handle().spawn(send_focus_event(process_path, now_timestamp()));
-    // handle().block_on(send_focus_event(process_path, now_timestamp()))
+    let process_path = get_process_path_from_hwnd(&hwnd);
+    if let Ok(process_path) = process_path {
+        handle().spawn(send_focus_event(process_path, now_timestamp()));
+    } else {
+        debug!("Failed to get process path: {:?}", process_path);
+        return;
+    }
 }
 
 async fn send_focus_event(process_path: String, focus_at: Timestamp) {
