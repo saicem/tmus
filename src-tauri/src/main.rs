@@ -1,14 +1,13 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use crate::app::constant::{data_dir, rule_file_path};
+use crate::app::constant::data_dir;
 use crate::app::global::set_app_handle;
 use crate::app::mcp::start_mcp_server;
 use crate::app::update;
 use crate::state::{get_app_config, get_config, get_rule_radix_tree, set_app_config};
 use state::{get_app_rule, set_app_rule};
 use std::env;
-use tauri::path::BaseDirectory::Config;
 use tauri::{AppHandle, Manager, RunEvent};
 use tauri_plugin_autostart::MacosLauncher;
 use tmus_engine::{async_runtime, engine_start};

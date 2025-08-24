@@ -2,7 +2,7 @@
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "Tmus",
   "mainBinaryName": "Tmus",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "identifier": "io.github.saicem.tmus",
   "build": {
     "beforeDevCommand": "pnpm dev",
