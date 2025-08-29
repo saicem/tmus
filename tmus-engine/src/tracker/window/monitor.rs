@@ -5,7 +5,7 @@ use std::sync::OnceLock;
 use std::time::Duration;
 use tokio::sync::mpsc::Sender;
 use tokio::time;
-use tracing::{debug, error, info};
+use tracing::{debug, error, info, instrument};
 use windows::Win32::Foundation::*;
 use windows::Win32::System::Threading::*;
 use windows::Win32::UI::Accessibility::HWINEVENTHOOK;
@@ -25,13 +25,16 @@ pub fn set_window_tracker(sender: Sender<WindowFocusEvent>) {
     ));
 }
 
+#[instrument]
 async fn loop_get_current_window(interval: Duration) {
     let mut interval = time::interval(interval);
     loop {
         interval.tick().await;
-        let process_path = get_process_path_from_hwnd(&unsafe { GetForegroundWindow() })
-            .expect("Failed to get process path");
-        send_focus_event(process_path, now_timestamp()).await;
+        let process_path = get_process_path_from_hwnd(&unsafe { GetForegroundWindow() });
+        match process_path {
+            Ok(process_path) => send_focus_event(process_path, now_timestamp()).await,
+            Err(err) => error!("Failed to get process path: {}", err),
+        }
     }
 }
 

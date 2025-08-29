@@ -21,7 +21,7 @@ pub struct WindowTrackerConfig {
 impl Default for WindowTrackerConfig {
     fn default() -> Self {
         Self {
-            loop_get_current_window_interval: Duration::from_secs(60),
+            loop_get_current_window_interval: Duration::from_secs(30),
         }
     }
 }
