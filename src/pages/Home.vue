@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import app from "@/assets/general-card/app.svg"
 import usage from "@/assets/general-card/usage.svg"
-import up from "@/assets/general-card/up.svg"
 import { i18n } from "@/script/i18n.ts"
 import { formatDuration, MILLISECONDS_PER_DAY } from "@/script/time-util.ts"
 import { getDurationById, queryDurationStatistic } from "@/script/cmd.ts"
@@ -10,7 +9,6 @@ import { endOfYear, startOfDay, startOfYear } from "date-fns"
 const yearData = ref<number[]>([])
 const appCount = ref("0")
 const totalUse = ref("0")
-const mostUse = ref("0")
 onMounted(async () => {
   await getYearData()
   await getDayData()
@@ -48,9 +46,6 @@ async function getDayData() {
   totalUse.value = formatDuration(
     records.reduce((acc, cur) => acc + cur.duration, 0)
   )
-  mostUse.value = formatDuration(
-    records.reduce((acc, cur) => (acc > cur.duration ? acc : cur.duration), 0)
-  )
 }
 </script>
 
@@ -67,11 +62,6 @@ async function getDayData() {
         :icon="usage"
         :illustration="i18n.homePage.totalUse"
       />
-      <general-card
-        :content="mostUse"
-        :icon="up"
-        :illustration="i18n.homePage.mostUse"
-      />
     </div>
     <el-card class="heat-calendar-card">
       <heat-calendar v-if="yearData" :data="yearData" />
@@ -84,7 +74,7 @@ async function getDayData() {
 </template>
 
 <style scoped>
-@media (max-width: 1100px) {
+@media (max-width: 1099px) {
   .heat-calendar-card {
     display: none;
   }

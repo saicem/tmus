@@ -53,8 +53,8 @@
       {
         "label": "main",
         "title": "Tmus",
-        "width": 1200,
-        "height": 680,
+        "width": 1100,
+        "height": 780,
         "minHeight": 480,
         "minWidth": 860,
         "decorations": false,

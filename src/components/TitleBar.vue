@@ -5,7 +5,7 @@ const appWindow = getCurrentWebviewWindow()
 </script>
 
 <template>
-  <div class="title-bar" data-tauri-drag-region>
+  <div class="title-bar">
     <span></span>
     <div class="title-bar-button-box">
       <div class="title-bar-button" @click="appWindow.minimize">
@@ -60,9 +60,7 @@ const appWindow = getCurrentWebviewWindow()
   left: 0;
   right: 0;
   z-index: 999;
-  background-color: var(--base-color-2);
   position: fixed;
-  border-bottom: 1px solid var(--base-color-3);
 }
 
 .title-bar-button-box {

@@ -19,7 +19,6 @@ type I18nMessageType = {
     apps: string
     appsUnit: string
     totalUse: string
-    mostUse: string
   }
   statisticPage: {
     shortcuts: {
@@ -39,6 +38,8 @@ type I18nMessageType = {
     title: string
     thisWeek: string
     lastWeek: string
+    thisWeekTotalTime: string
+    lastWeekTotalTime: string
     dayOfWeekNames: [string, string, string, string, string, string, string]
   }
   configPage: {
@@ -123,10 +124,9 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
       setting: "Setting",
     },
     homePage: {
-      apps: "App Count",
+      apps: "Today App Count",
       appsUnit: "",
-      totalUse: "Total Use",
-      mostUse: "Most Use",
+      totalUse: "Today Total Duration",
     },
     statisticPage: {
       shortcuts: {
@@ -146,6 +146,8 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
       title: "Weekly Usage",
       thisWeek: "This Week",
       lastWeek: "Last Week",
+      thisWeekTotalTime: "This Week Total Duration",
+      lastWeekTotalTime: "Last Week Total Duration",
       dayOfWeekNames: [
         "Monday",
         "Tuesday",
@@ -254,15 +256,16 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
       },
     },
     homePage: {
-      apps: "应用",
+      apps: "今日应用",
       appsUnit: "个",
-      totalUse: "使用时长",
-      mostUse: "最常使用",
+      totalUse: "今日时长",
     },
     weeklyChart: {
       title: "周使用时长",
       thisWeek: "本周",
       lastWeek: "上周",
+      thisWeekTotalTime: "本周总时长",
+      lastWeekTotalTime: "上周总时长",
       dayOfWeekNames: [
         "星期一",
         "星期二",

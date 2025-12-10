@@ -19,10 +19,9 @@ onMounted(async () => {
 <template>
   <update-dialog />
   <el-config-provider :locale="passiveStore.lang === 'en' ? en : zhCn">
-    <el-container :class="passiveStore.theme">
-      <el-header>
-        <TitleBar />
-      </el-header>
+    <div :class="passiveStore.theme">
+      <TitleBar data-tauri-drag-region />
+      <div data-tauri-drag-region style="height: 60px"></div>
       <el-container>
         <el-aside width="200px">
           <el-scrollbar>
@@ -62,7 +61,7 @@ onMounted(async () => {
           </el-scrollbar>
         </el-main>
       </el-container>
-    </el-container>
+    </div>
   </el-config-provider>
 </template>
 

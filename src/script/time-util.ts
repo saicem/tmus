@@ -43,6 +43,11 @@ export const formatDurationRough = (ms: number) => {
   return `${d.toFixed(1)}d`
 }
 
+export const formatDurationInHours = (ms: number) => {
+  const h = ms / 60 /60 / 1000
+  return `${h.toFixed(1)}h`
+}
+
 export const dayOfWeekOffset = (day: Date) => {
   return (getDay(day) - 1 - configStore.firstDayOfWeek + 14) % 7
 }

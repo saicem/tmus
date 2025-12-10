@@ -9,7 +9,6 @@ const props = defineProps<{
 <template>
   <el-card style="width: 100%">
     <div class="card">
-      <img :src="icon" alt="icon" />
       <div style="flex: 1">
         <h3 style="margin: 0; font-size: 16px; font-weight: bold">
           {{ props.illustration }}
@@ -18,6 +17,7 @@ const props = defineProps<{
           {{ props.content }}
         </p>
       </div>
+      <img :src="icon" alt="icon" style="height: 48px; width: 48px" />
     </div>
   </el-card>
 </template>
@@ -29,5 +29,6 @@ const props = defineProps<{
   align-items: center;
   width: 100%;
   gap: 8px;
+  padding: 8px;
 }
 </style>

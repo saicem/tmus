@@ -2,15 +2,12 @@
 
 use crate::cmd::duration::query_duration_statistic;
 use chrono::{DateTime, Local, Utc};
+use rmcp::handler::server::wrapper::Parameters;
 use rmcp::{
-    handler::server::{router::tool::ToolRouter, tool::Parameters},
-    model::*,
-    schemars,
-    service::RequestContext,
-    tool, tool_handler, tool_router, Error as McpError, RoleServer, ServerHandler,
+    handler::server::router::tool::ToolRouter, model::*, schemars, service::RequestContext, tool,
+    tool_handler, tool_router, ErrorData as McpError, RoleServer, ServerHandler,
 };
 use serde::{Deserialize, Serialize};
-use std::future::Future;
 use tmus_engine::storage::focus_app;
 use tmus_engine::util::Timestamp;
 
