@@ -10,6 +10,7 @@ onMounted(async () => {
   if (configStore.filterUninstalledApp) {
     result = result.filter((app) => app.exist)
   }
+  result.sort((a, b) => a.name.localeCompare(b.name))
   appList.value = result
 })
 </script>
