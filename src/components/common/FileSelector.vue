@@ -10,10 +10,13 @@ defineProps<{
 }>()
 
 const selectPath = async () => {
-  model.value = await open({
+  let result = await open({
     multiple: false,
     directory: true,
   })
+  if (result) {
+    model.value = result
+  }
 }
 </script>
 <template>
