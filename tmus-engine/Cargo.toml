@@ -5,7 +5,7 @@ edition = "2024"
 
 [dependencies]
 serde = { version = "1", features = ["derive"] }
-windows = { version = "0.61", features = [
+windows = { version = "0.62.2", features = [
     "Win32_System_Threading",
     "Win32_UI_Accessibility",
     "Win32_UI_Shell",

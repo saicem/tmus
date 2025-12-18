@@ -1,15 +1,13 @@
 use image::ImageBuffer;
 use image::RgbaImage;
 use itertools::Itertools;
-#[cfg(target_arch = "x86")]
-use std::arch::x86::_mm_shuffle_epi8;
 use std::arch::x86_64::__m128i;
 use std::arch::x86_64::_mm_loadu_si128;
 use std::arch::x86_64::_mm_setr_epi8;
-#[cfg(target_arch = "x86_64")]
 use std::arch::x86_64::_mm_shuffle_epi8;
 use std::arch::x86_64::_mm_storeu_si128;
-use windows::core::{Error, HSTRING};
+use windows::core::HSTRING;
+use windows::Win32::Foundation::GetLastError;
 use windows::Win32::Graphics::Gdi::DeleteDC;
 use windows::Win32::Graphics::Gdi::DeleteObject;
 use windows::Win32::Graphics::Gdi::GetDIBits;
@@ -104,7 +102,7 @@ fn hicon_to_image(hicon: &HICON) -> Result<RgbaImage, String> {
         if !GetIconInfoExW(*hicon, &mut icon_info).as_bool() {
             return Err(format!(
                 "Win32 Error {} GetIconInfoExW: {} {}:{}",
-                Error::from_win32().code(),
+                GetLastError().0,
                 file!(),
                 line!(),
                 column!()
@@ -146,7 +144,7 @@ fn hicon_to_image(hicon: &HICON) -> Result<RgbaImage, String> {
         {
             return Err(format!(
                 "Win32 Error {} GetDIBits: {} {}:{}",
-                Error::from_win32().code(),
+                GetLastError().0,
                 file!(),
                 line!(),
                 column!()
