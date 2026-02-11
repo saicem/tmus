@@ -11,6 +11,7 @@ pub fn focus_main_window(app: &AppHandle) {
         .unwrap()
         .build()
         .unwrap();
+        _window.set_focus().unwrap();
     } else {
         main_window.unwrap().set_focus().unwrap();
     }
