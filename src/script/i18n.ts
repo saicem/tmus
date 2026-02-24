@@ -6,6 +6,10 @@ type I18nMessageType = {
     ok: string
     start: string
     stop: string
+    thisWeek: string
+    lastWeek: string
+    pastWeek: string
+    today: string
   }
   navigateMenu: {
     home: string
@@ -19,6 +23,9 @@ type I18nMessageType = {
     apps: string
     appsUnit: string
     totalUse: string
+    pastWeekAverage: string
+    dailyRhythm: string
+    todayUsage: string
   }
   statisticPage: {
     shortcuts: {
@@ -36,8 +43,6 @@ type I18nMessageType = {
   }
   weeklyChart: {
     title: string
-    thisWeek: string
-    lastWeek: string
     thisWeekTotalTime: string
     lastWeekTotalTime: string
     dayOfWeekNames: [string, string, string, string, string, string, string]
@@ -114,6 +119,10 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
       ok: "OK",
       start: "Start",
       stop: "Stop",
+      thisWeek: "This Week",
+      lastWeek: "Last Week",
+      pastWeek: "Past Week",
+      today: "Today",
     },
     navigateMenu: {
       home: "Home",
@@ -127,6 +136,9 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
       apps: "Today App Count",
       appsUnit: "",
       totalUse: "Today Total Duration",
+      pastWeekAverage: "Past Week Average",
+      dailyRhythm: "Daily Rhythm",
+      todayUsage: "Today Usage",
     },
     statisticPage: {
       shortcuts: {
@@ -144,8 +156,6 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
     },
     weeklyChart: {
       title: "Weekly Usage",
-      thisWeek: "This Week",
-      lastWeek: "Last Week",
       thisWeekTotalTime: "This Week Total Duration",
       lastWeekTotalTime: "Last Week Total Duration",
       dayOfWeekNames: [
@@ -232,6 +242,10 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
       ok: "确定",
       start: "启动",
       stop: "停止",
+      thisWeek: "本周",
+      lastWeek: "上周",
+      pastWeek: "近一周",
+      today: "今天",
     },
     navigateMenu: {
       home: "主页",
@@ -259,11 +273,12 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
       apps: "今日应用",
       appsUnit: "个",
       totalUse: "今日时长",
+      pastWeekAverage: "近一周平均",
+      dailyRhythm: "日内节律",
+      todayUsage: "今日使用",
     },
     weeklyChart: {
       title: "周使用时长",
-      thisWeek: "本周",
-      lastWeek: "上周",
       thisWeekTotalTime: "本周总时长",
       lastWeekTotalTime: "上周总时长",
       dayOfWeekNames: [

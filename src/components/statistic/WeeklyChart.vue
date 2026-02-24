@@ -43,8 +43,8 @@ async function loadData() {
       return {
         week:
           Math.trunc(idx / 7) == 0
-            ? i18n.value.weeklyChart.lastWeek
-            : i18n.value.weeklyChart.thisWeek,
+            ? i18n.value.common.lastWeek
+            : i18n.value.common.thisWeek,
         dayOfWeek:
           i18n.value.weeklyChart.dayOfWeekNames[
             (idx + configStore.firstDayOfWeek) % 7
@@ -87,6 +87,7 @@ function renderBarChart(
       tooltip: {
         shared: true,
       },
+      legendFilter: false,
     },
     tooltip: {
       items: [
@@ -112,7 +113,7 @@ watch(
 </script>
 
 <template>
-  <div style="display: flex; flex-direction: row; height: 320px">
+  <div style="display: flex; flex-direction: row">
     <div ref="chartContainer" style="flex: 1; height: 320px"></div>
     <div class="chart-legend">
       <div class="chart-legend-item">

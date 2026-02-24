@@ -3,16 +3,23 @@ import app from "@/assets/general-card/app.svg"
 import usage from "@/assets/general-card/usage.svg"
 import { i18n } from "@/script/i18n.ts"
 import { formatDuration, MILLISECONDS_PER_DAY } from "@/script/time-util.ts"
-import { getDurationById, queryDurationStatistic } from "@/script/cmd.ts"
+import {
+  getAppDetail,
+  getDurationById,
+  queryDurationStatistic,
+} from "@/script/cmd.ts"
 import { endOfYear, startOfDay, startOfYear } from "date-fns"
+import AppProgressGroupV2 from "@/components/statistic/AppProgressGroupV2.vue"
+import { AppDuration } from "@/script/models.ts"
 
 const yearData = ref<number[]>([])
-const appCount = ref("0")
-const totalUse = ref("0")
+const todayUseAppCount = ref("0")
+const todayUseAppDuration = ref("0")
 onMounted(async () => {
   await getYearData()
   await getDayData()
 })
+const progressData = ref<AppDuration[]>([])
 
 async function getYearData() {
   const now = new Date()
@@ -42,10 +49,22 @@ async function getDayData() {
   const end = new Date()
   const dayStart = startOfDay(end)
   const records = await getDurationById(dayStart.getTime(), end.getTime())
-  appCount.value = records.length.toString()
-  totalUse.value = formatDuration(
+  todayUseAppCount.value = records.length.toString()
+  todayUseAppDuration.value = formatDuration(
     records.reduce((acc, cur) => acc + cur.duration, 0)
   )
+  let progressDataResult: AppDuration[] = []
+  for (const [id, durationList] of groupBy(records, (x) => [
+    x.appId,
+    x.duration,
+  ])) {
+    progressDataResult.push({
+      app: await getAppDetail(id),
+      duration: durationList.reduce((acc, cur) => acc + cur),
+    })
+  }
+  progressDataResult.sort((a, b) => b.duration - a.duration)
+  progressData.value = progressDataResult
 }
 </script>
 
@@ -53,12 +72,12 @@ async function getDayData() {
   <div style="display: flex; flex-direction: column; row-gap: 16px">
     <div class="cards no-select">
       <general-card
-        :content="appCount + i18n.homePage.appsUnit"
+        :content="todayUseAppCount + i18n.homePage.appsUnit"
         :icon="app"
         :illustration="i18n.homePage.apps"
       />
       <general-card
-        :content="totalUse"
+        :content="todayUseAppDuration"
         :icon="usage"
         :illustration="i18n.homePage.totalUse"
       />
@@ -70,6 +89,16 @@ async function getDayData() {
     <el-card>
       <weekly-chart />
     </el-card>
+
+    <div style="display: flex; flex-direction: row; gap: 16px">
+      <el-card style="flex: 2">
+        <p>{{ i18n.homePage.todayUsage }}</p>
+        <app-progress-group-v2 :data="progressData" />
+      </el-card>
+      <el-card style="flex: 1; height: 400px">
+        <weekly-polar />
+      </el-card>
+    </div>
   </div>
 </template>
 

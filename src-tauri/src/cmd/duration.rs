@@ -62,6 +62,10 @@ pub struct DurationStat {
 ///   For example:
 ///   - To analyze how much time is spent each hour within a day, use `granularity=3600000` and `cycle=24`.
 ///   - To analyze how much time is spent each day within a week, use `granularity=86400000` and `cycle=7`.
+///
+/// # Todo
+///
+/// * Add support for timezone
 #[tauri::command]
 #[tracing::instrument]
 pub async fn query_duration_statistic(
@@ -113,7 +117,7 @@ fn aggregate_by_interval(
     let mut add_data = |app_id: usize, interval_start: i64, duration: i64| {
         let id = merge_apps.not().then_some(app_id);
         let interval_start = cycle_duration.map_or(interval_start, |cycle_duration| {
-            (interval_start - interval_millis) % cycle_duration
+            (interval_start - base_timestamp) % cycle_duration
         });
         aggregated_data
             .entry((id, interval_start))

@@ -13,6 +13,8 @@ declare module 'vue' {
     AppIcon: typeof import('./src/components/common/AppIcon.vue')['default']
     AppProgress: typeof import('./src/components/statistic/AppProgress.vue')['default']
     AppProgressGroup: typeof import('./src/components/statistic/AppProgressGroup.vue')['default']
+    AppProgressGroupV2: typeof import('./src/components/statistic/AppProgressGroupV2.vue')['default']
+    AppProgressV2: typeof import('./src/components/statistic/AppProgressV2.vue')['default']
     ElAside: typeof import('element-plus/es')['ElAside']
     ElButton: typeof import('element-plus/es')['ElButton']
     ElCard: typeof import('element-plus/es')['ElCard']
@@ -61,6 +63,7 @@ declare module 'vue' {
     UpdateDialog: typeof import('./src/components/global/UpdateDialog.vue')['default']
     UpdateSettingItem: typeof import('./src/components/setting/UpdateSettingItem.vue')['default']
     WeeklyChart: typeof import('./src/components/statistic/WeeklyChart.vue')['default']
+    WeeklyPolar: typeof import('./src/components/statistic/WeeklyPolar.vue')['default']
   }
   export interface GlobalDirectives {
     vInfiniteScroll: typeof import('element-plus/es')['ElInfiniteScroll']
