@@ -100,6 +100,7 @@ function renderChart(container: HTMLElement) {
     .encode("x", "hour")
     .encode("y", "duration")
     .encode("color", "week")
+    .encode("shape", "smooth")
     .style("fillOpacity", 0.5)
     .scale("x", { domainMax: 23 })
 
@@ -108,6 +109,7 @@ function renderChart(container: HTMLElement) {
     .encode("x", "hour")
     .encode("y", "duration")
     .encode("color", "week")
+    .encode("shape", "smooth")
     .style("lineWidth", 2)
 
   chart.interaction("tooltip", { crosshairsLineDash: [4, 4] })

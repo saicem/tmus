@@ -4,7 +4,7 @@ import usage from "@/assets/general-card/usage.svg"
 import { i18n } from "@/script/i18n.ts"
 import { formatDuration, MILLISECONDS_PER_DAY } from "@/script/time-util.ts"
 import {
-  getAppDetail,
+  getAppDetailMap,
   getDurationById,
   queryDurationStatistic,
 } from "@/script/cmd.ts"
@@ -53,13 +53,14 @@ async function getDayData() {
   todayUseAppDuration.value = formatDuration(
     records.reduce((acc, cur) => acc + cur.duration, 0)
   )
+  const appDetailMap = await getAppDetailMap()
   let progressDataResult: AppDuration[] = []
   for (const [id, durationList] of groupBy(records, (x) => [
     x.appId,
     x.duration,
   ])) {
     progressDataResult.push({
-      app: await getAppDetail(id),
+      app: appDetailMap[id],
       duration: durationList.reduce((acc, cur) => acc + cur),
     })
   }
