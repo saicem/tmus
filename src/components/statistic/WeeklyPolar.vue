@@ -103,6 +103,7 @@ function renderChart(container: HTMLElement) {
     .encode("shape", "smooth")
     .style("fillOpacity", 0.5)
     .scale("x", { domainMax: 23 })
+    .tooltip(null)
 
   chart
     .line()
@@ -111,6 +112,7 @@ function renderChart(container: HTMLElement) {
     .encode("color", "week")
     .encode("shape", "smooth")
     .style("lineWidth", 2)
+    .tooltip(null)
 
   chart.interaction("tooltip", { crosshairsLineDash: [4, 4] })
 
@@ -139,7 +141,9 @@ watch(
 
 <template>
   <div style="display: flex; flex-direction: column; overflow: hidden">
-    <div style="text-align: center">{{ i18n.homePage.dailyRhythm }}</div>
+    <h3 style="font-size: 16px; font-weight: bold; text-align: center">
+      {{ i18n.homePage.dailyRhythm }}
+    </h3>
     <div ref="chartContainer" style="flex: 1; height: 320px" />
   </div>
 </template>

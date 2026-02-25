@@ -93,7 +93,9 @@ async function getDayData() {
 
     <div style="display: flex; flex-direction: row; gap: 16px">
       <el-card style="flex: 2">
-        <p>{{ i18n.homePage.todayUsage }}</p>
+        <h3 style="font-size: 16px; font-weight: bold">
+          {{ i18n.homePage.todayUsage }}
+        </h3>
         <app-progress-group-v2 :data="progressData" />
       </el-card>
       <el-card style="flex: 1; height: 400px">
