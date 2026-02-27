@@ -1,16 +1,13 @@
 use crate::app::constant::app_detail_cache_path;
 use crate::util;
 use crate::util::{dump_json, load_json, FileVersion};
-use base64::engine::general_purpose;
-use base64::Engine;
-use image::ImageFormat;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::io::Cursor;
 use std::path::Path;
 use std::sync::OnceLock;
 use tmus_engine::storage::focus_app;
 use tokio::sync::Mutex;
+use windows_icons::get_icon_base64_by_path;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -101,15 +98,9 @@ fn query_file_detail(id: usize, path: &str) -> FileDetail {
         };
     }
     let version = util::get_file_version(&path);
-    let icon = util::extract_icon(&path).map(|x| {
-        let mut buf = Vec::new();
-        x.write_to(&mut Cursor::new(&mut buf), ImageFormat::Png)
-            .unwrap();
-        format!(
-            "data:image/png;base64,{}",
-            general_purpose::STANDARD.encode(&buf)
-        )
-    });
+    let icon = get_icon_base64_by_path(&path)
+        .ok()
+        .map(|base64| format!("data:image/png;base64,{base64}"));
     let name: String = match &version {
         Some(FileVersion {
             product_name: Some(name),

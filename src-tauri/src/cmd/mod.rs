@@ -1,4 +1,3 @@
-use crate::app::constant::{cache_dir, data_dir};
 use crate::cmd::read_helper::read_by_timestamp;
 use crate::util;
 use serde::{Deserialize, Serialize};

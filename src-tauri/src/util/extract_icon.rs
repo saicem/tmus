@@ -1,11 +1,15 @@
-use image::ImageBuffer;
+use crate::util;
+use base64::engine::general_purpose;
+use base64::Engine;
 use image::RgbaImage;
+use image::{ImageBuffer, ImageFormat};
 use itertools::Itertools;
 use std::arch::x86_64::__m128i;
 use std::arch::x86_64::_mm_loadu_si128;
 use std::arch::x86_64::_mm_setr_epi8;
 use std::arch::x86_64::_mm_shuffle_epi8;
 use std::arch::x86_64::_mm_storeu_si128;
+use std::io::Cursor;
 use windows::core::HSTRING;
 use windows::Win32::Foundation::GetLastError;
 use windows::Win32::Graphics::Gdi::DeleteDC;
@@ -22,10 +26,28 @@ use windows::Win32::UI::WindowsAndMessaging::HICON;
 use windows::Win32::UI::WindowsAndMessaging::ICONINFOEXW;
 use windows::Win32::UI::WindowsAndMessaging::{DestroyIcon, PrivateExtractIconsW};
 
+#[deprecated]
+pub fn extract_icon_base64(exe_path: &str) -> Option<String> {
+    util::extract_icon(&exe_path).map(|x| {
+        let mut buf = Vec::new();
+        x.write_to(&mut Cursor::new(&mut buf), ImageFormat::Png)
+            .unwrap();
+        format!(
+            "data:image/png;base64,{}",
+            general_purpose::STANDARD.encode(&buf)
+        )
+    })
+}
+
+/// Extract icon from exe
+/// # Deprecated
+///
+/// Use windows-icons crate instead
+#[deprecated]
 pub fn extract_icon(exe_path: &str) -> Option<RgbaImage> {
     let hicon = extract_hicon(exe_path);
     if hicon.is_none() {
-        extract_icon_classic(exe_path)
+        extract_icon_classic(exe_path).into_iter().next()
     } else {
         Some(hicon_to_image(&hicon.unwrap()).unwrap())
     }
@@ -56,11 +78,11 @@ fn extract_hicon(exe_path: &str) -> Option<HICON> {
     icons.into_iter().next()
 }
 
-fn extract_icon_classic(exe_path: &str) -> Option<RgbaImage> {
+fn extract_icon_classic(exe_path: &str) -> Vec<RgbaImage> {
     let path = &HSTRING::from(exe_path);
     let num_icons_total = unsafe { ExtractIconExW(path, -1, None, None, 0) };
     if num_icons_total == 0 {
-        return None;
+        return Vec::new();
     }
     let mut large_icons = vec![HICON::default(); num_icons_total as usize];
     let mut small_icons = vec![HICON::default(); num_icons_total as usize];
@@ -75,10 +97,10 @@ fn extract_icon_classic(exe_path: &str) -> Option<RgbaImage> {
     };
 
     if num_icons_fetched == 0 {
-        return None;
+        return Vec::new();
     }
 
-    let images = large_icons
+    large_icons
         .iter()
         .chain(small_icons.iter())
         .map(|icon| hicon_to_image(icon))
@@ -89,9 +111,7 @@ fn extract_icon_classic(exe_path: &str) -> Option<RgbaImage> {
                 None
             }
         })
-        .collect_vec();
-
-    images.into_iter().next()
+        .collect_vec()
 }
 
 fn hicon_to_image(hicon: &HICON) -> Result<RgbaImage, String> {
@@ -108,8 +128,18 @@ fn hicon_to_image(hicon: &HICON) -> Result<RgbaImage, String> {
                 column!()
             ));
         }
+
         if !hicon.is_invalid() {
             DestroyIcon(*hicon).unwrap();
+        }
+
+        if !icon_info.fIcon.as_bool() {
+            return Err(format!(
+                "Icon is not an icon: {} {}:{}",
+                file!(),
+                line!(),
+                column!()
+            ));
         }
 
         let hdc_screen = CreateCompatibleDC(None);
@@ -161,6 +191,7 @@ fn hicon_to_image(hicon: &HICON) -> Result<RgbaImage, String> {
 
         let image =
             ImageBuffer::from_raw(icon_info.xHotspot * 2, icon_info.yHotspot * 2, buffer).unwrap();
+
         Ok(image)
     }
 }
@@ -190,10 +221,11 @@ mod tests {
     use crate::util::extract_icon::extract_icon;
     use std::env;
 
+    static TEST_EXE_PATH: &str = r"C:\Program Files\7-Zip\7zFM.exe";
+
     #[test]
     fn test_convert_hicon_to_rgba_image() {
-        let exe_path = r"C:\Users\saice\AppData\Local\Programs\Microsoft VS Code\Code.exe";
-        let image = extract_icon(exe_path).unwrap();
+        let image = extract_icon(TEST_EXE_PATH).unwrap();
         let mut path = env::temp_dir();
         path.push("icon.png");
         assert!(image.save(&path).is_ok());
