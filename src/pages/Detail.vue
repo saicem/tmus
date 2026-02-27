@@ -8,6 +8,7 @@ import {
   timeZoneOffsetMillis,
 } from "@/script/time-util.ts"
 import { configStore, passiveStore } from "@/script/state.ts"
+import { DeleteFilled } from "@element-plus/icons-vue"
 
 const props = defineProps<{
   id: number
@@ -96,27 +97,17 @@ watch(
 <template>
   <div style="display: flex; flex-direction: column; row-gap: 16px">
     <el-card>
-      <el-descriptions :title="detail?.name" border>
-        <el-descriptions-item
-          :label="i18n.detailPage.icon"
-          :rowspan="2"
-          align="center"
-        >
-          <el-image :src="detail?.icon" />
-        </el-descriptions-item>
-        <el-descriptions-item label="ID">
-          {{ detail?.id }}
-        </el-descriptions-item>
+      <el-descriptions direction="vertical">
+        <template #title>
+          <div style="display: flex; align-items: center">
+            <app-icon :icon="detail?.icon" :size="32" />
+            <h3 style="margin-left: 16px">
+              {{ detail?.name }}
+            </h3>
+          </div>
+        </template>
         <el-descriptions-item :label="i18n.detailPage.name">
           {{ detail?.name }}
-        </el-descriptions-item>
-        <el-descriptions-item :label="i18n.detailPage.exist">
-          {{ detail?.exist }}
-        </el-descriptions-item>
-        <el-descriptions-item :label="i18n.detailPage.filePath">
-          <el-link @click="showInFolder(detail?.path)">
-            {{ detail?.path }}
-          </el-link>
         </el-descriptions-item>
         <el-descriptions-item :label="i18n.detailPage.productName">
           {{ detail?.version?.productName }}
@@ -126,6 +117,31 @@ watch(
         </el-descriptions-item>
         <el-descriptions-item :label="i18n.detailPage.companyName">
           {{ detail?.version?.companyName }}
+        </el-descriptions-item>
+        <el-descriptions-item :label="i18n.detailPage.filePath">
+          <el-popover
+            placement="top-start"
+            :content="i18n.detailPage.fileHasBeenDeleted"
+            :disabled="detail?.exist"
+          >
+            <template #reference>
+              <div style="display: flex; align-items: center">
+                <el-icon
+                  color="#f56c6c"
+                  v-if="!detail?.exist"
+                  style="margin-right: 8px"
+                >
+                  <DeleteFilled />
+                </el-icon>
+                <el-link
+                  @click="detail?.exist && showInFolder(detail?.path)"
+                  :type="detail?.exist ? 'default' : 'danger'"
+                >
+                  {{ detail?.path }}
+                </el-link>
+              </div>
+            </template>
+          </el-popover>
         </el-descriptions-item>
       </el-descriptions>
     </el-card>

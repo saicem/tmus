@@ -80,7 +80,6 @@ type I18nMessageType = {
   }
   detailPage: {
     icon: string
-    exist: string
     name: string
     filePath: string
     productName: string
@@ -98,6 +97,7 @@ type I18nMessageType = {
         yName: string
       }
     }
+    fileHasBeenDeleted: string
   }
   ruleDialog: {
     excludeApp: string
@@ -204,7 +204,6 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
     },
     detailPage: {
       icon: "Icon",
-      exist: "Exist",
       name: "Name",
       filePath: "File Path",
       productName: "Product Name",
@@ -222,6 +221,7 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
           yName: "Days",
         },
       },
+      fileHasBeenDeleted: "The file has been deleted",
     },
     ruleDialog: {
       excludeApp: "Exclude App",
@@ -326,7 +326,6 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
     },
     detailPage: {
       icon: "图标",
-      exist: "文件存在",
       name: "名称",
       filePath: "文件路径",
       productName: "产品名称",
@@ -344,6 +343,7 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
           yName: "天数",
         },
       },
+      fileHasBeenDeleted: "文件已被删除",
     },
     ruleDialog: {
       excludeApp: "排除应用",
