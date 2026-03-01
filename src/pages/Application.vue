@@ -23,14 +23,18 @@ const searchCompany = ref("")
 const filterTableData = computed(() =>
   appList.value.filter(
     (data) =>
-      (!searchName.value ||
-        data.name.toLowerCase().includes(searchName.value.toLowerCase())) &&
-      (!searchCompany.value ||
-        data.version?.companyName
-          ?.toLowerCase()
-          .includes(searchCompany.value.toLowerCase()))
+      filterName(searchName.value, data.name) &&
+      filterName(searchCompany.value, data.version?.companyName)
   )
 )
+
+function filterName(pattern: string, text?: string) {
+  if (!pattern) {
+    return true
+  }
+  pattern = pattern.trim().toLocaleLowerCase()
+  return !pattern || text?.toLowerCase().includes(pattern)
+}
 
 function tableRowClassName({ row }: { row: FileDetail; rowIndex: number }) {
   return row.exist ? "" : "warning-row"

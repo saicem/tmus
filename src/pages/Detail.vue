@@ -17,6 +17,9 @@ const detail = ref<FileDetail | null>(null)
 const durationAreaData = ref<AppDurationAreaModel | null>(null)
 const durationAreaChartContainer = ref<HTMLDivElement | null>(null)
 const activeName = ref("durationDateArea")
+const fileDeleted = computed(() => {
+  return detail.value && !detail.value.exist
+})
 
 onMounted(async () => {
   detail.value = await getAppDetail(props.id)
@@ -129,14 +132,14 @@ watch(
                 <div style="display: flex; align-items: center">
                   <el-icon
                     color="#f56c6c"
-                    v-if="!detail?.exist"
+                    v-if="fileDeleted"
                     style="margin-right: 8px"
                   >
                     <DeleteFilled />
                   </el-icon>
                   <el-link
-                    @click="detail?.exist && showInFolder(detail?.path)"
-                    :type="detail?.exist ? 'default' : 'danger'"
+                    @click="!fileDeleted && showInFolder(detail?.path)"
+                    :type="fileDeleted ? 'danger' : 'default'"
                   >
                     {{ detail?.path }}
                   </el-link>
@@ -157,7 +160,7 @@ watch(
             name="durationDayArea"
           />
         </el-tabs>
-        <div ref="durationAreaChartContainer" />
+        <div style="height: 300px" ref="durationAreaChartContainer" />
       </el-card>
     </div>
   </content-view-scrollbar>
