@@ -70,39 +70,42 @@ async function getDayData() {
 </script>
 
 <template>
-  <div style="display: flex; flex-direction: column; row-gap: 16px">
-    <div class="cards no-select">
-      <general-card
-        :content="todayUseAppCount + i18n.homePage.appsUnit"
-        :icon="app"
-        :illustration="i18n.homePage.apps"
-      />
-      <general-card
-        :content="todayUseAppDuration"
-        :icon="usage"
-        :illustration="i18n.homePage.totalUse"
-      />
-    </div>
-    <el-card class="heat-calendar-card">
-      <heat-calendar v-if="yearData" :data="yearData" />
-    </el-card>
-
-    <el-card>
-      <weekly-chart />
-    </el-card>
-
-    <div style="display: flex; flex-direction: row; gap: 16px">
-      <el-card style="flex: 2">
-        <h3 style="font-size: 16px; font-weight: bold">
-          {{ i18n.homePage.todayUsage }}
-        </h3>
-        <app-progress-group-v2 :data="progressData" />
+  <content-view-scrollbar>
+    <div style="display: flex; flex-direction: column; row-gap: 16px">
+      <div class="cards no-select">
+        <general-card
+          :content="todayUseAppCount + i18n.homePage.appsUnit"
+          :icon="app"
+          :illustration="i18n.homePage.apps"
+        />
+        <general-card
+          :content="todayUseAppDuration"
+          :icon="usage"
+          :illustration="i18n.homePage.totalUse"
+        />
+      </div>
+      <el-card class="heat-calendar-card">
+        <heat-calendar v-if="yearData" :data="yearData" />
       </el-card>
-      <el-card style="flex: 1; height: 400px">
-        <weekly-polar />
+
+      <el-card>
+        <weekly-chart />
       </el-card>
+
+      <div style="display: flex; flex-direction: row; gap: 16px">
+        <el-card style="flex: 2">
+          <h3 style="font-size: 16px; font-weight: bold">
+            {{ i18n.homePage.todayUsage }}
+          </h3>
+          <el-empty v-if="progressData.length == 0" :image-size="200" />
+          <app-progress-group-v2 :data="progressData" />
+        </el-card>
+        <el-card style="flex: 1; height: 400px">
+          <weekly-polar />
+        </el-card>
+      </div>
     </div>
-  </div>
+  </content-view-scrollbar>
 </template>
 
 <style scoped>

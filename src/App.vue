@@ -153,9 +153,7 @@ onMounted(async () => {
         </el-aside>
 
         <el-main style="height: calc(100vh - 76px); padding: 0">
-          <el-scrollbar style="padding: 0 20px">
-            <router-view />
-          </el-scrollbar>
+          <router-view />
         </el-main>
       </el-container>
     </div>

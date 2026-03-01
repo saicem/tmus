@@ -62,23 +62,25 @@ const load = async () => {
 </script>
 
 <template>
-  <el-timeline
-    v-infinite-scroll="load"
-    :infinite-scroll-disabled="scrollDisable"
-    infinite-scroll-distance="1000"
-  >
-    <div>
-      <el-timeline-item
-        v-for="({ moment: date, data: appData }, i) in data"
-        :key="i"
-        :timestamp="format(date, configStore.dateFormat)"
-        placement="top"
-      >
-        <app-card-group :data="appData" />
-      </el-timeline-item>
-    </div>
-  </el-timeline>
-  <div style="text-align: center">No more</div>
+  <content-view-scrollbar>
+    <el-timeline
+      v-infinite-scroll="load"
+      :infinite-scroll-disabled="scrollDisable"
+      infinite-scroll-distance="1000"
+    >
+      <div>
+        <el-timeline-item
+          v-for="({ moment: date, data: appData }, i) in data"
+          :key="i"
+          :timestamp="format(date, configStore.dateFormat)"
+          placement="top"
+        >
+          <app-card-group :data="appData" />
+        </el-timeline-item>
+      </div>
+    </el-timeline>
+    <div style="text-align: center">No more</div>
+  </content-view-scrollbar>
 </template>
 
 <style scoped></style>

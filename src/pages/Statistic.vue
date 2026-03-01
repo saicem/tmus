@@ -90,35 +90,42 @@ watch(datetimeRange, ([startDate, endDate]) => load(startDate, endDate), {
 </script>
 
 <template>
-  <div style="display: flex; flex-direction: column; flex-wrap: wrap; gap: 8px">
-    <div style="display: flex; flex-direction: row; gap: 8px">
-      <el-date-picker
-        v-model="datetimeRange"
-        :shortcuts="shortcuts"
-        end-placeholder="End date"
-        range-separator="To"
-        start-placeholder="Start date"
-        style="flex: 1 0 360px"
-        type="datetimerange"
+  <content-view-scrollbar>
+    <div
+      style="display: flex; flex-direction: column; flex-wrap: wrap; gap: 8px"
+    >
+      <div style="display: flex; flex-direction: row; gap: 8px">
+        <el-date-picker
+          v-model="datetimeRange"
+          :shortcuts="shortcuts"
+          end-placeholder="End date"
+          range-separator="To"
+          start-placeholder="Start date"
+          style="flex: 1 0 360px"
+          type="datetimerange"
+        />
+        <el-select
+          v-model="statisticStore.statisticType"
+          default-first-option
+          style="flex: 1 0 100px"
+        >
+          <el-option
+            :label="i18n.statisticPage.type.progress"
+            value="Progress"
+          />
+          <el-option :label="i18n.statisticPage.type.card" value="Card" />
+        </el-select>
+      </div>
+      <app-card-group
+        v-if="statisticStore.statisticType == 'Card'"
+        :data="data"
       />
-      <el-select
-        v-model="statisticStore.statisticType"
-        default-first-option
-        style="flex: 1 0 100px"
-      >
-        <el-option :label="i18n.statisticPage.type.progress" value="Progress" />
-        <el-option :label="i18n.statisticPage.type.card" value="Card" />
-      </el-select>
+      <app-progress-group
+        v-if="statisticStore.statisticType == 'Progress'"
+        :data="data"
+      />
     </div>
-    <app-card-group
-      v-if="statisticStore.statisticType == 'Card'"
-      :data="data"
-    />
-    <app-progress-group
-      v-if="statisticStore.statisticType == 'Progress'"
-      :data="data"
-    />
-  </div>
+  </content-view-scrollbar>
 </template>
 
 <style scoped></style>

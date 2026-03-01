@@ -95,70 +95,72 @@ watch(
 </script>
 
 <template>
-  <div style="display: flex; flex-direction: column; row-gap: 16px">
-    <el-card>
-      <el-descriptions direction="vertical">
-        <template #title>
-          <div style="display: flex; align-items: center">
-            <app-icon :icon="detail?.icon" :size="32" />
-            <h3 style="margin-left: 16px">
-              {{ detail?.name }}
-            </h3>
-          </div>
-        </template>
-        <el-descriptions-item :label="i18n.detailPage.name">
-          {{ detail?.name }}
-        </el-descriptions-item>
-        <el-descriptions-item :label="i18n.detailPage.productName">
-          {{ detail?.version?.productName }}
-        </el-descriptions-item>
-        <el-descriptions-item :label="i18n.detailPage.fileDescription">
-          {{ detail?.version?.fileDescription }}
-        </el-descriptions-item>
-        <el-descriptions-item :label="i18n.detailPage.companyName">
-          {{ detail?.version?.companyName }}
-        </el-descriptions-item>
-        <el-descriptions-item :label="i18n.detailPage.filePath">
-          <el-popover
-            placement="top-start"
-            :content="i18n.detailPage.fileHasBeenDeleted"
-            :disabled="detail?.exist"
-          >
-            <template #reference>
-              <div style="display: flex; align-items: center">
-                <el-icon
-                  color="#f56c6c"
-                  v-if="!detail?.exist"
-                  style="margin-right: 8px"
-                >
-                  <DeleteFilled />
-                </el-icon>
-                <el-link
-                  @click="detail?.exist && showInFolder(detail?.path)"
-                  :type="detail?.exist ? 'default' : 'danger'"
-                >
-                  {{ detail?.path }}
-                </el-link>
-              </div>
-            </template>
-          </el-popover>
-        </el-descriptions-item>
-      </el-descriptions>
-    </el-card>
-    <el-card>
-      <el-tabs v-model="activeName">
-        <el-tab-pane
-          :label="i18n.detailPage.durationDateAreaTab"
-          name="durationDateArea"
-        />
-        <el-tab-pane
-          :label="i18n.detailPage.durationDayAreaTab"
-          name="durationDayArea"
-        />
-      </el-tabs>
-      <div ref="durationAreaChartContainer" />
-    </el-card>
-  </div>
+  <content-view-scrollbar>
+    <div style="display: flex; flex-direction: column; row-gap: 16px">
+      <el-card>
+        <el-descriptions direction="vertical">
+          <template #title>
+            <div style="display: flex; align-items: center">
+              <app-icon :icon="detail?.icon" :size="32" />
+              <h3 style="margin-left: 16px">
+                {{ detail?.name }}
+              </h3>
+            </div>
+          </template>
+          <el-descriptions-item :label="i18n.detailPage.name">
+            {{ detail?.name }}
+          </el-descriptions-item>
+          <el-descriptions-item :label="i18n.detailPage.productName">
+            {{ detail?.version?.productName }}
+          </el-descriptions-item>
+          <el-descriptions-item :label="i18n.detailPage.fileDescription">
+            {{ detail?.version?.fileDescription }}
+          </el-descriptions-item>
+          <el-descriptions-item :label="i18n.detailPage.companyName">
+            {{ detail?.version?.companyName }}
+          </el-descriptions-item>
+          <el-descriptions-item :label="i18n.detailPage.filePath">
+            <el-popover
+              placement="top-start"
+              :content="i18n.detailPage.fileHasBeenDeleted"
+              :disabled="detail?.exist"
+            >
+              <template #reference>
+                <div style="display: flex; align-items: center">
+                  <el-icon
+                    color="#f56c6c"
+                    v-if="!detail?.exist"
+                    style="margin-right: 8px"
+                  >
+                    <DeleteFilled />
+                  </el-icon>
+                  <el-link
+                    @click="detail?.exist && showInFolder(detail?.path)"
+                    :type="detail?.exist ? 'default' : 'danger'"
+                  >
+                    {{ detail?.path }}
+                  </el-link>
+                </div>
+              </template>
+            </el-popover>
+          </el-descriptions-item>
+        </el-descriptions>
+      </el-card>
+      <el-card>
+        <el-tabs v-model="activeName">
+          <el-tab-pane
+            :label="i18n.detailPage.durationDateAreaTab"
+            name="durationDateArea"
+          />
+          <el-tab-pane
+            :label="i18n.detailPage.durationDayAreaTab"
+            name="durationDayArea"
+          />
+        </el-tabs>
+        <div ref="durationAreaChartContainer" />
+      </el-card>
+    </div>
+  </content-view-scrollbar>
 </template>
 
 <style scoped></style>
