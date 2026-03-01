@@ -5,6 +5,7 @@ import { configStore } from "@/script/state.ts"
 import ContentView from "@/components/global/ContentView.vue"
 import { TableColumnCtx } from "element-plus"
 import { router } from "@/script/route.ts"
+import { i18n } from "@/script/i18n.ts"
 
 const appList = ref<FileDetail[]>([])
 
@@ -53,7 +54,7 @@ function rowDbClick(row: FileDetail, _column: TableColumnCtx, _event: Event) {
           <el-input
             v-model="searchName"
             size="small"
-            placeholder="Type to search name"
+            :placeholder="i18n.applicationPage.typeToSearchName"
           />
         </template>
         <template #default="scope">
@@ -68,7 +69,7 @@ function rowDbClick(row: FileDetail, _column: TableColumnCtx, _event: Event) {
           <el-input
             v-model="searchCompany"
             size="small"
-            placeholder="Type to search company"
+            :placeholder="i18n.applicationPage.typeToSearchCompany"
           />
         </template>
       </el-table-column>

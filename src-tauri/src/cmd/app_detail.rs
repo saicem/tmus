@@ -53,8 +53,15 @@ pub async fn update_app_detail_cache(
 #[tracing::instrument]
 pub async fn get_app_detail(id: usize) -> FileDetail {
     let path = focus_app::get_path_by_id(id);
-    let detail = query_file_detail(id, &path);
+    let mut detail = query_file_detail(id, &path);
     let mut app_detail_cache = get_app_detail_cache().lock().await;
+    // File has been deleted, use cache data
+    if !detail.exist {
+        if let Some(cached_detail) = app_detail_cache.get_mut(&id) {
+            detail = cached_detail.clone();
+            detail.exist = false;
+        }
+    }
     update_app_detail_cache(&mut *app_detail_cache, vec![detail.clone()]).await;
     detail
 }

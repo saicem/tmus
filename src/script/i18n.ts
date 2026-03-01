@@ -41,6 +41,10 @@ type I18nMessageType = {
       progress: string
     }
   }
+  applicationPage: {
+    typeToSearchName: string
+    typeToSearchCompany: string
+  }
   weeklyChart: {
     title: string
     thisWeekTotalTime: string
@@ -153,6 +157,10 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
         card: "Card",
         progress: "Progress",
       },
+    },
+    applicationPage: {
+      typeToSearchName: "Type to search name",
+      typeToSearchCompany: "Type to search company",
     },
     weeklyChart: {
       title: "Weekly Usage",
@@ -276,6 +284,10 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
       pastWeekAverage: "近一周平均",
       dailyRhythm: "日内节律",
       todayUsage: "今日使用",
+    },
+    applicationPage: {
+      typeToSearchName: "输入应用名称搜索",
+      typeToSearchCompany: "输入公司名称搜索",
     },
     weeklyChart: {
       title: "周使用时长",
