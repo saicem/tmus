@@ -4,6 +4,7 @@ import zhCn from "element-plus/es/locale/lang/zh-cn"
 import en from "element-plus/es/locale/lang/en"
 import { configStore, passiveStore, updateDialogStore } from "@/script/state.ts"
 import { fetchUpdate } from "@/script/cmd.ts"
+import { refreshDataBusKey } from "@/script/event.ts"
 
 onMounted(async () => {
   if (configStore.autoCheckUpdate) {
@@ -14,6 +15,12 @@ onMounted(async () => {
     }
   }
 })
+
+const bus = useEventBus(refreshDataBusKey)
+
+useIntervalFn(() => {
+  bus.emit()
+}, 60_000)
 </script>
 
 <template>

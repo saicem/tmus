@@ -11,15 +11,24 @@ import {
 import { endOfYear, startOfDay, startOfYear } from "date-fns"
 import AppProgressGroupV2 from "@/components/statistic/AppProgressGroupV2.vue"
 import { AppDuration } from "@/script/models.ts"
+import { refreshDataBusKey } from "@/script/event.ts"
 
+const bus = useEventBus<never>(refreshDataBusKey)
+bus.on(async () => {
+  await loadData()
+})
 const yearData = ref<number[]>([])
 const todayUseAppCount = ref("0")
 const todayUseAppDuration = ref("0")
 onMounted(async () => {
-  await getYearData()
-  await getDayData()
+  await loadData()
 })
 const progressData = ref<AppDuration[]>([])
+
+async function loadData() {
+  await getYearData()
+  await getDayData()
+}
 
 async function getYearData() {
   const now = new Date()
