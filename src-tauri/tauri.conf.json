@@ -2,7 +2,7 @@
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "Tmus",
   "mainBinaryName": "Tmus",
-  "version": "0.3.4",
+  "version": "0.4.0",
   "identifier": "io.github.saicem.tmus",
   "build": {
     "beforeDevCommand": "pnpm dev",
@@ -12,9 +12,7 @@
   },
   "bundle": {
     "active": true,
-    "targets": [
-      "nsis"
-    ],
+    "targets": ["nsis"],
     "windows": {
       "nsis": {
         "installerHooks": "./windows/hooks.nsi"

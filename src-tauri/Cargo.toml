@@ -1,6 +1,6 @@
 [package]
 name = "tmus"
-version = "0.3.4"
+version = "0.4.0"
 description = "tmus"
 authors = ["saicem"]
 repository = "https://github.com/saicem/tmus.git"
