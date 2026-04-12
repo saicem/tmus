@@ -106,21 +106,21 @@ impl McpService {
 #[tool_handler]
 impl ServerHandler for McpService {
     fn get_info(&self) -> ServerInfo {
-        ServerInfo {
-            protocol_version: ProtocolVersion::V_2024_11_05,
-            capabilities: ServerCapabilities::builder()
+        ServerInfo::new(
+            ServerCapabilities::builder()
                 .enable_prompts()
                 .enable_resources()
                 .enable_tools()
-                .build(),
-            server_info: Implementation::from_build_env(),
-            instructions: Some("This server provides a counter tool that can increment and decrement values. The counter starts at 0 and can be modified using the 'increment' and 'decrement' tools. Use 'get_value' to check the current count.".to_string()),
-        }
+                .build()
+        )
+        .with_protocol_version(ProtocolVersion::V_2024_11_05)
+        .with_server_info(Implementation::from_build_env())
+        .with_instructions("This server provides a counter tool that can increment and decrement values. The counter starts at 0 and can be modified using the 'increment' and 'decrement' tools. Use 'get_value' to check the current count.")
     }
 
     async fn initialize(
         &self,
-        _request: InitializeRequestParam,
+        _request: rmcp::model::InitializeRequestParams,
         context: RequestContext<RoleServer>,
     ) -> Result<InitializeResult, McpError> {
         if let Some(http_request_part) = context.extensions.get::<axum::http::request::Parts>() {

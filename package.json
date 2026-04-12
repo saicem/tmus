@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "run": "cargo run"
   },
   "dependencies": {
     "@antv/g2": "^5.4.8",

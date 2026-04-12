@@ -10,6 +10,7 @@ type I18nMessageType = {
     lastWeek: string
     pastWeek: string
     today: string
+    copiedToClipboard: string
   }
   navigateMenu: {
     home: string
@@ -127,6 +128,7 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
       lastWeek: "Last Week",
       pastWeek: "Past Week",
       today: "Today",
+      copiedToClipboard: "Copied to clipboard",
     },
     navigateMenu: {
       home: "Home",
@@ -254,6 +256,7 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
       lastWeek: "上周",
       pastWeek: "近一周",
       today: "今天",
+      copiedToClipboard: "已复制到剪贴板",
     },
     navigateMenu: {
       home: "主页",

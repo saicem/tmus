@@ -16,7 +16,13 @@ tauri = { version = "2.10.3", features = ["tray-icon"] }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.145"
 chrono = { version = "0.4.42", features = ["serde"] }
-windows = { version = "0.62.2", features = ["Win32_Storage_FileSystem", "Win32_Security", "Win32_Graphics", "Win32_Graphics_Gdi", "Win32_Globalization"] }
+windows = { version = "0.62.2", features = [
+    "Win32_Storage_FileSystem",
+    "Win32_Security",
+    "Win32_Graphics",
+    "Win32_Graphics_Gdi",
+    "Win32_Globalization",
+] }
 dirs-next = "2.0.0"
 image = "0.25.9"
 base64 = "0.22.1"
@@ -27,12 +33,12 @@ tauri-plugin-dialog = "2.4.2"
 tokio = { version = "1.48.0", features = ["full"] }
 thiserror = "2.0"
 url = "2.5.4"
-winreg = "0.55.0"
+winreg = "0.56.0"
 tmus-engine = { path = "../tmus-engine" }
 axum = "0.8"
-rmcp = { version = "0.6.4", features = ["server", "transport-sse-server"] }
-tracing = "0.1.41"
-tracing-subscriber = "0.3.19"
+rmcp = { version = "1.4.0", features = ["server"] }
+tracing = "0.1.44"
+tracing-subscriber = "0.3.23"
 anyhow = "1.0.98"
 tokio-util = "0.7.15"
 windows-icons = "0.3.0"

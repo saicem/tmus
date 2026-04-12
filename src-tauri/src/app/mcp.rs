@@ -1,6 +1,10 @@
 use crate::app::mcp_service::McpService;
-use rmcp::transport::sse_server::{SseServer, SseServerConfig};
+use rmcp::transport::streamable_http_server::session::local::LocalSessionManager;
+use rmcp::transport::streamable_http_server::tower::{
+    StreamableHttpServerConfig, StreamableHttpService,
+};
 use serde::Serialize;
+use std::sync::Arc;
 use std::sync::OnceLock;
 use tokio::sync::Mutex;
 use tokio_util::sync::CancellationToken;
@@ -32,26 +36,24 @@ pub async fn start_mcp_server(port: u16) -> Result<(), String> {
     if server_state.is_some() {
         return Err("Server is running".to_string());
     }
-    let config = SseServerConfig {
-        bind: format!("127.0.0.1:{}", port)
-            .parse()
-            .expect("Invalid bind address"),
-        sse_path: "/sse".to_string(),
-        post_path: "/message".to_string(),
-        ct: CancellationToken::new(),
-        sse_keep_alive: None,
-    };
 
-    let (sse_server, router) = SseServer::new(config);
+    let ct = CancellationToken::new();
 
-    let listener = tokio::net::TcpListener::bind(sse_server.config.bind)
+    let service = StreamableHttpService::new(
+        || Ok(McpService::new()),
+        Arc::new(LocalSessionManager::default()),
+        StreamableHttpServerConfig::default().with_cancellation_token(ct.clone()),
+    );
+
+    let router = axum::Router::new().nest_service("/mcp", service);
+
+    let listener = tokio::net::TcpListener::bind(format!("127.0.0.1:{}", port))
         .await
         .expect("Server bind address failed");
 
-    let ct = sse_server.config.ct.child_token();
-
+    let shutdown_ct = ct.clone();
     let server = axum::serve(listener, router).with_graceful_shutdown(async move {
-        ct.cancelled().await;
+        shutdown_ct.cancelled().await;
         info!("Server cancelled");
     });
 
@@ -61,10 +63,7 @@ pub async fn start_mcp_server(port: u16) -> Result<(), String> {
         }
     });
 
-    *server_state = Some(McpServerState {
-        port,
-        ct: sse_server.with_service(McpService::new),
-    });
+    *server_state = Some(McpServerState { port, ct });
     info!("Server started");
     Ok(())
 }

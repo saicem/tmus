@@ -6,10 +6,16 @@ import {
   startMcpServer,
   stopMcpServer,
 } from "@/script/cmd.ts"
+import { useClipboard } from '@vueuse/core'
+import { ElMessage } from "element-plus"
 
 const dialogVisible = ref(false)
 const running = ref(false)
 const processing = ref(false)
+const mcpUrl = computed(() => {
+  return 'http://127.0.0.1:' + configStore.mcpServerPort + '/mcp'
+})
+const { copy } = useClipboard()
 
 onMounted(async () => {
   const status = await getMcpServerStatus()
@@ -39,23 +45,23 @@ async function toggleMcpServer() {
 </script>
 
 <template>
-  <setting-item
-    :label="i18n.configPage.mcpServer"
-    @click="dialogVisible = true"
-  />
-  <el-dialog
-    v-model="dialogVisible"
-    :title="i18n.configPage.mcpServer"
-    width="500"
-  >
+  <setting-item :label="i18n.configPage.mcpServer" @click="dialogVisible = true" />
+  <el-dialog v-model="dialogVisible" :title="i18n.configPage.mcpServer" width="500">
     <el-form label-width="auto" style="max-width: 600px">
       <el-form-item :label="i18n.configPage.usePort">
-        <el-input-number
-          :disabled="running"
-          v-model="configStore.mcpServerPort"
-        />
+        <el-input-number :disabled="running" v-model="configStore.mcpServerPort" />
       </el-form-item>
-      <el-form-item label="SSE URL">{{ "http://127.0.0.1:" + configStore.mcpServerPort + "/sse" }}</el-form-item>
+      <el-form-item label="MCP Server URL">
+        <el-link type="primary" underline @click="() => {
+          copy(mcpUrl)
+          ElMessage({
+            message: i18n.common.copiedToClipboard,
+            type: 'success'
+          })
+        }">
+          {{ mcpUrl }}
+        </el-link>
+      </el-form-item>
       <el-form-item>
         <el-button :loading="processing" @click="toggleMcpServer">
           {{ running ? i18n.common.stop : i18n.common.start }}
