@@ -8,8 +8,8 @@ use tmus_engine::util::Timestamp;
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct IdDuration {
-    app_id: usize,
-    duration: i64,
+    pub app_id: usize,
+    pub duration: i64,
 }
 
 #[tauri::command]
@@ -57,6 +57,7 @@ pub struct DurationStat {
 ///   For example:
 ///   - Use `86400000` to aggregate by day.
 ///   - Use `3600000` to aggregate by hour.
+///   If not need granularity, use [get_duration_by_id].
 /// * `cycle` - An optional cycle length in units of `granularity`.  
 ///   This allows grouping intervals into repeating cycles.  
 ///   For example:

@@ -1,5 +1,4 @@
 mod explorer;
-mod extract_icon;
 mod file_version;
 mod force_singleton;
 mod json;
@@ -9,7 +8,6 @@ mod str_util;
 mod time_util;
 
 pub use explorer::show_in_folder;
-pub use extract_icon::extract_icon;
 pub use file_version::get_file_version;
 pub use file_version::FileVersion;
 pub use force_singleton::force_singleton;

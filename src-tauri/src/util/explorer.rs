@@ -4,10 +4,6 @@ use std::process::Command;
 #[cfg(target_os = "linux")]
 use std::{fs::metadata, path::PathBuf};
 
-pub fn open_in_explorer(path: &str) {
-    Command::new("explorer").args([path]).spawn().unwrap();
-}
-
 pub fn show_in_folder(path: &str) {
     #[cfg(target_os = "windows")]
     {

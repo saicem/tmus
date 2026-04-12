@@ -1,6 +1,9 @@
 #![allow(dead_code)]
 
-use crate::cmd::duration::query_duration_statistic;
+use std::collections::HashMap;
+
+use crate::cmd::app_detail::get_all_app_detail;
+use crate::cmd::duration::get_duration_by_id;
 use chrono::{DateTime, Local, Utc};
 use rmcp::handler::server::wrapper::Parameters;
 use rmcp::{
@@ -8,8 +11,6 @@ use rmcp::{
     tool_handler, tool_router, ErrorData as McpError, RoleServer, ServerHandler,
 };
 use serde::{Deserialize, Serialize};
-use tmus_engine::storage::focus_app;
-use tmus_engine::util::Timestamp;
 
 #[derive(Debug, serde::Serialize, serde::Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
@@ -18,18 +19,17 @@ pub struct App {
     pub path: String,
 }
 
+#[derive(Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct AppUsageQuery {
+    start: DateTime<Utc>,
+    end: DateTime<Utc>,
+    top_k: Option<usize>,
+}
+
 #[derive(Clone)]
 pub struct McpService {
     tool_router: ToolRouter<McpService>,
-}
-
-#[derive(Serialize, Deserialize, schemars::JsonSchema)]
-#[serde(rename_all = "camelCase")]
-pub struct DurationStatisticQuery {
-    start: DateTime<Utc>,
-    end: DateTime<Utc>,
-    merge_apps: bool,
-    granularity: Timestamp,
 }
 
 #[tool_router]
@@ -42,42 +42,6 @@ impl McpService {
     }
 
     #[tool(
-        description = "Query duration statistics with customizable filters and aggregation.
-    # Arguments
-
-    * `start` - The start time (inclusive) for filtering focus records, use ISO 8601 format.
-    * `end` - The end time (inclusive) for filtering focus records, use ISO 8601 format.
-    * `merge_apps` - Whether to merge data across all applications into a single result set.
-      Set this to `true` if application-specific details are not required.
-    * `granularity` - The time interval (in milliseconds) used to split records for aggregation.
-      For example:
-      - Use `86400000` to aggregate by day.
-      - Use `3600000` to aggregate by hour."
-    )]
-    async fn query_duration_statistic(
-        &self,
-        Parameters(payload): Parameters<DurationStatisticQuery>,
-    ) -> Result<CallToolResult, McpError> {
-        let start_ts = payload.start.timestamp_millis();
-        let end_ts = payload.end.timestamp_millis();
-
-        Ok(CallToolResult::success(vec![Content::text(
-            serde_json::to_string(
-                &query_duration_statistic(
-                    start_ts,
-                    end_ts,
-                    payload.merge_apps,
-                    None,
-                    payload.granularity,
-                    None,
-                )
-                .await,
-            )
-            .unwrap(),
-        )]))
-    }
-
-    #[tool(
         description = "Get current system local time with timezone and output it in ISO-8601 format."
     )]
     async fn get_current_time(&self) -> Result<CallToolResult, McpError> {
@@ -86,19 +50,61 @@ impl McpService {
         )]))
     }
 
-    #[tool(description = "Get all app with `id` and `path`.\
-    Id is same with the result of `query_duration_statistic`.\
-    When you need get the exact app name from `query_duration_statistic`.\
-    Match the id and the extract name from path.")]
-    async fn get_all_app(&self) -> Result<CallToolResult, McpError> {
-        let app_vec = focus_app::get_all_app();
-        let result = app_vec
+    #[tool(
+        description = "Query app usage duration in specified time range, sorted by duration in descending order.
+    # Arguments
+
+    * `start` - The start time (inclusive) for filtering focus records, use ISO 8601 format.
+    * `end` - The end time (inclusive) for filtering focus records, use ISO 8601 format.
+    * `top_k` - Optional limit to return only top N apps with highest duration."
+    )]
+    async fn query_app_usage(
+        &self,
+        Parameters(payload): Parameters<AppUsageQuery>,
+    ) -> Result<CallToolResult, McpError> {
+        let start_ts = payload.start.timestamp_millis();
+        let end_ts = payload.end.timestamp_millis();
+
+        // Get app durations
+        let mut app_durations = get_duration_by_id(start_ts, end_ts);
+        
+        // Sort app durations by duration in descending order
+        app_durations.sort_by(|a, b| b.duration.cmp(&a.duration));
+
+        // Apply top_k if provided early
+        if let Some(top_k) = payload.top_k {
+            app_durations.truncate(top_k);
+        }
+
+        // Get all app details
+        let app_details = get_all_app_detail().await;
+
+        // Create a map from app id to app detail
+        let mut app_detail_map = HashMap::new();
+        for detail in app_details {
+            app_detail_map.insert(detail.id, detail);
+        }
+
+        // Combine app durations with app details
+        let app_usage: Vec<serde_json::Value> = app_durations
             .into_iter()
-            .enumerate()
-            .map(|(id, path)| App { id, path })
-            .collect::<Vec<_>>();
+            .filter_map(|id_duration| {
+                // Directly access fields since they are public
+                let app_id = id_duration.app_id;
+                let duration = id_duration.duration;
+
+                app_detail_map.get(&app_id).map(|detail| {
+                    serde_json::json!({
+                        "id": app_id,
+                        "name": detail.name,
+                        "duration": duration
+                    })
+                })
+            })
+            .collect();
+
         Ok(CallToolResult::success(vec![Content::text(
-            serde_json::to_string(&result).unwrap(),
+            serde_json::to_string(&app_usage).unwrap(),
         )]))
     }
 }

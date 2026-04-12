@@ -32,6 +32,7 @@
 - **Timeline View**: Accurately review your application usage history in chronological order.
 - **Lightweight & Efficient**: The core is written in Rust, ensuring low resource consumption, fast performance, and high security.
 - **Open Source & Free**: Completely open source with no ads or paid features.
+- **MCP Support**: Provides Model Context Protocol (MCP) support for external applications to access usage data and functionality.
 
 ## 📸 Screenshots
 
