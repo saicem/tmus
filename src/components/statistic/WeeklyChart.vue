@@ -131,7 +131,7 @@ watch(
 
 <style scoped>
 .chart-legend {
-  width: 140px;
+  width: 150px;
   display: flex;
   flex-direction: column;
 }
