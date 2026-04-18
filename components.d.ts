@@ -8,13 +8,16 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    AddCategoryDialog: typeof import('./src/components/category/AddCategoryDialog.vue')['default']
     AppCard: typeof import('./src/components/statistic/AppCard.vue')['default']
     AppCardGroup: typeof import('./src/components/statistic/AppCardGroup.vue')['default']
     AppIcon: typeof import('./src/components/common/AppIcon.vue')['default']
+    AppList: typeof import('./src/components/category/AppList.vue')['default']
     AppProgress: typeof import('./src/components/statistic/AppProgress.vue')['default']
     AppProgressGroup: typeof import('./src/components/statistic/AppProgressGroup.vue')['default']
     AppProgressGroupV2: typeof import('./src/components/statistic/AppProgressGroupV2.vue')['default']
     AppProgressV2: typeof import('./src/components/statistic/AppProgressV2.vue')['default']
+    CategoryTree: typeof import('./src/components/category/CategoryTree.vue')['default']
     ContentView: typeof import('./src/components/global/ContentView.vue')['default']
     ContentViewScrollbar: typeof import('./src/components/global/ContentViewScrollbar.vue')['default']
     ElAside: typeof import('element-plus/es')['ElAside']
@@ -51,6 +54,7 @@ declare module 'vue' {
     ElTimeline: typeof import('element-plus/es')['ElTimeline']
     ElTimelineItem: typeof import('element-plus/es')['ElTimelineItem']
     ElTooltip: typeof import('element-plus/es')['ElTooltip']
+    ElTree: typeof import('element-plus/es')['ElTree']
     FileSelector: typeof import('./src/components/common/FileSelector.vue')['default']
     GeneralCard: typeof import('./src/components/GeneralCard.vue')['default']
     HeatCalendar: typeof import('./src/components/statistic/HeatCalendar.vue')['default']

@@ -3,8 +3,9 @@
 
 use crate::app::constant::data_dir;
 use crate::app::global::set_app_handle;
-use crate::app::mcp::start_mcp_server;
+use crate::app::start_category_timer;
 use crate::app::update;
+use crate::mcp::server::{get_mcp_server_status, start_mcp_server, stop_mcp_server};
 use crate::state::{get_app_config, get_config, get_rule_radix_tree, set_app_config};
 use state::{get_app_rule, set_app_rule};
 use std::env;
@@ -16,6 +17,7 @@ use tracing::info;
 
 mod app;
 mod cmd;
+mod mcp;
 mod state;
 mod util;
 
@@ -53,9 +55,16 @@ async fn main() {
             cmd::app_duration_area::get_app_duration_area,
             cmd::duration::get_duration_by_id,
             cmd::duration::query_duration_statistic,
-            app::mcp::start_mcp_server,
-            app::mcp::stop_mcp_server,
-            app::mcp::get_mcp_server_status,
+            start_mcp_server,
+            stop_mcp_server,
+            get_mcp_server_status,
+            cmd::category::get_categories,
+            cmd::category::add_category,
+            cmd::category::update_category,
+            cmd::category::delete_category,
+            cmd::category::set_app_category,
+            cmd::category::remove_app_from_category,
+            cmd::category::get_uncategorized_apps,
         ])
         .build(tauri::generate_context!())
         .expect("Error while building application");
@@ -68,6 +77,9 @@ pub fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     engine_start(data_dir(), |app_path| {
         get_rule_radix_tree().lock().unwrap().filter(app_path)
     });
+
+    crate::state::category::init();
+    start_category_timer();
 
     if config.auto_start_mcp_server {
         tauri::async_runtime::spawn(start_mcp_server(config.mcp_server_port));

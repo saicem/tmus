@@ -72,6 +72,7 @@ function renderBarChart(
   const chart = new Chart({ container })
   chart.theme({ type: passiveStore.theme })
   chart.options({
+    height: 320,
     title: i18n.value.weeklyChart.title,
     type: "interval",
     autoFit: true,
@@ -114,7 +115,7 @@ watch(
 
 <template>
   <div style="display: flex; flex-direction: row">
-    <div ref="chartContainer" style="flex: 1; height: 320px"></div>
+    <div ref="chartContainer" style="flex: 1; height: 320px;overflow: hidden;"></div>
     <div class="chart-legend">
       <div class="chart-legend-item">
         <p class="legend-label">{{ i18n.weeklyChart.thisWeekTotalTime }}</p>
@@ -130,7 +131,7 @@ watch(
 
 <style scoped>
 .chart-legend {
-  width: 150px;
+  width: 140px;
   display: flex;
   flex-direction: column;
 }

@@ -15,6 +15,12 @@ import {
   RuleConfig,
   TagConfig,
   UpdateMetadata,
+  Category,
+  AddCategoryRequest,
+  UpdateCategoryRequest,
+  DeleteCategoryRequest,
+  AssignCategoryRequest,
+  RemoveAppCategoryRequest,
 } from "./models.ts"
 import { Config } from "@/script/state.ts"
 import { ElMessage } from "element-plus"
@@ -142,14 +148,53 @@ export async function getMcpServerStatus(): Promise<McpServerStatus> {
   return await invoke("get_mcp_server_status")
 }
 
+export async function getCategories(): Promise<Category> {
+  return await ivk("get_categories")
+}
+
+export async function addCategory(request: AddCategoryRequest): Promise<{ id: string }> {
+  const result = await ivk<{ id: string }>("add_category", { request })
+  return result
+}
+
+export async function updateCategory(request: UpdateCategoryRequest): Promise<void> {
+  await ivk("update_category", { request })
+}
+
+export async function deleteCategory(request: DeleteCategoryRequest): Promise<void> {
+  await ivk("delete_category", { request })
+}
+
+export async function setAppCategory(request: AssignCategoryRequest): Promise<void> {
+  await ivk("set_app_category", { request })
+}
+
+export async function removeAppFromCategory(request: RemoveAppCategoryRequest): Promise<void> {
+  await ivk("remove_app_from_category", { request })
+}
+
+export async function getUncategorizedApps(offset: number = 0, limit: number = 100, keyword?: string): Promise<FileDetail[]> {
+  const result = await ivk<{ apps: FileDetail[], total: number, has_more: boolean }>("get_uncategorized_apps", { request: { offset, limit, keyword } })
+  return result.apps
+}
+
 async function ivk<T>(
   cmd: string,
   args?: InvokeArgs,
   options?: InvokeOptions
 ): Promise<T> {
+  console.log(`[ivk] Calling command: ${cmd}`, { args, options })
+  const startTime = performance.now()
+
   try {
-    return await invoke(cmd, args, options)
+    const result = await invoke(cmd, args, options)
+    const endTime = performance.now()
+    console.log(`[ivk] Command ${cmd} completed in ${endTime - startTime}ms`, { result })
+    return result as T
   } catch (error) {
+    const endTime = performance.now()
+    console.error(`[ivk] Command ${cmd} failed in ${endTime - startTime}ms`, { error })
+
     let errorMessage = "An unknown error occurred."
     if (typeof error === "string") {
       errorMessage = error

@@ -1,3 +1,4 @@
+use crate::app::exit;
 use crate::app::window::focus_main_window;
 use crate::state::{get_config, I18n, LangConfig, ThemeConfig};
 use std::error::Error;
@@ -112,7 +113,7 @@ fn on_menu_event(app_handle: &AppHandle, event: MenuEvent) {
     app_handle.emit("menuItemClick", event_id).unwrap();
     match event_id {
         "quit" => {
-            std::process::exit(0);
+            exit::app_exit();
         }
         _ => {
             {

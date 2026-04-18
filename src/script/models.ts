@@ -114,3 +114,34 @@ export interface McpServerStatus {
   running: boolean
   port?: number
 }
+
+export interface Category {
+  id: string
+  name: string
+  children: Category[]
+  appIds: number[]
+}
+
+export interface AddCategoryRequest {
+  name: string
+  parentId: string
+}
+
+export interface UpdateCategoryRequest {
+  id: string
+  name: string
+}
+
+export interface DeleteCategoryRequest {
+  id: string
+}
+
+export interface AssignCategoryRequest {
+  appId: number
+  categoryId: string
+}
+
+export interface RemoveAppCategoryRequest {
+  appId: number
+}
+

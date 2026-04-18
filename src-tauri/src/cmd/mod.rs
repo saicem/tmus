@@ -8,6 +8,7 @@ use tmus_engine::util::Timestamp;
 
 pub mod app_detail;
 pub mod app_duration_area;
+pub mod category;
 pub mod duration;
 mod read_helper;
 

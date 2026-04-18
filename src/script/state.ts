@@ -2,7 +2,7 @@ import { listen } from "@tauri-apps/api/event"
 import { isEnabled } from "@tauri-apps/plugin-autostart"
 import { locale } from "@tauri-apps/plugin-os"
 import { getAppConfig, setAppConfig } from "@/script/cmd.ts"
-import { UpdateMetadata } from "@/script/models.ts"
+import { Category, UpdateMetadata } from "@/script/models.ts"
 
 export type LanguageEnum = "en" | "zh"
 export type ThemeEnum = "dark" | "light"
@@ -34,6 +34,16 @@ export const statisticStore = reactive<{
   statisticType: "Progress" | "Card"
 }>({
   statisticType: "Progress",
+})
+
+export const categoryStore = reactive<{
+  activeTab: "uncategorized" | "categorized"
+  selectedCategory: Category | null
+  showAddDialog: boolean
+}>({
+  activeTab: "uncategorized",
+  selectedCategory: null,
+  showAddDialog: false,
 })
 
 export const configStore = reactive<Config>({

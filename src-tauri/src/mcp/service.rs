@@ -3,6 +3,7 @@
 use std::collections::HashMap;
 
 use crate::cmd::app_detail::get_all_app_detail;
+use crate::cmd::category;
 use crate::cmd::duration::get_duration_by_id;
 use chrono::{DateTime, Local, Utc};
 use rmcp::handler::server::wrapper::Parameters;
@@ -21,10 +22,43 @@ pub struct App {
 
 #[derive(Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct AppUsageQuery {
+pub struct AppUsageCommand {
     start: DateTime<Utc>,
     end: DateTime<Utc>,
     top_k: Option<usize>,
+}
+
+#[derive(Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct AppCategoryCommand {
+    app_id: usize,
+}
+
+#[derive(Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct SetAppCategoryCommand {
+    app_id: usize,
+    category_id: String,
+}
+
+#[derive(Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct BatchSetAppCategoryCommand {
+    app_ids: Vec<usize>,
+    category_id: String,
+}
+
+#[derive(Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct AddCategoryCommand {
+    parent_id: String,
+    name: String,
+}
+
+#[derive(Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct GetUncategorizedAppsCommand {
+    limit: Option<usize>,
 }
 
 #[derive(Clone)]
@@ -60,14 +94,14 @@ impl McpService {
     )]
     async fn query_app_usage(
         &self,
-        Parameters(payload): Parameters<AppUsageQuery>,
+        Parameters(payload): Parameters<AppUsageCommand>,
     ) -> Result<CallToolResult, McpError> {
         let start_ts = payload.start.timestamp_millis();
         let end_ts = payload.end.timestamp_millis();
 
         // Get app durations
         let mut app_durations = get_duration_by_id(start_ts, end_ts);
-        
+
         // Sort app durations by duration in descending order
         app_durations.sort_by(|a, b| b.duration.cmp(&a.duration));
 
@@ -105,6 +139,102 @@ impl McpService {
 
         Ok(CallToolResult::success(vec![Content::text(
             serde_json::to_string(&app_usage).unwrap(),
+        )]))
+    }
+
+    #[tool(description = "Get all categories in tree structure.")]
+    async fn get_categories(&self) -> Result<CallToolResult, McpError> {
+        let categories = category::get_categories();
+        Ok(CallToolResult::success(vec![Content::text(
+            serde_json::to_string(&categories).unwrap(),
+        )]))
+    }
+
+    #[tool(description = "Get category of specified app.
+    # Arguments
+
+    * `app_id` - The ID of the app to query.")]
+    async fn get_app_category(
+        &self,
+        Parameters(payload): Parameters<AppCategoryCommand>,
+    ) -> Result<CallToolResult, McpError> {
+        let category = crate::state::category::get_app_category(payload.app_id);
+        Ok(CallToolResult::success(vec![Content::text(
+            serde_json::to_string(&category).unwrap(),
+        )]))
+    }
+
+    #[tool(description = "Set category for specified app.
+    # Arguments
+
+    * `app_id` - The ID of the app to set category.
+    * `category_id` - The ID of the category to assign to the app.")]
+    async fn set_app_category(
+        &self,
+        Parameters(payload): Parameters<SetAppCategoryCommand>,
+    ) -> Result<CallToolResult, McpError> {
+        let _ = crate::state::category::set_app_category(payload.app_id, &payload.category_id);
+        Ok(CallToolResult::success(vec![Content::text(
+            "{\"success\": true}",
+        )]))
+    }
+
+    #[tool(description = "Batch set category for multiple apps.
+    # Arguments
+
+    * `app_ids` - The IDs of the apps to set category.
+    * `category_id` - The ID of the category to assign to the apps.")]
+    async fn batch_set_app_category(
+        &self,
+        Parameters(payload): Parameters<BatchSetAppCategoryCommand>,
+    ) -> Result<CallToolResult, McpError> {
+        for app_id in &payload.app_ids {
+            let _ =crate::state::category::set_app_category(*app_id, &payload.category_id);
+        }
+        Ok(CallToolResult::success(vec![Content::text(
+            "{\"success\": true}",
+        )]))
+    }
+
+    #[tool(description = "Add new category under specified parent category.
+    # Arguments
+
+    * `parent_id` - The ID of the parent category.
+    * `name` - The name of the new category.")]
+    async fn add_category(
+        &self,
+        Parameters(payload): Parameters<AddCategoryCommand>,
+    ) -> Result<CallToolResult, McpError> {
+        use crate::cmd::category::AddCategoryRequest;
+        let request = AddCategoryRequest {
+            name: payload.name.clone(),
+            parent_id: payload.parent_id.clone(),
+        };
+        let category_id = category::add_category(request);
+        Ok(CallToolResult::success(vec![Content::text(
+            serde_json::to_string(&category_id).unwrap(),
+        )]))
+    }
+
+    #[tool(description = "Get uncategorized apps.
+    Returns a list of apps that have not been assigned to any category, each with app ID and path.
+    # Arguments
+
+    * `limit` - Optional limit to return only N apps. If not provided, defaults to 20.")]
+    async fn get_uncategorized_apps(
+        &self,
+        Parameters(payload): Parameters<GetUncategorizedAppsCommand>,
+    ) -> Result<CallToolResult, McpError> {
+        use crate::cmd::category::GetUncategorizedAppsRequest;
+        let limit = payload.limit.unwrap_or(20);
+        let request = GetUncategorizedAppsRequest {
+            offset: 0,
+            limit,
+            keyword: None,
+        };
+        let uncategorized = category::get_uncategorized_apps(request).await;
+        Ok(CallToolResult::success(vec![Content::text(
+            serde_json::to_string(&uncategorized).unwrap(),
         )]))
     }
 }

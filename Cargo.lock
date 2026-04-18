@@ -5238,6 +5238,7 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
  "url",
+ "uuid",
  "windows 0.62.2",
  "windows-icons",
  "winreg 0.56.0",

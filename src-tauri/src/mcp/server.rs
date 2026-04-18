@@ -1,4 +1,4 @@
-use crate::app::mcp_service::McpService;
+use crate::mcp::service::McpService;
 use rmcp::transport::streamable_http_server::session::local::LocalSessionManager;
 use rmcp::transport::streamable_http_server::tower::{
     StreamableHttpServerConfig, StreamableHttpService,

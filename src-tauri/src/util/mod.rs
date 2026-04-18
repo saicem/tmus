@@ -14,4 +14,3 @@ pub use force_singleton::force_singleton;
 pub use json::dump as dump_json;
 pub use json::load as load_json;
 pub use time_util::date_str_from_days;
-pub use time_util::date_time_from_days;

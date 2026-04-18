@@ -1,27 +1,23 @@
 import { createMemoryHistory, createRouter } from "vue-router"
 
-import Home from "@/pages/Home.vue"
+import Overview from "@/pages/Overview.vue"
 import Timeline from "@/pages/Timeline.vue"
 import Setting from "@/pages/Setting.vue"
 import Detail from "@/pages/Detail.vue"
 import Statistic from "@/pages/Statistic.vue"
 import Application from "@/pages/Application.vue"
+import Category from "@/pages/Category.vue"
 
 const routes = [
   {
     path: "/",
-    name: "home",
-    component: Home,
+    name: "overview",
+    component: Overview,
   },
   {
     path: "/timeline",
     name: "timeline",
     component: Timeline,
-  },
-  {
-    path: "/tags",
-    name: "tags",
-    component: Home,
   },
   {
     path: "/statistic",
@@ -32,6 +28,11 @@ const routes = [
     path: "/application",
     name: "application",
     component: Application,
+  },
+  {
+    path: "/category",
+    name: "category",
+    component: Category,
   },
   {
     path: "/setting",

@@ -27,3 +27,8 @@ pub fn app_detail_cache_path() -> &'static PathBuf {
     static APP_DETAIL_CACHE_PATH: OnceLock<PathBuf> = OnceLock::new();
     APP_DETAIL_CACHE_PATH.get_or_init(|| cache_dir().join("app_detail.json"))
 }
+
+pub fn category_file_path() -> &'static PathBuf {
+    static CATEGORY_FILE_PATH: OnceLock<PathBuf> = OnceLock::new();
+    CATEGORY_FILE_PATH.get_or_init(|| data_dir().join("category.json"))
+}

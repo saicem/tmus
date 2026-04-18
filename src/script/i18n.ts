@@ -1,3 +1,4 @@
+import { ref, watch } from "vue"
 import { LanguageEnum, passiveStore } from "@/script/state.ts"
 
 type I18nMessageType = {
@@ -13,11 +14,12 @@ type I18nMessageType = {
     copiedToClipboard: string
   }
   navigateMenu: {
-    home: string
+    overview: string
     timeline: string
     tags: string
     statistic: string
     application: string
+    category: string
     setting: string
   }
   homePage: {
@@ -104,6 +106,44 @@ type I18nMessageType = {
     }
     fileHasBeenDeleted: string
   }
+  categoryPage: {
+    title: string
+    addRootCategory: string
+    categoryTree: string
+    uncategorizedApplications: string
+    applicationName: string
+    path: string
+    operation: string
+    selectCategory: string
+    confirmDelete: string
+    confirm: string
+    cancel: string
+    addCategory: string
+    addChild: string
+    edit: string
+    delete: string
+    save: string
+    cancelEdit: string
+    enterCategoryName: string
+    rootLevel: string
+    parentCategory: string
+    categoryName: string
+    categoryNameCannotBeEmpty: string
+    categoryAddedSuccessfully: string
+    failedToAddCategory: string
+    categoryUpdatedSuccessfully: string
+    failedToUpdateCategory: string
+    categoryDeletedSuccessfully: string
+    failedToDeleteCategory: string
+    applicationAssignedSuccessfully: string
+    failedToAssignApplication: string
+    applicationCategoryRemovedSuccessfully: string
+    failedToRemoveCategoryFromApplication: string
+    failedToLoadCategories: string
+    failedToLoadApplications: string
+    failedToLoadUncategorizedApplications: string
+    searchPlaceholder: string
+  }
   ruleDialog: {
     excludeApp: string
     includeApp: string
@@ -131,11 +171,12 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
       copiedToClipboard: "Copied to clipboard",
     },
     navigateMenu: {
-      home: "Home",
+      overview: "Overview",
       timeline: "Timeline",
       tags: "Tags",
       statistic: "Statistic",
       application: "Application",
+      category: "Category",
       setting: "Setting",
     },
     homePage: {
@@ -245,6 +286,44 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
       modifiedTip:
         "You have modified the rule, are you sure to close without save?",
     },
+    categoryPage: {
+      title: "Application Categories",
+      addRootCategory: "Add Root Category",
+      categoryTree: "Category Tree",
+      uncategorizedApplications: "Uncategorized Applications",
+      applicationName: "Application Name",
+      path: "Path",
+      operation: "Operation",
+      selectCategory: "Select category",
+      confirmDelete: "Are you sure you want to delete this category?",
+      confirm: "Confirm",
+      cancel: "Cancel",
+      addCategory: "Add Category",
+      addChild: "Add Child",
+      enterCategoryName: "Enter category name",
+      edit: "Edit",
+      delete: "Delete",
+      save: "Save",
+      cancelEdit: "Cancel",
+      rootLevel: "Root Level",
+      parentCategory: "Parent Category",
+      categoryName: "Category Name",
+      categoryNameCannotBeEmpty: "Category name cannot be empty",
+      categoryAddedSuccessfully: "Category added successfully",
+      failedToAddCategory: "Failed to add category",
+      categoryUpdatedSuccessfully: "Category updated successfully",
+      failedToUpdateCategory: "Failed to update category",
+      categoryDeletedSuccessfully: "Category deleted successfully",
+      failedToDeleteCategory: "Failed to delete category",
+      applicationAssignedSuccessfully: "Application assigned successfully",
+      failedToAssignApplication: "Failed to assign application",
+      applicationCategoryRemovedSuccessfully: "Application category removed successfully",
+      failedToRemoveCategoryFromApplication: "Failed to remove category from application",
+      failedToLoadCategories: "Failed to load categories",
+      failedToLoadApplications: "Failed to load applications",
+      failedToLoadUncategorizedApplications: "Failed to load uncategorized applications",
+      searchPlaceholder: "Search by name, company, or path...",
+    },
   },
   zh: {
     common: {
@@ -259,11 +338,12 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
       copiedToClipboard: "已复制到剪贴板",
     },
     navigateMenu: {
-      home: "主页",
+      overview: "概览",
       timeline: "时间线",
       tags: "标签",
       statistic: "统计",
       application: "应用",
+      category: "分类",
       setting: "设置",
     },
     statisticPage: {
@@ -370,6 +450,44 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
       add: "新增",
       remove: "删除",
       modifiedTip: "你已经修改了规则,确定不保存关闭吗?",
+    },
+    categoryPage: {
+      enterCategoryName: "输入分类名称",
+      title: "应用分类",
+      addRootCategory: "添加根分类",
+      categoryTree: "分类树",
+      uncategorizedApplications: "未分类应用",
+      applicationName: "应用名称",
+      path: "路径",
+      operation: "操作",
+      selectCategory: "选择分类",
+      confirmDelete: "确定要删除这个分类吗?",
+      confirm: "确定",
+      cancel: "取消",
+      addCategory: "添加分类",
+      addChild: "添加子分类",
+      edit: "编辑",
+      delete: "删除",
+      save: "保存",
+      cancelEdit: "取消",
+      rootLevel: "根级别",
+      parentCategory: "父分类",
+      categoryName: "分类名称",
+      categoryNameCannotBeEmpty: "分类名称不能为空",
+      categoryAddedSuccessfully: "分类添加成功",
+      failedToAddCategory: "添加分类失败",
+      categoryUpdatedSuccessfully: "分类更新成功",
+      failedToUpdateCategory: "更新分类失败",
+      categoryDeletedSuccessfully: "分类删除成功",
+      failedToDeleteCategory: "删除分类失败",
+      applicationAssignedSuccessfully: "应用分配成功",
+      failedToAssignApplication: "分配应用失败",
+      applicationCategoryRemovedSuccessfully: "应用分类移除成功",
+      failedToRemoveCategoryFromApplication: "移除应用分类失败",
+      failedToLoadCategories: "加载分类失败",
+      failedToLoadApplications: "加载应用失败",
+      failedToLoadUncategorizedApplications: "加载未分类应用失败",
+      searchPlaceholder: "按名称、公司或路径搜索...",
     },
   },
 }

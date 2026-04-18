@@ -3,6 +3,7 @@ use crate::app::refresh_tray_menu;
 use crate::state::config::Config;
 use crate::util::dump_json;
 
+pub mod category;
 mod config;
 mod i18n;
 mod radix;
