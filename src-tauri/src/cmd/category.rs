@@ -89,9 +89,3 @@ pub async fn get_uncategorized_apps(
 ) -> Result<UncategorizedAppsResult, String> {
     category::get_uncategorized_apps(request.offset, request.limit, request.keyword).await
 }
-
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct GetCategoryAppsRequest {
-    pub category_id: String,
-}

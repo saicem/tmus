@@ -141,7 +141,11 @@ pub fn remove_app_from_category(app_id: usize) {
 }
 
 pub fn get_category_all() -> CategoryNode {
-    get_node_self(&ROOT_NODE_ID).unwrap().lock().unwrap().clone()
+    get_node_self(&ROOT_NODE_ID)
+        .unwrap()
+        .lock()
+        .unwrap()
+        .clone()
 }
 
 /// Find node from category map by parent id

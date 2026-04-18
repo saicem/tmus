@@ -189,7 +189,7 @@ impl McpService {
         Parameters(payload): Parameters<BatchSetAppCategoryCommand>,
     ) -> Result<CallToolResult, McpError> {
         for app_id in &payload.app_ids {
-            let _ =crate::state::category::set_app_category(*app_id, &payload.category_id);
+            let _ = crate::state::category::set_app_category(*app_id, &payload.category_id);
         }
         Ok(CallToolResult::success(vec![Content::text(
             "{\"success\": true}",
