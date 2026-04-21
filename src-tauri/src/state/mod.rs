@@ -8,6 +8,7 @@ mod config;
 mod i18n;
 mod radix;
 mod rule;
+pub mod scheme;
 
 pub use config::*;
 pub use i18n::I18n;
@@ -16,14 +17,14 @@ pub use rule::get_rule_radix_tree;
 
 #[tauri::command]
 pub async fn get_app_config() -> Config {
-    get_config().lock().unwrap().clone()
+    get_config().clone()
 }
 
 #[tauri::command]
 pub async fn set_app_config(config: Config, app_handle: tauri::AppHandle) {
     dump_json(&config, config_file_path());
     {
-        *get_config().lock().unwrap() = config
+        *get_config() = config
     };
     refresh_tray_menu(&app_handle);
 }

@@ -1,7 +1,7 @@
 /// Category data save periodically by timer
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
-use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::{Arc, Mutex, MutexGuard, OnceLock};
 use tmus_engine::models::AppId;
 use tracing::info;
@@ -11,14 +11,6 @@ use crate::cmd::app_detail::{get_all_app_detail, FileDetail};
 use crate::util::{dump_json, load_json};
 
 pub type CategoryId = u64;
-
-pub const ROOT_NODE_ID: CategoryId = 0;
-pub const UNCATEGORIZED_CATEGORY_ID: CategoryId = CategoryId::MAX;
-static NEXT_CATEGORY_ID: AtomicU64 = AtomicU64::new(0);
-static CATEGORY_ROOT: OnceLock<Arc<Mutex<CategoryNode>>> = OnceLock::new();
-static APP_CATEGORY_MAP: OnceLock<Mutex<HashMap<AppId, CategoryId>>> = OnceLock::new();
-static CATEGORY_DETAIL_MAP: OnceLock<Mutex<HashMap<CategoryId, Arc<Mutex<CategoryNode>>>>> =
-    OnceLock::new();
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -77,61 +69,83 @@ pub struct UncategorizedAppsResult {
     pub has_more: bool,
 }
 
+struct CategoryState {
+    pub category_root: Arc<Mutex<CategoryNode>>,
+    pub app_category_map: Mutex<HashMap<AppId, CategoryId>>,
+    pub category_detail_map: Mutex<HashMap<CategoryId, Arc<Mutex<CategoryNode>>>>,
+    pub category_changed: AtomicBool,
+    pub next_category_id: AtomicU64,
+}
+
+pub const ROOT_NODE_ID: CategoryId = 0;
+pub const UNCATEGORIZED_CATEGORY_ID: CategoryId = CategoryId::MAX;
+
+fn get_state<'a>() -> &'a CategoryState {
+    static STATE: OnceLock<CategoryState> = OnceLock::new();
+    STATE.get_or_init(|| {
+        let mut category_root: CategoryNode = load_json(category_file_path());
+        category_root.app_ids.clear();
+
+        let category_root = Arc::new(Mutex::new(category_root));
+        let mut app_category_map = HashMap::new();
+        let mut category_detail_map = HashMap::new();
+
+        let mut next_id = ROOT_NODE_ID;
+        reset_id(&category_root, &mut next_id, ROOT_NODE_ID);
+        fn reset_id(
+            node_mutex: &Arc<Mutex<CategoryNode>>,
+            cur_id: &mut CategoryId,
+            parent_id: CategoryId,
+        ) {
+            let mut node = node_mutex.lock().unwrap();
+            node.id = *cur_id;
+            node.parent_id = parent_id;
+            for child in &node.children {
+                *cur_id += 1;
+                reset_id(child, cur_id, node.id);
+            }
+        }
+
+        let next_category_id = AtomicU64::new(next_id);
+        build_map(
+            &category_root,
+            &mut app_category_map,
+            &mut category_detail_map,
+        );
+        fn build_map(
+            node_mutex: &Arc<Mutex<CategoryNode>>,
+            app_category_map: &mut HashMap<usize, CategoryId>,
+            detail_map: &mut HashMap<CategoryId, Arc<Mutex<CategoryNode>>>,
+        ) {
+            let node = node_mutex.lock().unwrap();
+            detail_map.insert(node.id, Arc::clone(&node_mutex));
+            for child in &node.children {
+                build_map(child, app_category_map, detail_map);
+            }
+            for app_id in &node.app_ids {
+                app_category_map.insert(*app_id, node.id.to_owned());
+            }
+        }
+
+        CategoryState {
+            category_root,
+            app_category_map: Mutex::new(app_category_map),
+            category_detail_map: Mutex::new(category_detail_map),
+            category_changed: AtomicBool::new(false),
+            next_category_id,
+        }
+    })
+}
+
 #[inline]
 pub fn get_app_category_map<'a>() -> MutexGuard<'a, HashMap<AppId, CategoryId>> {
-    APP_CATEGORY_MAP.get().unwrap().lock().unwrap()
+    get_state().app_category_map.lock().unwrap()
 }
 
 #[inline]
 pub fn get_category_detail_map<'a>() -> MutexGuard<'a, HashMap<CategoryId, Arc<Mutex<CategoryNode>>>>
 {
-    CATEGORY_DETAIL_MAP.get().unwrap().lock().unwrap()
-}
-
-pub fn init() {
-    let mut category_root: CategoryNode = load_json(category_file_path());
-    category_root.app_ids.clear();
-
-    let root_arc = Arc::new(Mutex::new(category_root));
-    let mut app_category_map = HashMap::new();
-    let mut detail_map = HashMap::new();
-
-    build_map(&root_arc, &mut app_category_map, &mut detail_map);
-    fn build_map(
-        node_mutex: &Arc<Mutex<CategoryNode>>,
-        app_category_map: &mut HashMap<usize, CategoryId>,
-        detail_map: &mut HashMap<CategoryId, Arc<Mutex<CategoryNode>>>,
-    ) {
-        let node = node_mutex.lock().unwrap();
-        detail_map.insert(node.id, Arc::clone(&node_mutex));
-        for child in &node.children {
-            build_map(child, app_category_map, detail_map);
-        }
-        for app_id in &node.app_ids {
-            app_category_map.insert(*app_id, node.id.to_owned());
-        }
-    }
-
-    let mut cur_id = ROOT_NODE_ID;
-    reset_id(&root_arc, &mut cur_id, ROOT_NODE_ID);
-    fn reset_id(
-        node_mutex: &Arc<Mutex<CategoryNode>>,
-        cur_id: &mut CategoryId,
-        parent_id: CategoryId,
-    ) {
-        let mut node = node_mutex.lock().unwrap();
-        node.id = *cur_id;
-        node.parent_id = parent_id;
-        for child in &node.children {
-            *cur_id += 1;
-            reset_id(child, cur_id, node.id);
-        }
-    }
-
-    NEXT_CATEGORY_ID.store(detail_map.len() as CategoryId, Ordering::Relaxed);
-    CATEGORY_ROOT.set(root_arc).unwrap();
-    APP_CATEGORY_MAP.set(Mutex::new(app_category_map)).unwrap();
-    CATEGORY_DETAIL_MAP.set(Mutex::new(detail_map)).unwrap();
+    get_state().category_detail_map.lock().unwrap()
 }
 
 /// Check category exists before setting app category
@@ -161,6 +175,7 @@ pub fn set_app_category(app_id: AppId, category_id: CategoryId) -> Result<(), St
 
     category_node_arc_mutex.lock().unwrap().app_ids.push(app_id);
     app_category_map.insert(app_id, category_id);
+    get_state().category_changed.store(true, Ordering::Relaxed);
     Ok(())
 }
 
@@ -177,10 +192,11 @@ pub fn remove_app_from_category(app_id: AppId) {
         }
         drop(detail_map);
     }
+    get_state().category_changed.store(true, Ordering::Relaxed);
 }
 
 pub fn get_category_tree() -> Arc<Mutex<CategoryNode>> {
-    CATEGORY_ROOT.get().unwrap().clone()
+    get_state().category_root.clone()
 }
 
 /// Find node from category map by parent id
@@ -194,7 +210,7 @@ pub fn add_category(parent_id: CategoryId, name: String) -> Result<(), String> {
         .get(&parent_id)
         .ok_or("Parent category not found".to_string())?;
     let mut parent_node = parent_node_mutex.lock().unwrap();
-    let category_id = generate_category_id();
+    let category_id = get_state().next_category_id.fetch_add(1, Ordering::Relaxed);
 
     // Create new category node
     let new_category = Arc::new(Mutex::new(CategoryNode {
@@ -208,6 +224,7 @@ pub fn add_category(parent_id: CategoryId, name: String) -> Result<(), String> {
     parent_node.children.push(new_category.clone());
     drop(parent_node);
     detail_map.insert(category_id.clone(), new_category);
+    get_state().category_changed.store(true, Ordering::Relaxed);
     Ok(())
 }
 
@@ -215,6 +232,7 @@ pub fn rename_category(id: CategoryId, name: String) -> Result<(), String> {
     let arc_node = get_node_self(id).ok_or("Category not found".to_string())?;
     let mut node = arc_node.lock().unwrap();
     node.name = name;
+    get_state().category_changed.store(true, Ordering::Relaxed);
     Ok(())
 }
 
@@ -230,7 +248,7 @@ pub fn delete_category(id: CategoryId) -> Result<(), String> {
     parent_node
         .children
         .retain(|child| !Arc::ptr_eq(child, &arc_node));
-    let (node_ids, app_ids) = get_self_and_descendents_ids(&node);
+    let (node_ids, app_ids) = get_self_and_descendants_ids(&node);
 
     let mut detail_map = get_category_detail_map();
     for node_id in &node_ids {
@@ -243,6 +261,7 @@ pub fn delete_category(id: CategoryId) -> Result<(), String> {
         app_category_map.remove(k);
     });
     drop(app_category_map);
+    get_state().category_changed.store(true, Ordering::Relaxed);
     Ok(())
 }
 
@@ -298,7 +317,10 @@ pub async fn get_uncategorized_apps(
 }
 
 pub fn save_category_data() {
-    dump_json(CATEGORY_ROOT.get().unwrap(), category_file_path());
+    if !get_state().category_changed.swap(false, Ordering::Relaxed) {
+        return;
+    }
+    dump_json(&get_state().category_root, category_file_path());
     info!("Category data saved");
 }
 
@@ -353,7 +375,7 @@ fn get_node_self(id: CategoryId) -> Option<Arc<Mutex<CategoryNode>>> {
 }
 
 /// Find node self and descendants node ids and app ids
-fn get_self_and_descendents_ids(node: &CategoryNode) -> (Vec<CategoryId>, Vec<AppId>) {
+fn get_self_and_descendants_ids(node: &CategoryNode) -> (Vec<CategoryId>, Vec<AppId>) {
     let mut node_ids = Vec::new();
     let mut app_ids = Vec::new();
     fn dfs(node: &CategoryNode, node_ids: &mut Vec<CategoryId>, app_ids: &mut Vec<AppId>) {
@@ -365,8 +387,4 @@ fn get_self_and_descendents_ids(node: &CategoryNode) -> (Vec<CategoryId>, Vec<Ap
     }
     dfs(node, &mut node_ids, &mut app_ids);
     (node_ids, app_ids)
-}
-
-fn generate_category_id() -> CategoryId {
-    NEXT_CATEGORY_ID.fetch_add(1, Ordering::Relaxed)
 }

@@ -38,21 +38,21 @@ impl TimeSpan {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct AppStatisticDetail {
     pub value: Value,
     pub app: FileDetail,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct CategoryStatisticDetail {
     pub value: Value,
     pub category: CategorySimple,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct AppDurationRequest {
     pub start_time: Timestamp,
@@ -60,13 +60,13 @@ pub struct AppDurationRequest {
     pub category_id: Option<CategoryId>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct AppDurationResponse {
     pub detail: Vec<AppStatisticDetail>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct AppDayCountRequest {
     pub start_time: Timestamp,
@@ -74,13 +74,13 @@ pub struct AppDayCountRequest {
     pub category_id: Option<CategoryId>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct AppDayCountResponse {
     pub detail: Vec<AppStatisticDetail>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct CategoryDurationRequest {
     pub start_time: Timestamp,
@@ -88,13 +88,13 @@ pub struct CategoryDurationRequest {
     pub category_ids: Vec<CategoryId>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct CategoryDurationResponse {
     pub detail: Vec<CategoryStatisticDetail>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct CategoryDayCountRequest {
     pub start_time: Timestamp,
@@ -102,13 +102,13 @@ pub struct CategoryDayCountRequest {
     pub category_ids: Vec<CategoryId>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct CategoryDayCountResponse {
     pub detail: Vec<CategoryStatisticDetail>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct RhythmGroup {
     pub start_time: Timestamp,
@@ -116,7 +116,7 @@ pub struct RhythmGroup {
     pub category_id: CategoryId,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct RhythmRequest {
     pub groups: Vec<RhythmGroup>,
@@ -124,7 +124,7 @@ pub struct RhythmRequest {
     pub granularity: Timestamp,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct RhythmDataResponse {
     pub values: Vec<Vec<Timestamp>>,

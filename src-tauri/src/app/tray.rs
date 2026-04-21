@@ -29,7 +29,7 @@ pub fn refresh_tray_menu(app_handle: &AppHandle) {
 }
 
 fn build_menu(app_handle: &AppHandle) -> Result<Menu<Wry>, Box<dyn Error>> {
-    let config = { get_config().lock().unwrap().clone() };
+    let config = { get_config().clone() };
     let i18n = I18n::get(&config.lang);
     let lang_menu = SubmenuBuilder::new(app_handle, i18n.language)
         .items(&[
@@ -117,7 +117,7 @@ fn on_menu_event(app_handle: &AppHandle, event: MenuEvent) {
         }
         _ => {
             {
-                let mut config = get_config().lock().unwrap();
+                let mut config = get_config();
                 match event_id {
                     "lang_en" => {
                         config.lang = LangConfig::En;

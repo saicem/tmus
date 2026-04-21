@@ -3,11 +3,10 @@
 
 use crate::app::constant::data_dir;
 use crate::app::global::set_app_handle;
-use crate::app::start_category_timer;
+use crate::app::start_timer;
 use crate::app::update;
-use crate::mcp::server::{get_mcp_server_status, start_mcp_server, stop_mcp_server};
-use crate::state::{get_app_config, get_config, get_rule_radix_tree, set_app_config};
-use state::{get_app_rule, set_app_rule};
+use crate::mcp::server::start_mcp_server;
+use crate::state::{get_config, get_rule_radix_tree};
 use std::env;
 use tauri::{AppHandle, Manager, RunEvent};
 use tauri_plugin_autostart::MacosLauncher;
@@ -39,40 +38,7 @@ async fn main() {
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_os::init())
         .setup(setup)
-        .invoke_handler(tauri::generate_handler![
-            cmd::get_raw_record,
-            get_app_config,
-            set_app_config,
-            get_app_rule,
-            set_app_rule,
-            cmd::show_in_folder,
-            cmd::get_tmus_meta,
-            cmd::focus_index_record,
-            cmd::app_detail::get_app_detail,
-            cmd::app_detail::get_all_app_detail,
-            update::fetch_update,
-            update::install_update,
-            cmd::app_duration_area::get_app_duration_area,
-            cmd::duration::get_duration_by_id,
-            cmd::duration::query_duration_statistic,
-            start_mcp_server,
-            stop_mcp_server,
-            get_mcp_server_status,
-            cmd::category::get_categories,
-            cmd::category::add_category,
-            cmd::category::update_category,
-            cmd::category::delete_category,
-            cmd::category::set_app_category,
-            cmd::category::remove_app_from_category,
-            cmd::category::get_uncategorized_apps,
-            cmd::category::get_category_apps,
-            cmd::statistic::get_base_time,
-            cmd::statistic::get_app_total_duration,
-            cmd::statistic::get_app_usage_days,
-            cmd::statistic::get_category_total_duration,
-            cmd::statistic::get_category_usage_days,
-            cmd::statistic::get_category_usage_rhythm,
-        ])
+        .invoke_handler(cmd::handler())
         .build(tauri::generate_context!())
         .expect("Error while building application");
     info!("Application started");
@@ -80,13 +46,12 @@ async fn main() {
 }
 
 pub fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
-    let config = { get_config().lock().unwrap().to_owned() };
+    let config = { get_config().clone() };
     engine_start(data_dir(), |app_path| {
         get_rule_radix_tree().lock().unwrap().filter(app_path)
     });
 
-    crate::state::category::init();
-    start_category_timer();
+    start_timer();
 
     if config.auto_start_mcp_server {
         tauri::async_runtime::spawn(start_mcp_server(config.mcp_server_port));

@@ -1,7 +1,7 @@
 use crate::app::constant::config_file_path;
 use crate::util::load_json;
 use serde::{Deserialize, Serialize};
-use std::sync::{Mutex, OnceLock};
+use std::sync::{Mutex, MutexGuard, OnceLock};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -53,8 +53,10 @@ impl Default for Config {
     }
 }
 
-static CONFIG: OnceLock<Mutex<Config>> = OnceLock::new();
-
-pub fn get_config() -> &'static Mutex<Config> {
-    CONFIG.get_or_init(|| Mutex::new(load_json(config_file_path())))
+pub fn get_config<'a>() -> MutexGuard<'a, Config> {
+    static CONFIG: OnceLock<Mutex<Config>> = OnceLock::new();
+    CONFIG
+        .get_or_init(|| Mutex::new(load_json(config_file_path())))
+        .lock()
+        .unwrap()
 }

@@ -225,3 +225,29 @@ export interface RhythmDataResponse {
   values: number[][]
 }
 
+export interface StatisticSchemeItem {
+  id: number
+  name: string
+  detail: StatisticSchemeDetail
+}
+
+export interface StatisticScheme {
+  items: StatisticSchemeItem[]
+}
+
+export type StatisticSchemeDetail =
+  | { type: "appDurationRequest" } & AppDurationRequest
+  | { type: "appDayCountRequest" } & AppDayCountRequest
+  | { type: "categoryDurationRequest" } & CategoryDurationRequest
+  | { type: "categoryDayCountRequest" } & CategoryDayCountRequest
+  | { type: "rhythmRequest" } & RhythmRequest
+
+export interface AddSchemeItemRequest {
+  name: string
+  detail: StatisticSchemeDetail
+}
+
+export interface AddSchemeItemResponse {
+  id: number
+}
+

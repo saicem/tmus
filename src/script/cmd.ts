@@ -30,7 +30,10 @@ import {
   CategoryDayCountRequest,
   CategoryDayCountResponse,
   RhythmRequest,
-  RhythmDataResponse
+  RhythmDataResponse,
+  StatisticScheme,
+  AddSchemeItemRequest,
+  AddSchemeItemResponse
 } from "./models.ts"
 import { Config } from "@/script/state.ts"
 import { ElMessage } from "element-plus"
@@ -237,4 +240,20 @@ export async function getCategoryUsageDays(request: CategoryDayCountRequest): Pr
 
 export async function getCategoryUsageRhythm(request: RhythmRequest): Promise<RhythmDataResponse> {
   return await ivk("get_category_usage_rhythm", { request })
+}
+
+export async function getStatisticSchemeList(): Promise<StatisticScheme> {
+  return await ivk("get_statistic_scheme_list")
+}
+
+export async function addStatisticScheme(request: AddSchemeItemRequest): Promise<AddSchemeItemResponse> {
+  return await ivk("add_statistic_scheme", { request })
+}
+
+export async function deleteStatisticScheme(id: number): Promise<void> {
+  return await ivk("delete_statistic_scheme", { id })
+}
+
+export async function saveStatisticSchemeManual(): Promise<void> {
+  return await ivk("save_statistic_scheme_manual")
 }

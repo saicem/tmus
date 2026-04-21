@@ -32,3 +32,8 @@ pub fn category_file_path() -> &'static PathBuf {
     static CATEGORY_FILE_PATH: OnceLock<PathBuf> = OnceLock::new();
     CATEGORY_FILE_PATH.get_or_init(|| data_dir().join("category.json"))
 }
+
+pub fn statistic_scheme_file_path() -> &'static PathBuf {
+    static SCHEME_FILE_PATH: OnceLock<PathBuf> = OnceLock::new();
+    SCHEME_FILE_PATH.get_or_init(|| data_dir().join("statistic_scheme.json"))
+}

@@ -153,6 +153,7 @@ impl<T: Clone> RadixTree<T> {
         self.root.longest_prefix_meta(s)
     }
 }
+
 #[cfg(test)]
 mod tests {
     use super::*;
