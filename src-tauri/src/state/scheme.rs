@@ -73,18 +73,20 @@ pub fn add_statistic_scheme_item(name: String, detail: StatisticSchemeDetail) {
         name,
         detail,
     });
+    STATISTIC_SCHEME_CHANGED.store(true, Ordering::Relaxed);
 }
 
 pub fn delete_statistic_scheme_item(id: &u64) -> Result<(), String> {
-    let mut scheme = get_statistic_scheme();
-    static LOCK: Mutex<()> = Mutex::new(());
-    let lock = LOCK.lock().unwrap();
-    let index = scheme
-        .items
-        .binary_search_by_key(id, |item| item.id)
-        .map_err(|_| "Item not found".to_string())?;
-    scheme.items.remove(index);
-    drop(lock);
+    {
+        static LOCK: Mutex<()> = Mutex::new(());
+        let _lock = LOCK.lock().unwrap();
+        let mut scheme = get_statistic_scheme();
+        let index = scheme
+            .items
+            .binary_search_by_key(id, |item| item.id)
+            .map_err(|_| "Item not found".to_string())?;
+        scheme.items.remove(index);
+    }
     STATISTIC_SCHEME_CHANGED.store(true, Ordering::Relaxed);
     Ok(())
 }
