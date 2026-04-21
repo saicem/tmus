@@ -10,6 +10,9 @@ pub mod app_detail;
 pub mod app_duration_area;
 pub mod category;
 pub mod duration;
+pub mod scheme;
+pub mod statistic;
+
 mod read_helper;
 
 #[derive(Debug, Serialize, Deserialize)]

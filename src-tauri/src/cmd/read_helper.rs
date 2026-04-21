@@ -24,8 +24,8 @@ pub fn timezone_convert(mut vec: Vec<FocusRecord>, timezone_offset: Timestamp) -
 /// A vector of `FocusRecord` instances.
 pub fn read_by_timestamp(start_timestamp: Timestamp, end_timestamp: Timestamp) -> Vec<FocusRecord> {
     debug_assert!(
-        start_timestamp <= end_timestamp,
-        "Start_timestamp must be less than or equal to end_timestamp"
+        start_timestamp < end_timestamp,
+        "Start_timestamp must be less than end_timestamp"
     );
     let rough_records = storage::read_by_timestamp(start_timestamp, end_timestamp);
     debug!(

@@ -1,10 +1,9 @@
 #![allow(dead_code)]
 
-use std::collections::HashMap;
-
 use crate::cmd::app_detail::get_all_app_detail;
 use crate::cmd::category;
 use crate::cmd::duration::get_duration_by_id;
+use crate::state::category::CategoryId;
 use chrono::{DateTime, Local, Utc};
 use rmcp::handler::server::wrapper::Parameters;
 use rmcp::{
@@ -12,11 +11,12 @@ use rmcp::{
     tool_handler, tool_router, ErrorData as McpError, RoleServer, ServerHandler,
 };
 use serde::{Deserialize, Serialize};
+use tmus_engine::models::AppId;
 
 #[derive(Debug, serde::Serialize, serde::Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct App {
-    pub id: usize,
+    pub id: AppId,
     pub path: String,
 }
 
@@ -31,27 +31,27 @@ pub struct AppUsageCommand {
 #[derive(Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct AppCategoryCommand {
-    app_id: usize,
+    app_id: AppId,
 }
 
 #[derive(Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct SetAppCategoryCommand {
-    app_id: usize,
-    category_id: String,
+    app_id: AppId,
+    category_id: CategoryId,
 }
 
 #[derive(Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct BatchSetAppCategoryCommand {
-    app_ids: Vec<usize>,
-    category_id: String,
+    app_ids: Vec<AppId>,
+    category_id: CategoryId,
 }
 
 #[derive(Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct AddCategoryCommand {
-    parent_id: String,
+    parent_id: CategoryId,
     name: String,
 }
 
@@ -110,14 +110,7 @@ impl McpService {
             app_durations.truncate(top_k);
         }
 
-        // Get all app details
-        let app_details = get_all_app_detail().await;
-
-        // Create a map from app id to app detail
-        let mut app_detail_map = HashMap::new();
-        for detail in app_details {
-            app_detail_map.insert(detail.id, detail);
-        }
+        let app_detail_map = get_all_app_detail().await;
 
         // Combine app durations with app details
         let app_usage: Vec<serde_json::Value> = app_durations
@@ -173,7 +166,7 @@ impl McpService {
         &self,
         Parameters(payload): Parameters<SetAppCategoryCommand>,
     ) -> Result<CallToolResult, McpError> {
-        let _ = crate::state::category::set_app_category(payload.app_id, &payload.category_id);
+        let _ = crate::state::category::set_app_category(payload.app_id, payload.category_id);
         Ok(CallToolResult::success(vec![Content::text(
             "{\"success\": true}",
         )]))
@@ -189,7 +182,7 @@ impl McpService {
         Parameters(payload): Parameters<BatchSetAppCategoryCommand>,
     ) -> Result<CallToolResult, McpError> {
         for app_id in &payload.app_ids {
-            let _ = crate::state::category::set_app_category(*app_id, &payload.category_id);
+            let _ = crate::state::category::set_app_category(*app_id, payload.category_id);
         }
         Ok(CallToolResult::success(vec![Content::text(
             "{\"success\": true}",

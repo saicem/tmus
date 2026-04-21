@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::Path;
 use std::sync::OnceLock;
+use tmus_engine::models::AppId;
 use tmus_engine::storage::focus_app;
 use tokio::sync::Mutex;
 use windows_icons::get_icon_base64_by_path;
@@ -68,7 +69,7 @@ pub async fn get_app_detail(id: usize) -> FileDetail {
 
 #[tauri::command]
 #[tracing::instrument]
-pub async fn get_all_app_detail() -> Vec<FileDetail> {
+pub async fn get_all_app_detail() -> HashMap<AppId, FileDetail> {
     let app_vec = focus_app::get_all_app();
     let mut app_detail_cache = get_app_detail_cache().lock().await;
     app_detail_cache.values_mut().for_each(|detail| {
@@ -83,7 +84,7 @@ pub async fn get_all_app_detail() -> Vec<FileDetail> {
     if not_exist_app_detail.len() > 0 {
         update_app_detail_cache(&mut *app_detail_cache, not_exist_app_detail).await;
     }
-    app_detail_cache.values().map(|x| x.to_owned()).collect()
+    app_detail_cache.clone()
 }
 
 fn query_file_detail(id: usize, path: &str) -> FileDetail {

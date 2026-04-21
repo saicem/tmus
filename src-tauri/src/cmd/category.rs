@@ -1,6 +1,9 @@
-use crate::state::category;
+use std::sync::{Arc, Mutex};
+
+use crate::state::category::{self, CategoryId, CategoryNode};
 use serde::{Deserialize, Serialize};
 use tauri::command;
+use tmus_engine::models::AppId;
 
 use crate::state::category::UncategorizedAppsResult;
 
@@ -8,33 +11,33 @@ use crate::state::category::UncategorizedAppsResult;
 #[serde(rename_all = "camelCase")]
 pub struct AddCategoryRequest {
     pub name: String,
-    pub parent_id: String,
+    pub parent_id: CategoryId,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateCategoryRequest {
-    pub id: String,
+    pub id: CategoryId,
     pub name: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct DeleteCategoryRequest {
-    pub id: String,
+    pub id: CategoryId,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SetAppCategoryRequest {
     pub app_id: usize,
-    pub category_id: String,
+    pub category_id: CategoryId,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct RemoveAppCategoryRequest {
-    pub app_id: usize,
+    pub app_id: AppId,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -47,13 +50,13 @@ pub struct GetUncategorizedAppsRequest {
 
 #[command]
 #[tracing::instrument]
-pub fn get_categories() -> category::CategoryNode {
-    category::get_category_all()
+pub fn get_categories() -> Arc<Mutex<CategoryNode>> {
+    category::get_category_tree()
 }
 
 #[command]
 #[tracing::instrument]
-pub fn add_category(request: AddCategoryRequest) -> Result<category::CategorySimple, String> {
+pub fn add_category(request: AddCategoryRequest) -> Result<(), String> {
     category::add_category(request.parent_id, request.name)
 }
 
@@ -72,7 +75,7 @@ pub fn delete_category(request: DeleteCategoryRequest) -> Result<(), String> {
 #[command]
 #[tracing::instrument]
 pub fn set_app_category(request: SetAppCategoryRequest) -> Result<(), String> {
-    category::set_app_category(request.app_id, &request.category_id)
+    category::set_app_category(request.app_id, request.category_id)
 }
 
 #[command]
