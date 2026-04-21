@@ -104,18 +104,8 @@ export async function getAppDetail(id: number): Promise<FileDetail> {
   return await ivk("get_app_detail", { id: id })
 }
 
-export async function getAllAppDetail(): Promise<FileDetail[]> {
+export async function getAppDetailMap(): Promise<Record<number, FileDetail>> {
   return await ivk("get_all_app_detail")
-}
-
-export async function getAppDetailMap() {
-  return (await getAllAppDetail()).reduce(
-    (map, detail) => {
-      map[detail.id] = detail
-      return map
-    },
-    {} as Record<number, FileDetail>
-  )
 }
 
 export async function fetchUpdate(): Promise<UpdateMetadata | null> {

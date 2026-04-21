@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { getAllAppDetail } from "@/script/cmd.ts"
+import { getAppDetailMap } from "@/script/cmd.ts"
 import { FileDetail } from "@/script/models.ts"
 import { configStore } from "@/script/state.ts"
 import ContentView from "@/components/global/ContentView.vue"
@@ -10,7 +10,7 @@ import { i18n } from "@/script/i18n.ts"
 const appList = ref<FileDetail[]>([])
 
 onMounted(async () => {
-  let result = await getAllAppDetail()
+  let result = Object.values(await getAppDetailMap())
   if (configStore.filterUninstalledApp) {
     result = result.filter((app) => app.exist)
   }
@@ -47,19 +47,11 @@ function rowDbClick(row: FileDetail, _column: TableColumnCtx, _event: Event) {
 
 <template>
   <content-view>
-    <el-table
-      :row-class-name="tableRowClassName"
-      :data="filterTableData"
-      @row-dblclick="rowDbClick"
-      style="height: 100%; width: 100%"
-    >
+    <el-table :row-class-name="tableRowClassName" :data="filterTableData" @row-dblclick="rowDbClick"
+      style="height: 100%; width: 100%">
       <el-table-column>
         <template #header>
-          <el-input
-            v-model="searchName"
-            size="small"
-            :placeholder="i18n.applicationPage.typeToSearchName"
-          />
+          <el-input v-model="searchName" size="small" :placeholder="i18n.applicationPage.typeToSearchName" />
         </template>
         <template #default="scope">
           <div style="display: flex; align-items: center">
@@ -70,11 +62,7 @@ function rowDbClick(row: FileDetail, _column: TableColumnCtx, _event: Event) {
       </el-table-column>
       <el-table-column label="Company" prop="version.companyName">
         <template #header>
-          <el-input
-            v-model="searchCompany"
-            size="small"
-            :placeholder="i18n.applicationPage.typeToSearchCompany"
-          />
+          <el-input v-model="searchCompany" size="small" :placeholder="i18n.applicationPage.typeToSearchCompany" />
         </template>
       </el-table-column>
     </el-table>

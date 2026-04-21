@@ -149,8 +149,8 @@ export interface RemoveAppCategoryRequest {
 }
 
 export enum TimeSpan {
-  Day = "Day",
-  Week = "Week"
+  Day = "day",
+  Week = "week"
 }
 
 export interface AppStatisticDetail {

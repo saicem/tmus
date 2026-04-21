@@ -319,10 +319,10 @@ pub fn get_category_usage_rhythm(request: RhythmRequest) -> Result<RhythmDataRes
     // Valid check
     let time_span = request.span.to_ms();
     let granularity = request.granularity;
-    if granularity % time_span != 0 {
-        return Err("granularity must be a multiple of span".to_string());
+    if time_span % granularity != 0 {
+        return Err("span must be a multiple of granularity".to_string());
     }
-    let multiple = granularity / time_span;
+    let multiple = time_span / granularity;
     if multiple > 24 * 60 {
         return Err("granularity is too small".to_string());
     }
@@ -351,11 +351,14 @@ pub fn get_category_usage_rhythm(request: RhythmRequest) -> Result<RhythmDataRes
              }| {
                 let valid_app_ids = get_category_and_descendants_app_ids(&category_id);
                 if valid_app_ids.is_err() {
-                    tracing::error!("get_category_and_descendants_app_ids error: {:?}", category_id);
+                    tracing::error!(
+                        "get_category_and_descendants_app_ids error: {:?}",
+                        category_id
+                    );
                     return Vec::new();
                 }
                 let valid_app_ids = valid_app_ids.unwrap();
-                               
+
                 let records = read_helper::read_by_timestamp(start_time, end_time);
                 // This vec use for store less than granularity duration
                 let mut partial_vec: Vec<Timestamp> = Vec::with_capacity(multiple as usize);
@@ -377,7 +380,8 @@ pub fn get_category_usage_rhythm(request: RhythmRequest) -> Result<RhythmDataRes
                     let end_index = end_in_granularity / granularity;
 
                     if start_index == end_index {
-                        partial_vec[start_index as usize] += end_in_granularity - start_in_granularity;
+                        partial_vec[start_index as usize] +=
+                            end_in_granularity - start_in_granularity;
                     } else {
                         if start_in_granularity != 0 {
                             partial_vec[start_index as usize] += start_in_granularity;
@@ -393,7 +397,7 @@ pub fn get_category_usage_rhythm(request: RhythmRequest) -> Result<RhythmDataRes
                     }
                     full_adj_dif_vec[0] += cycle;
                 }
-                
+
                 partial_vec
                     .into_iter()
                     .zip(full_adj_dif_vec.into_iter())
