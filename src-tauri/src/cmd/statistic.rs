@@ -15,7 +15,7 @@ use crate::{
     },
     state::category::{
         get_app_category_map, get_category_detail_map, get_category_self_and_descendants_map,
-        get_category_tree, CategoryId, CategoryNode, CategorySimple, UNCATEGORIZED_CATEGORY_ID,
+        CategoryId, CategoryNode, CategorySimple, UNCATEGORIZED_CATEGORY_ID,
     },
 };
 
@@ -450,26 +450,6 @@ fn get_category_and_descendants_app_ids(
     }
     get_app_ids(&category_node.lock().unwrap(), &mut app_ids);
     Ok(app_ids)
-}
-
-fn build_category_parent_map(valid_category: Vec<String>) -> HashMap<String, String> {
-    let mut parent_map = HashMap::new();
-    for category in valid_category {
-        let category_id = category.split_once('/').unwrap().1.to_string();
-        let parent_id = category.split_once('/').unwrap().0.to_string();
-        parent_map.insert(category_id, parent_id);
-    }
-    parent_map
-}
-
-fn check_time_span_is_days(start: Timestamp, end: Timestamp) -> bool {
-    let span = end - start;
-    return span % d_as_ms(1) == 0;
-}
-
-fn check_time_span_is_weeks(start: Timestamp, end: Timestamp) -> bool {
-    let span = end - start;
-    return span % d_as_ms(7) == 0;
 }
 
 /// Only use for distinguish is the same day
