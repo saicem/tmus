@@ -140,11 +140,11 @@ pub fn init() {
 /// If app does not have a category, add it to new category
 pub fn set_app_category(app_id: AppId, category_id: CategoryId) -> Result<(), String> {
     // Check if category exists
-    let detail_map = CATEGORY_DETAIL_MAP.get().unwrap().lock().unwrap();
-    let category_node_mutex = detail_map
+    let detail_map = get_category_detail_map();
+    let category_node_arc_mutex = detail_map
         .get(&category_id)
-        .ok_or("Category not found".to_string())?;
-    let category_node = category_node_mutex.lock().unwrap();
+        .ok_or("Category not found".to_string())?
+        .clone();
 
     let mut app_category_map = get_app_category_map();
 
@@ -159,9 +159,8 @@ pub fn set_app_category(app_id: AppId, category_id: CategoryId) -> Result<(), St
         }
     }
 
-    // Update app_category_map
-    app_category_map.insert(app_id, category_node.id.to_owned());
-    category_node_mutex.lock().unwrap().app_ids.push(app_id);
+    category_node_arc_mutex.lock().unwrap().app_ids.push(app_id);
+    app_category_map.insert(app_id, category_id);
     Ok(())
 }
 
@@ -171,7 +170,7 @@ pub fn set_app_category(app_id: AppId, category_id: CategoryId) -> Result<(), St
 pub fn remove_app_from_category(app_id: AppId) {
     let mut app_category_map = get_app_category_map();
     if let Some(category_id) = app_category_map.remove(&app_id) {
-        let detail_map = CATEGORY_DETAIL_MAP.get().unwrap().lock().unwrap();
+        let detail_map = get_category_detail_map();
         if let Some(category_node) = detail_map.get(&category_id) {
             let mut node = category_node.lock().unwrap();
             node.app_ids.retain(|&id| id != app_id);
@@ -190,7 +189,7 @@ pub fn get_category_tree() -> Arc<Mutex<CategoryNode>> {
 /// Add node to parent node find before add to detail map
 pub fn add_category(parent_id: CategoryId, name: String) -> Result<(), String> {
     // Check if parent exists
-    let mut detail_map = CATEGORY_DETAIL_MAP.get().unwrap().lock().unwrap();
+    let mut detail_map = get_category_detail_map();
     let parent_node_mutex = detail_map
         .get(&parent_id)
         .ok_or("Parent category not found".to_string())?;
@@ -233,7 +232,7 @@ pub fn delete_category(id: CategoryId) -> Result<(), String> {
         .retain(|child| !Arc::ptr_eq(child, &arc_node));
     let (node_ids, app_ids) = get_self_and_descendents_ids(&node);
 
-    let mut detail_map = CATEGORY_DETAIL_MAP.get().unwrap().lock().unwrap();
+    let mut detail_map = get_category_detail_map();
     for node_id in &node_ids {
         detail_map.remove(node_id);
     }
@@ -252,7 +251,7 @@ pub fn get_app_category(app_id: AppId) -> Result<CategorySimple, String> {
     let id = app_category_map
         .get(&app_id)
         .ok_or("App not found".to_string())?;
-    let detail_map = CATEGORY_DETAIL_MAP.get().unwrap().lock().unwrap();
+    let detail_map = get_category_detail_map();
     let node_arc = detail_map.get(id).ok_or("Category not found".to_string())?;
     let node = node_arc.lock().unwrap();
     Ok((&*node).into())
@@ -349,7 +348,7 @@ fn match_app_detail(detail: &FileDetail, keyword: &str) -> bool {
 
 /// Get node by id
 fn get_node_self(id: CategoryId) -> Option<Arc<Mutex<CategoryNode>>> {
-    let detail_map = CATEGORY_DETAIL_MAP.get().unwrap().lock().unwrap();
+    let detail_map = get_category_detail_map();
     detail_map.get(&id).cloned()
 }
 

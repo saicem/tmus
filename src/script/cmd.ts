@@ -21,6 +21,16 @@ import {
   DeleteCategoryRequest,
   AssignCategoryRequest,
   RemoveAppCategoryRequest,
+  AppDurationRequest,
+  AppDurationResponse,
+  AppDayCountRequest,
+  AppDayCountResponse,
+  CategoryDurationRequest,
+  CategoryDurationResponse,
+  CategoryDayCountRequest,
+  CategoryDayCountResponse,
+  RhythmRequest,
+  RhythmDataResponse
 } from "./models.ts"
 import { Config } from "@/script/state.ts"
 import { ElMessage } from "element-plus"
@@ -152,9 +162,8 @@ export async function getCategories(): Promise<Category> {
   return await ivk("get_categories")
 }
 
-export async function addCategory(request: AddCategoryRequest): Promise<{ id: string }> {
-  const result = await ivk<{ id: string }>("add_category", { request })
-  return result
+export async function addCategory(request: AddCategoryRequest): Promise<void> {
+  await ivk<void>("add_category", { request })
 }
 
 export async function updateCategory(request: UpdateCategoryRequest): Promise<void> {
@@ -176,6 +185,10 @@ export async function removeAppFromCategory(request: RemoveAppCategoryRequest): 
 export async function getUncategorizedApps(offset: number = 0, limit: number = 100, keyword?: string): Promise<FileDetail[]> {
   const result = await ivk<{ apps: FileDetail[], total: number, has_more: boolean }>("get_uncategorized_apps", { request: { offset, limit, keyword } })
   return result.apps
+}
+
+export async function getCategoryApps(categoryId: number): Promise<FileDetail[]> {
+  return await ivk<FileDetail[]>("get_category_apps", { categoryId: categoryId })
 }
 
 async function ivk<T>(
@@ -210,4 +223,28 @@ async function ivk<T>(
     })
     throw new Error(errorMessage)
   }
+}
+
+export async function getBaseTime(): Promise<number> {
+  return await ivk("get_base_time")
+}
+
+export async function getAppTotalDuration(request: AppDurationRequest): Promise<AppDurationResponse> {
+  return await ivk("get_app_total_duration", { request })
+}
+
+export async function getAppUsageDays(request: AppDayCountRequest): Promise<AppDayCountResponse> {
+  return await ivk("get_app_usage_days", { request })
+}
+
+export async function getCategoryTotalDuration(request: CategoryDurationRequest): Promise<CategoryDurationResponse> {
+  return await ivk("get_category_total_duration", { request })
+}
+
+export async function getCategoryUsageDays(request: CategoryDayCountRequest): Promise<CategoryDayCountResponse> {
+  return await ivk("get_category_usage_days", { request })
+}
+
+export async function getCategoryUsageRhythm(request: RhythmRequest): Promise<RhythmDataResponse> {
+  return await ivk("get_category_usage_rhythm", { request })
 }

@@ -7,7 +7,7 @@ use std::path::Path;
 use std::sync::OnceLock;
 use tmus_engine::models::AppId;
 use tmus_engine::storage::focus_app;
-use tokio::sync::Mutex;
+use tokio::sync::{Mutex, MutexGuard};
 use windows_icons::get_icon_base64_by_path;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -21,17 +21,20 @@ pub struct FileDetail {
     pub version: Option<FileVersion>,
 }
 
-pub fn get_app_detail_cache<'a>() -> &'a Mutex<HashMap<usize, FileDetail>> {
+pub async fn get_app_detail_cache<'a>() -> MutexGuard<'a, HashMap<usize, FileDetail>> {
     static APP_DETAIL_CACHE: OnceLock<Mutex<HashMap<usize, FileDetail>>> = OnceLock::new();
-    APP_DETAIL_CACHE.get_or_init(|| {
-        let details: Vec<FileDetail> = load_json(app_detail_cache_path());
-        Mutex::new(
-            details
-                .into_iter()
-                .map(|detail| (detail.id, detail))
-                .collect(),
-        )
-    })
+    APP_DETAIL_CACHE
+        .get_or_init(|| {
+            let details: Vec<FileDetail> = load_json(app_detail_cache_path());
+            Mutex::new(
+                details
+                    .into_iter()
+                    .map(|detail| (detail.id, detail))
+                    .collect(),
+            )
+        })
+        .lock()
+        .await
 }
 
 pub async fn update_app_detail_cache(
@@ -55,7 +58,7 @@ pub async fn update_app_detail_cache(
 pub async fn get_app_detail(id: usize) -> FileDetail {
     let path = focus_app::get_path_by_id(id);
     let mut detail = query_file_detail(id, &path);
-    let mut app_detail_cache = get_app_detail_cache().lock().await;
+    let mut app_detail_cache = get_app_detail_cache().await;
     // File has been deleted, use cache data
     if !detail.exist {
         if let Some(cached_detail) = app_detail_cache.get_mut(&id) {
@@ -71,7 +74,7 @@ pub async fn get_app_detail(id: usize) -> FileDetail {
 #[tracing::instrument]
 pub async fn get_all_app_detail() -> HashMap<AppId, FileDetail> {
     let app_vec = focus_app::get_all_app();
-    let mut app_detail_cache = get_app_detail_cache().lock().await;
+    let mut app_detail_cache = get_app_detail_cache().await;
     app_detail_cache.values_mut().for_each(|detail| {
         detail.exist = Path::new(&detail.path).exists();
     });

@@ -3,7 +3,7 @@
     <el-tabs v-model="categoryStore.activeTab" style="height: 100%;" @update:model-value="handleTabChange">
       <el-tab-pane :label="i18n.categoryPage.uncategorizedApplications" name="uncategorized">
         <div class="search-box">
-          <el-input v-model="searchKeyword" :placeholder="i18n.categoryPage.searchPlaceholder" clearable
+          <el-input v-model="categoryStore.searchKeyword" :placeholder="i18n.categoryPage.searchPlaceholder" clearable
             @input="handleSearch">
             <template #prefix>
               <span class="search-icon">🔍</span>
@@ -16,9 +16,9 @@
           <el-table-column :label="i18n.categoryPage.operation" width="180">
             <template #default="{ row }">
               <el-select :placeholder="i18n.categoryPage.selectCategory" clearable
-                @change="(val: string) => { if (val) { handleAssignCategory(row.id, val); } }">
-                <el-option v-for="option in categoryOptions" :key="option.value" :label="option.label"
-                  :value="option.value" />
+                @change="(val: any) => { if (val) { handleAssignCategory(row.id, parseInt(val)); } }">
+                <el-option v-for="option in categoryOptions" :key="option.categoryId" :label="option.label"
+                  :value="option.categoryId" />
               </el-select>
             </template>
           </el-table-column>
@@ -32,15 +32,15 @@
           <el-table-column :label="i18n.categoryPage.operation" width="150">
             <template #default="{ row }">
               <el-select v-model-value="categoryStore.selectedCategory?.id"
-                :placeholder="i18n.categoryPage.selectCategory" clearable style="width: 120px" @change="(val: string | null) => {
+                :placeholder="i18n.categoryPage.selectCategory" clearable style="width: 120px" @change="(val: CategoryId | null) => {
                   if (val) {
                     handleAssignCategory(row.id, val);
                   } else {
                     handleRemoveAppFromCategory(row.id);
                   }
                 }">
-                <el-option v-for="option in categoryOptions" :key="option.value" :label="option.label"
-                  :value="option.value" />
+                <el-option v-for="option in categoryOptions" :key="option.categoryId" :label="option.label"
+                  :value="option.categoryId" />
               </el-select>
             </template>
           </el-table-column>
@@ -51,39 +51,36 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue"
 import { i18n } from "@/script/i18n.ts"
 import { categoryStore } from "@/script/state.ts"
-import type { FileDetail } from "@/script/models.ts"
+import type { AppId, CategoryId, FileDetail } from "@/script/models.ts"
 
 defineProps<{
   uncategorizedApps: FileDetail[]
   categoryApps: FileDetail[]
-  categoryOptions: Array<{ label: string, value: string }>
+  categoryOptions: Array<{ label: string, categoryId: CategoryId }>
 }>()
 
 const emit = defineEmits<{
-  (e: 'assignCategory', appId: number, categoryId: string): void
-  (e: 'removeAppFromCategory', appId: number): void
-  (e: 'search', keyword: string): void
+  (e: 'assignCategory', appId: AppId, categoryId: CategoryId): void
+  (e: 'removeAppFromCategory', appId: AppId): void
+  (e: 'search'): void
 }>()
-
-const searchKeyword = ref("")
 
 const handleTabChange = (value: string | number) => {
   categoryStore.activeTab = value as "uncategorized" | "categorized"
 }
 
-const handleAssignCategory = (appId: number, categoryId: string) => {
+const handleAssignCategory = (appId: AppId, categoryId: CategoryId) => {
   emit('assignCategory', appId, categoryId)
 }
 
-const handleRemoveAppFromCategory = (appId: number) => {
+const handleRemoveAppFromCategory = (appId: AppId) => {
   emit('removeAppFromCategory', appId)
 }
 
 const handleSearch = () => {
-  emit('search', searchKeyword.value)
+  emit('search')
 }
 </script>
 

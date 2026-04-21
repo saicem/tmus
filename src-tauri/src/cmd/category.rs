@@ -1,6 +1,9 @@
 use std::sync::{Arc, Mutex};
 
-use crate::state::category::{self, CategoryId, CategoryNode};
+use crate::{
+    cmd::app_detail::{get_app_detail_cache, FileDetail},
+    state::category::{self, CategoryId, CategoryNode},
+};
 use serde::{Deserialize, Serialize};
 use tauri::command;
 use tmus_engine::models::AppId;
@@ -52,6 +55,22 @@ pub struct GetUncategorizedAppsRequest {
 #[tracing::instrument]
 pub fn get_categories() -> Arc<Mutex<CategoryNode>> {
     category::get_category_tree()
+}
+
+#[command(async)]
+#[tracing::instrument]
+pub async fn get_category_apps(category_id: CategoryId) -> Result<Vec<FileDetail>, String> {
+    let app_map = get_app_detail_cache().await;
+    let app_details = category::get_category_detail_map()
+        .get(&category_id)
+        .unwrap()
+        .lock()
+        .unwrap()
+        .app_ids
+        .iter()
+        .filter_map(|app_id| app_map.get(app_id).map(ToOwned::to_owned))
+        .collect::<Vec<_>>();
+    Ok(app_details)
 }
 
 #[command]

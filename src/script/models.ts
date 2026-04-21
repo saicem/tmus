@@ -1,3 +1,6 @@
+export type AppId = number
+export type CategoryId = number
+
 export interface FileVersion {
   comments?: string
   internalName?: string
@@ -14,7 +17,7 @@ export interface FileVersion {
 }
 
 export interface FileDetail {
-  id: number
+  id: AppId
   name: string
   path: string
   exist: boolean
@@ -26,18 +29,18 @@ export interface FileDetail {
 }
 
 export interface FocusRecord {
-  id: number
+  id: AppId
   focusAt: number
   blurAt: number
 }
 
 export interface IdDuration {
-  appId: number
+  appId: AppId
   duration: number
 }
 
 export interface DurationStat {
-  appId: number | null
+  appId: AppId | null
   intervalStart: number
   duration: number
 }
@@ -100,7 +103,7 @@ export interface DownloadEvent {
 }
 
 export interface AppDurationAreaModel {
-  appId: number
+  appId: AppId
   dateArea: AppDurationAreaModelItem[]
   dayArea: AppDurationAreaModelItem[]
 }
@@ -116,32 +119,109 @@ export interface McpServerStatus {
 }
 
 export interface Category {
-  id: string
+  id: CategoryId
   name: string
   children: Category[]
-  appIds: number[]
+  appIds: AppId[]
 }
 
 export interface AddCategoryRequest {
   name: string
-  parentId: string
+  parentId: CategoryId
 }
 
 export interface UpdateCategoryRequest {
-  id: string
+  id: CategoryId
   name: string
 }
 
 export interface DeleteCategoryRequest {
-  id: string
+  id: CategoryId
 }
 
 export interface AssignCategoryRequest {
-  appId: number
-  categoryId: string
+  appId: AppId
+  categoryId: CategoryId
 }
 
 export interface RemoveAppCategoryRequest {
-  appId: number
+  appId: AppId
+}
+
+export enum TimeSpan {
+  Day = "Day",
+  Week = "Week"
+}
+
+export interface AppStatisticDetail {
+  value: number
+  app: FileDetail
+}
+
+export interface CategoryStatisticDetail {
+  value: number
+  category: CategorySimple
+}
+
+export interface CategorySimple {
+  id: CategoryId
+  parentId: CategoryId
+  name: string
+}
+
+export interface AppDurationRequest {
+  startTime: number
+  endTime: number
+  categoryId?: CategoryId
+}
+
+export interface AppDurationResponse {
+  detail: AppStatisticDetail[]
+}
+
+export interface AppDayCountRequest {
+  startTime: number
+  endTime: number
+  categoryId?: CategoryId
+}
+
+export interface AppDayCountResponse {
+  detail: AppStatisticDetail[]
+}
+
+export interface CategoryDurationRequest {
+  startTime: number
+  endTime: number
+  categoryIds: CategoryId[]
+}
+
+export interface CategoryDurationResponse {
+  detail: CategoryStatisticDetail[]
+}
+
+export interface CategoryDayCountRequest {
+  startTime: number
+  endTime: number
+  categoryIds: CategoryId[]
+}
+
+export interface CategoryDayCountResponse {
+  detail: CategoryStatisticDetail[]
+}
+
+export interface RhythmGroup {
+  startTime: number
+  endTime: number
+  categoryId: CategoryId
+}
+
+export interface RhythmRequest {
+  groups: RhythmGroup[]
+  span: TimeSpan
+  granularity: number
+}
+
+export interface RhythmDataResponse {
+  values: number[][]
 }
 

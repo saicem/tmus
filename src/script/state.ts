@@ -40,10 +40,12 @@ export const categoryStore = reactive<{
   activeTab: "uncategorized" | "categorized"
   selectedCategory: Category | null
   showAddDialog: boolean
+  searchKeyword: string
 }>({
   activeTab: "uncategorized",
   selectedCategory: null,
   showAddDialog: false,
+  searchKeyword: "",
 })
 
 export const configStore = reactive<Config>({

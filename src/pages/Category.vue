@@ -10,14 +10,14 @@ import {
   setAppCategory,
   removeAppFromCategory,
   getUncategorizedApps,
-  getAllAppDetail,
+  getCategoryApps,
 } from "@/script/cmd.ts"
 import { i18n } from "@/script/i18n.ts"
-import type { Category as CategoryType, AddCategoryRequest, UpdateCategoryRequest, DeleteCategoryRequest, AssignCategoryRequest, RemoveAppCategoryRequest } from "@/script/models.ts"
+import type { Category as CategoryType, AddCategoryRequest, UpdateCategoryRequest, DeleteCategoryRequest, AssignCategoryRequest, RemoveAppCategoryRequest, CategoryId } from "@/script/models.ts"
 import type { FileDetail } from "@/script/models.ts"
 import { categoryStore } from "@/script/state"
 
-const categories = ref<CategoryType>({ id: "root", name: "root", children: [], appIds: [] })
+const categories = ref<CategoryType>({ id: 0, name: "root", children: [], appIds: [] })
 const apps = ref<FileDetail[]>([])
 const uncategorizedApps = ref<FileDetail[]>([])
 const addCategoryParent = ref<CategoryType | null>(null)
@@ -32,20 +32,23 @@ const loadCategories = async () => {
   }
 }
 
-const loadApps = async () => {
+const loadUncategorizedApps = async () => {
   try {
-    apps.value = await getAllAppDetail()
+    uncategorizedApps.value = await getUncategorizedApps(0, 100, categoryStore.searchKeyword || undefined)
   } catch (error) {
-    ElMessage.error(i18n.value.categoryPage.failedToLoadApplications)
+    ElMessage.error(i18n.value.categoryPage.failedToLoadUncategorizedApplications)
     console.error(error)
   }
 }
 
-const loadUncategorizedApps = async (keyword?: string) => {
+const loadCategoryApps = async () => {
   try {
-    uncategorizedApps.value = await getUncategorizedApps(0, 100, keyword || undefined)
+    const category = categoryStore.selectedCategory
+    if (category) {
+      apps.value = await getCategoryApps(category.id)
+    }
   } catch (error) {
-    ElMessage.error(i18n.value.categoryPage.failedToLoadUncategorizedApplications)
+    ElMessage.error(i18n.value.categoryPage.failedToLoadApplications)
     console.error(error)
   }
 }
@@ -55,7 +58,7 @@ const openAddDialog = (parent: CategoryType | null = null) => {
   categoryStore.showAddDialog = true
 }
 
-const handleAddCategory = async (name: string, parentId: string) => {
+const handleAddCategory = async (name: string, parentId: CategoryId) => {
   try {
     const request: AddCategoryRequest = {
       name,
@@ -70,7 +73,7 @@ const handleAddCategory = async (name: string, parentId: string) => {
   }
 }
 
-const handleUpdateCategory = async (id: string, name: string) => {
+const handleUpdateCategory = async (id: CategoryId, name: string) => {
   try {
     const request: UpdateCategoryRequest = {
       id,
@@ -85,7 +88,7 @@ const handleUpdateCategory = async (id: string, name: string) => {
   }
 }
 
-const handleDeleteCategory = async (categoryId: string) => {
+const handleDeleteCategory = async (categoryId: CategoryId) => {
   try {
     const request: DeleteCategoryRequest = { id: categoryId }
     await deleteCategory(request)
@@ -101,7 +104,7 @@ const handleDeleteCategory = async (categoryId: string) => {
   }
 }
 
-const handleAssignCategory = async (appId: number, categoryId: string) => {
+const handleAssignCategory = async (appId: number, categoryId: CategoryId) => {
   try {
     const request: AssignCategoryRequest = {
       appId,
@@ -110,7 +113,7 @@ const handleAssignCategory = async (appId: number, categoryId: string) => {
     await setAppCategory(request)
     ElMessage.success(i18n.value.categoryPage.applicationAssignedSuccessfully)
     await loadCategories()
-    await loadApps()
+    await loadCategoryApps()
     await loadUncategorizedApps()
   } catch (error) {
     ElMessage.error(i18n.value.categoryPage.failedToAssignApplication)
@@ -124,6 +127,7 @@ const handleRemoveAppFromCategory = async (appId: number) => {
     await removeAppFromCategory(request)
     ElMessage.success(i18n.value.categoryPage.applicationCategoryRemovedSuccessfully)
     await loadCategories()
+    await loadCategoryApps()
     await loadUncategorizedApps()
   } catch (error) {
     ElMessage.error(i18n.value.categoryPage.failedToRemoveCategoryFromApplication)
@@ -131,24 +135,19 @@ const handleRemoveAppFromCategory = async (appId: number) => {
   }
 }
 
-const handleNodeClick = (data: CategoryType) => {
+const handleNodeClick = async (data: CategoryType) => {
   categoryStore.selectedCategory = data
   categoryStore.activeTab = "categorized"
+  await loadCategoryApps()
 }
 
-const getCategoryApps = computed(() => {
-  const category = categoryStore.selectedCategory
-  if (!category) return []
-  return category.appIds.map(appId => apps.value.find(app => app.id === appId)).filter(Boolean) as FileDetail[]
-})
-
 // Recursive function to build category options for select
-const buildCategoryOptions = (categories: CategoryType[]): Array<{ label: string, value: string }> => {
-  let options: Array<{ label: string, value: string }> = []
+const buildCategoryOptions = (categories: CategoryType[]): Array<{ label: string, categoryId: CategoryId }> => {
+  let options: Array<{ label: string, categoryId: CategoryId }> = []
   for (const category of categories) {
     options.push({
       label: category.name,
-      value: category.id
+      categoryId: category.id
     })
     if (category.children.length > 0) {
       options = [...options, ...buildCategoryOptions(category.children)]
@@ -163,7 +162,6 @@ const categoryOptions = computed(() => {
 
 onMounted(async () => {
   await loadCategories()
-  await loadApps()
   await loadUncategorizedApps()
 })
 </script>
@@ -178,17 +176,15 @@ onMounted(async () => {
     </div>
 
     <div class="category-content">
-      <CategoryTree :categories="categories.children"
-        @node-click="handleNodeClick" @add-category="openAddDialog" @update-category="handleUpdateCategory"
-        @delete-category="handleDeleteCategory" />
+      <CategoryTree :categories="categories.children" @node-click="handleNodeClick" @add-category="openAddDialog"
+        @update-category="handleUpdateCategory" @delete-category="handleDeleteCategory" />
 
-      <AppList :uncategorized-apps="uncategorizedApps" :category-apps="getCategoryApps"
+      <AppList :uncategorized-apps="uncategorizedApps" :category-apps="apps"
         :category-options="categoryOptions" @assign-category="handleAssignCategory"
         @remove-app-from-category="handleRemoveAppFromCategory" @search="loadUncategorizedApps" />
     </div>
 
-    <AddCategoryDialog :parent-category="addCategoryParent"
-      @add-category="handleAddCategory" />
+    <AddCategoryDialog :parent-category="addCategoryParent" @add-category="handleAddCategory" />
   </content-view>
 </template>
 

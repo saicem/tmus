@@ -19,10 +19,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue"
+import { ref } from "vue"
 import { ElMessage } from "element-plus"
 import { i18n } from "@/script/i18n.ts"
-import type { Category as CategoryType } from "@/script/models.ts"
+import type { CategoryId, Category as CategoryType } from "@/script/models.ts"
 import { categoryStore } from "@/script/state";
 
 const props = defineProps<{
@@ -31,7 +31,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'close'): void
-  (e: 'addCategory', name: string, parentId: string): void
+  (e: 'addCategory', name: string, parentId: CategoryId): void
 }>()
 
 const categoryName = ref("")
@@ -41,7 +41,9 @@ const handleAddCategory = () => {
     ElMessage.warning(i18n.value.categoryPage.categoryNameCannotBeEmpty)
     return
   }
-  emit('addCategory', categoryName.value.trim(), props.parentCategory?.id || "root")
+  emit('addCategory', categoryName.value.trim(), props.parentCategory?.id || 0)
   categoryStore.showAddDialog = false
+  categoryName.value = ""
 }
+
 </script>

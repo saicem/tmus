@@ -65,6 +65,7 @@ async fn main() {
             cmd::category::set_app_category,
             cmd::category::remove_app_from_category,
             cmd::category::get_uncategorized_apps,
+            cmd::category::get_category_apps,
         ])
         .build(tauri::generate_context!())
         .expect("Error while building application");

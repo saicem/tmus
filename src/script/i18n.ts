@@ -31,6 +31,9 @@ type I18nMessageType = {
     todayUsage: string
   }
   statisticPage: {
+    label: {
+      timeRange: string
+    }
     shortcuts: {
       last1day: string
       last3days: string
@@ -42,6 +45,24 @@ type I18nMessageType = {
     type: {
       card: string
       progress: string
+    }
+    categories: {
+      title: string
+      placeholder: string
+      all: string
+      uncategorized: string
+    }
+    types: {
+      title: string
+      duration: string
+      days: string
+      rhythm: string
+      rhythmNotImplemented: string
+    }
+    placeholder: {
+      startDate: string
+      endDate: string
+      rangeSeparator: string
     }
   }
   applicationPage: {
@@ -188,18 +209,39 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
       todayUsage: "Today Usage",
     },
     statisticPage: {
+      label: {
+        timeRange: "Time Range",
+      },
       shortcuts: {
-        last1day: "Last 1 Day",
-        last3days: "Last 3 Days",
-        last1week: "Last 1 Week",
-        last1month: "Last 1 Month",
-        last3months: "Last 3 Months",
-        last1year: "Last 1 Year",
+        last1day: "Last 1 day",
+        last3days: "Last 3 days",
+        last1week: "Last 1 week",
+        last1month: "Last 1 month",
+        last3months: "Last 3 months",
+        last1year: "Last 1 year",
       },
       type: {
         card: "Card",
         progress: "Progress",
       },
+      categories: {
+        title: "Category Filter",
+        placeholder: "Please select categories",
+        all: "All Categories",
+        uncategorized: "Uncategorized"
+      },
+      types: {
+        title: "Statistic Type",
+        duration: "Total Duration",
+        days: "Usage Days",
+        rhythm: "Usage Rhythm",
+        rhythmNotImplemented: "Usage rhythm feature not implemented yet"
+      },
+      placeholder: {
+        startDate: "Start date",
+        endDate: "End date",
+        rangeSeparator: "to"
+      }
     },
     applicationPage: {
       typeToSearchName: "Type to search name",
@@ -347,6 +389,9 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
       setting: "设置",
     },
     statisticPage: {
+      label: {
+        timeRange: "时间范围",
+      },
       shortcuts: {
         last1day: "最近 1 天",
         last3days: "最近 3 天",
@@ -359,6 +404,24 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
         card: "卡片",
         progress: "进度条",
       },
+      categories: {
+        title: "分类筛选",
+        placeholder: "请选择分类",
+        all: "不区分分类",
+        uncategorized: "未分类"
+      },
+      types: {
+        title: "统计类型",
+        duration: "使用总时长",
+        days: "使用天数",
+        rhythm: "使用节律",
+        rhythmNotImplemented: "使用节律功能尚未实现"
+      },
+      placeholder: {
+        startDate: "开始日期",
+        endDate: "结束日期",
+        rangeSeparator: "至"
+      }
     },
     homePage: {
       apps: "今日应用",

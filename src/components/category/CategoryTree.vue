@@ -10,8 +10,8 @@
               {{ data.name }}
               <span class="app-count">({{ data.appIds?.length || 0 }})</span>
             </span>
-            <el-input v-else v-model="editingCategoryName" size="small" style="width: 150px"
-              @keyup.enter="saveCategory" @click.stop />
+            <el-input v-else v-model="editingCategoryName" size="small" style="width: 150px" @keyup.enter="saveCategory"
+              @click.stop />
             <div class="node-actions">
               <span v-if="editingCategoryId !== data.id">
                 <el-button size="small" text type="primary" @click.stop="openAddDialog(data)">
@@ -44,7 +44,7 @@
 import { ref } from "vue"
 import { ElMessage, ElMessageBox } from "element-plus"
 import { i18n } from "@/script/i18n.ts"
-import type { Category as CategoryType } from "@/script/models.ts"
+import type { CategoryId, Category as CategoryType } from "@/script/models.ts"
 
 defineProps<{
   categories: CategoryType[]
@@ -53,11 +53,11 @@ defineProps<{
 const emit = defineEmits<{
   (e: 'nodeClick', data: CategoryType): void
   (e: 'addCategory', parent: CategoryType | null): void
-  (e: 'updateCategory', id: string, name: string): void
-  (e: 'deleteCategory', id: string): void
+  (e: 'updateCategory', id: CategoryId, name: string): void
+  (e: 'deleteCategory', id: CategoryId): void
 }>()
 
-const editingCategoryId = ref<string | null>(null)
+const editingCategoryId = ref<CategoryId | null>(null)
 const editingCategoryName = ref("")
 
 const handleNodeClick = (data: CategoryType) => {
@@ -88,7 +88,7 @@ const cancelEdit = () => {
   editingCategoryName.value = ""
 }
 
-const handleDeleteCategory = async (categoryId: string) => {
+const handleDeleteCategory = async (categoryId: CategoryId) => {
   try {
     await ElMessageBox.confirm(i18n.value.categoryPage.confirmDelete, i18n.value.categoryPage.confirm, {
       confirmButtonText: i18n.value.categoryPage.confirm,
