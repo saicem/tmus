@@ -284,7 +284,7 @@ pub async fn get_uncategorized_apps(
     let categorized_apps: HashSet<usize> = get_app_category_map().keys().copied().collect();
     let app_detail_map = get_all_app_detail().await;
     let mut uncategorized = Vec::new();
-    let keyword_lower = keyword.as_ref().map(|k| k.to_lowercase());
+    let keyword_lower = keyword.map(|k| k.to_lowercase());
 
     for detail in app_detail_map.values() {
         if categorized_apps.contains(&detail.id) {
@@ -350,19 +350,19 @@ pub fn get_category_self_and_descendants_map() -> HashMap<CategoryId, HashSet<Ca
 /// If app company name contains keyword, return true
 /// Otherwise, return false
 fn match_app_detail(detail: &FileDetail, keyword: &str) -> bool {
-    if detail.path.contains(keyword) {
+    if detail.path.to_lowercase().contains(keyword) {
         return true;
     }
     if let Some(version) = &detail.version {
         return version
             .file_description
             .as_ref()
-            .map(|s| s.contains(keyword))
+            .map(|s| s.to_lowercase().contains(keyword))
             .unwrap_or(false)
             || version
                 .company_name
                 .as_ref()
-                .map(|s| s.contains(keyword))
+                .map(|s| s.to_lowercase().contains(keyword))
                 .unwrap_or(false);
     }
     false
