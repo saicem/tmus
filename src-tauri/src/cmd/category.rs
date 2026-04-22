@@ -2,7 +2,7 @@ use std::sync::{Arc, Mutex};
 
 use crate::{
     cmd::app_detail::{get_app_detail_cache, FileDetail},
-    state::category::{self, CategoryId, CategoryNode},
+    state::category::{self, CategoryId, CategoryNode, CategorySimple, ROOT_NODE_ID},
 };
 use serde::{Deserialize, Serialize};
 use tauri::command;
@@ -53,8 +53,18 @@ pub struct GetUncategorizedAppsRequest {
 
 #[command]
 #[tracing::instrument]
-pub fn get_categories() -> Arc<Mutex<CategoryNode>> {
+pub fn get_category_tree() -> Arc<Mutex<CategoryNode>> {
     category::get_category_tree()
+}
+
+#[command]
+#[tracing::instrument]
+pub fn get_all_categories() -> Vec<CategorySimple> {
+    category::get_category_detail_map()
+        .values()
+        .map(|x| (&*x.lock().unwrap()).into())
+        .filter(|x: &CategorySimple| x.id != ROOT_NODE_ID)
+        .collect::<Vec<_>>()
 }
 
 #[command(async)]

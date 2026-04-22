@@ -137,7 +137,7 @@ impl McpService {
 
     #[tool(description = "Get all categories in tree structure.")]
     async fn get_categories(&self) -> Result<CallToolResult, McpError> {
-        let categories = category::get_categories();
+        let categories = category::get_category_tree();
         Ok(CallToolResult::success(vec![Content::text(
             serde_json::to_string(&categories).unwrap(),
         )]))

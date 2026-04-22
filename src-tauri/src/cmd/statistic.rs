@@ -153,9 +153,9 @@ pub async fn get_app_total_duration(
         let valid_app_ids = get_category_and_descendants_app_ids(&category_id)?;
         map.retain(|app_id, _| valid_app_ids.contains(app_id));
     }
-    Ok(AppDurationResponse {
-        detail: match_app_detail(map.into_iter().map(|(app_id, value)| (app_id, value))).await,
-    })
+    let mut detail = match_app_detail(map.into_iter().map(|(app_id, value)| (app_id, value))).await;
+    detail.sort_by_key(|x| -x.value);
+    Ok(AppDurationResponse { detail })
 }
 
 #[tauri::command(async)]
@@ -178,13 +178,13 @@ pub async fn get_app_usage_days(
         let valid_app_ids = get_category_and_descendants_app_ids(&category_id)?;
         map.retain(|app_id, _| valid_app_ids.contains(app_id));
     }
-    Ok(AppDayCountResponse {
-        detail: match_app_detail(
-            map.into_iter()
-                .map(|(app_id, set)| (app_id, set.len() as i64)),
-        )
-        .await,
-    })
+    let mut detail = match_app_detail(
+        map.into_iter()
+            .map(|(app_id, set)| (app_id, set.len() as i64)),
+    )
+    .await;
+    detail.sort_by_key(|x| -x.value);
+    Ok(AppDayCountResponse { detail })
 }
 
 #[tauri::command]
