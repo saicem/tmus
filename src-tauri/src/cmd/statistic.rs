@@ -454,5 +454,5 @@ fn get_category_and_descendants_app_ids(
 
 /// Only use for distinguish is the same day
 fn infer_timezone_offset(t: Timestamp) -> Timestamp {
-    t % d_as_ms(1)
+    -(t % d_as_ms(1))
 }
