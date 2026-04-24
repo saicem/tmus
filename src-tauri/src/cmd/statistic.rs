@@ -210,8 +210,8 @@ pub fn get_category_total_duration(
 
     let category_self_and_descendants_map = get_category_self_and_descendants_map();
     let mut category_with_descendants_duration_map = HashMap::new();
-    let mut include_uncategorized_category = false;
-    for category_id in &request.category_ids {
+    let include_uncategorized_category = request.category_ids.contains(&UNCATEGORIZED_CATEGORY_ID);
+    for category_id in request.category_ids {
         if let Some(self_descendants_category_ids) =
             category_self_and_descendants_map.get(&category_id)
         {
@@ -220,18 +220,16 @@ pub fn get_category_total_duration(
                 .map(|id| categorized_duration_map.get(id).unwrap_or(&0))
                 .sum::<i64>();
             category_with_descendants_duration_map.insert(category_id, value);
-        } else {
-            include_uncategorized_category = true;
         }
     }
 
     let mut detail = match_category_detail(
-        categorized_duration_map
+        category_with_descendants_duration_map
             .into_iter()
             .map(|(category_id, value)| (category_id, value)),
     );
 
-    if uncategorized_duration > 0 && include_uncategorized_category {
+    if include_uncategorized_category {
         detail.push(CategoryStatisticDetail {
             category: CategorySimple {
                 id: UNCATEGORIZED_CATEGORY_ID,
@@ -280,7 +278,7 @@ pub fn get_category_usage_days(
 
     let category_and_descendants_map = get_category_self_and_descendants_map();
     let mut category_with_descendants_days_count_map = HashMap::new();
-    let mut include_uncategorized_category = false;
+    let include_uncategorized_category = request.category_ids.contains(&UNCATEGORIZED_CATEGORY_ID);
     for category_id in request.category_ids {
         if let Some(self_descendants_category_ids) = category_and_descendants_map.get(&category_id)
         {
@@ -290,8 +288,6 @@ pub fn get_category_usage_days(
                 .filter_map(|id| categorized_days_map.get(id))
                 .for_each(|category_set| set.extend(category_set));
             category_with_descendants_days_count_map.insert(category_id, set.len());
-        } else {
-            include_uncategorized_category = true;
         }
     }
 
