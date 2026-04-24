@@ -99,9 +99,9 @@ fn get_state<'a>() -> &'a CategoryState {
         ) {
             let mut node = node_mutex.lock().unwrap();
             node.id = *cur_id;
+            *cur_id += 1;
             node.parent_id = parent_id;
             for child in &node.children {
-                *cur_id += 1;
                 reset_id(child, cur_id, node.id);
             }
         }
