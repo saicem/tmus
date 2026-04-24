@@ -44,7 +44,7 @@ export const formatDurationRough = (ms: number) => {
 }
 
 export const formatDurationInHours = (ms: number) => {
-  const h = ms / 60 /60 / 1000
+  const h = ms / 60 / 60 / 1000
   return `${h.toFixed(1)}h`
 }
 
@@ -54,3 +54,23 @@ export const dayOfWeekOffset = (day: Date) => {
 
 export const timeZoneOffsetMillis = (): number =>
   new Date().getTimezoneOffset() * MILLISECONDS_PER_MINUTE
+
+export const getTimeRangeByDays = (startDaysBefore: number, endDaysBefore: number = 0): [Date, Date] => {
+  const end = new Date()
+  end.setHours(0, 0, 0, 0)
+  end.setDate(end.getDate() + 1)
+  const start = new Date(end)
+  start.setDate(start.getDate() - startDaysBefore)
+  end.setDate(end.getDate() - endDaysBefore)
+  return [start, end]
+}
+
+export const getTimeRangeByMonths = (startMonthsBefore: number, endMonthsBefore: number = 0): [Date, Date] => {
+  const end = new Date()
+  end.setHours(0, 0, 0, 0)
+  end.setDate(end.getDate() + 1)
+  const start = new Date(end)
+  start.setMonth(start.getMonth() - startMonthsBefore)
+  end.setMonth(end.getMonth() - endMonthsBefore)
+  return [start, end]
+}

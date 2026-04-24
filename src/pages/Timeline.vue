@@ -6,7 +6,7 @@ import {
   queryDurationStatistic,
 } from "@/script/cmd.ts"
 import { configStore } from "@/script/state.ts"
-import { MILLISECONDS_PER_DAY } from "@/script/time-util.ts"
+import { formatDuration, MILLISECONDS_PER_DAY } from "@/script/time-util.ts"
 import { format, isBefore, startOfDay, subDays, subWeeks } from "date-fns"
 
 const scrollDisable = computed(() => loading.value || noMore.value)
@@ -63,19 +63,11 @@ const load = async () => {
 
 <template>
   <content-view-scrollbar>
-    <el-timeline
-      v-infinite-scroll="load"
-      :infinite-scroll-disabled="scrollDisable"
-      infinite-scroll-distance="1000"
-    >
+    <el-timeline v-infinite-scroll="load" :infinite-scroll-disabled="scrollDisable" infinite-scroll-distance="1000">
       <div>
-        <el-timeline-item
-          v-for="({ moment: date, data: appData }, i) in data"
-          :key="i"
-          :timestamp="format(date, configStore.dateFormat)"
-          placement="top"
-        >
-          <app-card-group :data="appData" />
+        <el-timeline-item v-for="({ moment: date, data: appData }, i) in data" :key="i"
+          :timestamp="format(date, configStore.dateFormat)" placement="top">
+          <app-card-group :data="appData.map(item => ({ app: item.app, value: formatDuration(item.duration) }))" />
         </el-timeline-item>
       </div>
     </el-timeline>

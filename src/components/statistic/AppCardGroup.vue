@@ -1,19 +1,15 @@
 <script lang="ts" setup>
-import { AppDuration } from "@/script/models.ts"
+import { FileDetail } from "@/script/models.ts"
 
 defineProps<{
-  data: AppDuration[]
+  data: { app: FileDetail, value: string }[]
 }>()
 </script>
 
 <template>
   <div style="display: flex; flex-wrap: wrap; gap: 16px">
-    <router-link
-      v-for="{ app: app, duration: duration } in data"
-      :key="app.id"
-      :to="'/detail/' + app.id"
-    >
-      <AppCard :detail="app" :duration="duration" />
+    <router-link v-for="{ app: app, value: value } in data" :key="app.id" :to="'/detail/' + app.id">
+      <AppCard :detail="app" :value="value" />
     </router-link>
   </div>
 </template>

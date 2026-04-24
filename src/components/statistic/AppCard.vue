@@ -1,9 +1,8 @@
 <script lang="ts" setup>
 import { FileDetail } from "@/script/models.ts"
-import { formatDuration } from "@/script/time-util.ts"
 
 defineProps<{
-  duration: number
+  value: string
   detail: FileDetail
 }>()
 </script>
@@ -42,7 +41,7 @@ defineProps<{
           {{ detail?.name }}
         </p>
         <p style="color: var(--accent-color-1); text-align: center">
-          {{ formatDuration(duration) }}
+          {{ value }}
         </p>
       </div>
     </div>

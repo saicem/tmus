@@ -33,7 +33,8 @@ import {
   RhythmDataResponse,
   StatisticScheme,
   AddSchemeItemRequest,
-  AddSchemeItemResponse
+  AddSchemeItemResponse,
+  CategorySimple
 } from "./models.ts"
 import { Config } from "@/script/state.ts"
 import { ElMessage } from "element-plus"
@@ -151,8 +152,12 @@ export async function getMcpServerStatus(): Promise<McpServerStatus> {
   return await invoke("get_mcp_server_status")
 }
 
-export async function getCategories(): Promise<Category> {
-  return await ivk("get_categories")
+export async function getCategoryTree(): Promise<Category> {
+  return await ivk("get_category_tree")
+}
+
+export async function getAllCategories(): Promise<CategorySimple[]> {
+  return await ivk("get_all_categories")
 }
 
 export async function addCategory(request: AddCategoryRequest): Promise<void> {

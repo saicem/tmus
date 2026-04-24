@@ -1,131 +1,82 @@
 <script lang="ts" setup>
-import { AppDuration } from "@/script/models.ts"
-import { i18n } from "@/script/i18n.ts"
-import { statisticStore } from "@/script/state.ts"
-import { getAppDetailMap, getDurationById } from "@/script/cmd.ts"
+import { ref, onMounted } from "vue"
+import {
+  getAllCategories,
+  getBaseTime,
+} from "@/script/cmd.ts"
+import {
+  CategorySimple,
+} from "@/script/models.ts"
+import AppDurationStat from "@/components/statistic/AppDurationStat.vue"
+import AppDaysStat from "@/components/statistic/AppDaysStat.vue"
+import CategoryDurationStat from "@/components/statistic/CategoryDurationStat.vue"
+import CategoryDaysStat from "@/components/statistic/CategoryDaysStat.vue"
+import CategoryRhythmStat from "@/components/statistic/CategoryRhythmStat.vue"
+import StatisticBasicSelector from "@/components/statistic/StatisticBasicSelector.vue"
+import { StatisticType } from "@/script/state"
 
-const shortcuts = computed(() => [
-  {
-    text: i18n.value.statisticPage.shortcuts.last1day,
-    value: (): [Date, Date] => {
-      const end = new Date()
-      const start = new Date()
-      start.setDate(start.getDate() - 1)
-      return [start, end]
-    },
-  },
-  {
-    text: i18n.value.statisticPage.shortcuts.last3days,
-    value: (): [Date, Date] => {
-      const end = new Date()
-      const start = new Date()
-      start.setDate(start.getDate() - 3)
-      return [start, end]
-    },
-  },
-  {
-    text: i18n.value.statisticPage.shortcuts.last1week,
-    value: (): [Date, Date] => {
-      const end = new Date()
-      const start = new Date()
-      start.setDate(start.getDate() - 7)
-      return [start, end]
-    },
-  },
-  {
-    text: i18n.value.statisticPage.shortcuts.last1month,
-    value: (): [Date, Date] => {
-      const end = new Date()
-      const start = new Date()
-      start.setMonth(start.getMonth() - 1)
-      return [start, end]
-    },
-  },
-  {
-    text: i18n.value.statisticPage.shortcuts.last3months,
-    value: (): [Date, Date] => {
-      const end = new Date()
-      const start = new Date()
-      start.setMonth(start.getMonth() - 3)
-      return [start, end]
-    },
-  },
-  {
-    text: i18n.value.statisticPage.shortcuts.last1year,
-    value: (): [Date, Date] => {
-      const end = new Date()
-      const start = new Date()
-      start.setMonth(start.getMonth() - 12)
-      return [start, end]
-    },
-  },
-])
 
-const datetimeRange = ref<[Date, Date]>(
-  ((): [Date, Date] => {
-    const end = new Date()
-    const start = new Date()
-    start.setDate(start.getDate() - 1)
-    return [start, end]
-  })()
-)
-const data = ref<AppDuration[]>([])
 
-const load = async (startDate: Date, endDate: Date) => {
-  const result = await getDurationById(startDate.getTime(), endDate.getTime())
-  const appDetailMap = await getAppDetailMap()
-  data.value = result
-    .map((x) => {
-      return {
-        app: appDetailMap[x.appId],
-        duration: x.duration,
-      }
-    })
-    .sort((a, b) => b.duration - a.duration)
+
+
+
+
+const categories = ref<CategorySimple[]>([])
+const baseTime = ref<number>(0)
+
+const statisticType = ref<StatisticType>("AppDuration")
+
+
+const loadCategories = async () => {
+  try {
+    const result = await getAllCategories()
+    categories.value = result
+  } catch (error) {
+    console.error("Failed to load categories:", error)
+  }
 }
 
-watch(datetimeRange, ([startDate, endDate]) => load(startDate, endDate), {
-  immediate: true,
+const loadBaseTime = async () => {
+  try {
+    baseTime.value = await getBaseTime()
+  } catch (error) {
+    console.error("Failed to load base time:", error)
+  }
+}
+
+onMounted(async () => {
+  await loadBaseTime()
+  await loadCategories()
 })
 </script>
 
 <template>
   <content-view-scrollbar>
-    <div
-      style="display: flex; flex-direction: column; flex-wrap: wrap; gap: 8px"
-    >
-      <div style="display: flex; flex-direction: row; gap: 8px">
-        <el-date-picker
-          v-model="datetimeRange"
-          :shortcuts="shortcuts"
-          end-placeholder="End date"
-          range-separator="To"
-          start-placeholder="Start date"
-          style="flex: 1 0 360px"
-          type="datetimerange"
-        />
-        <el-select
-          v-model="statisticStore.statisticType"
-          default-first-option
-          style="flex: 1 0 100px"
-        >
-          <el-option
-            :label="i18n.statisticPage.type.progress"
-            value="Progress"
-          />
-          <el-option :label="i18n.statisticPage.type.card" value="Card" />
-        </el-select>
+    <div class="statistic-container">
+      <StatisticBasicSelector v-model:statistic-type="statisticType" />
+
+      <div class="results-section">
+        <AppDurationStat v-if="statisticType === 'AppDuration'" />
+        <AppDaysStat v-else-if="statisticType === 'AppDays'" />
+        <CategoryDurationStat v-else-if="statisticType === 'CategoryDuration'" />
+        <CategoryDaysStat v-else-if="statisticType === 'CategoryDays'" />
+        <CategoryRhythmStat v-else-if="statisticType === 'CategoryRhythm'" />
       </div>
-      <app-card-group
-        v-if="statisticStore.statisticType == 'Card'"
-        :data="data"
-      />
-      <app-progress-group
-        v-if="statisticStore.statisticType == 'Progress'"
-        :data="data"
-      />
     </div>
   </content-view-scrollbar>
 </template>
 
-<style scoped></style>
+<style scoped>
+.statistic-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.results-section {
+  width: 100%;
+}
+</style>

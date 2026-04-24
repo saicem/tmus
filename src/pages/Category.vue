@@ -3,7 +3,7 @@ import { ref, onMounted, computed } from "vue"
 import { ElMessage } from "element-plus"
 
 import {
-  getCategories,
+  getCategoryTree,
   addCategory,
   updateCategory,
   deleteCategory,
@@ -24,7 +24,7 @@ const addCategoryParent = ref<CategoryType | null>(null)
 
 const loadCategories = async () => {
   try {
-    const result = await getCategories()
+    const result = await getCategoryTree()
     categories.value = result
   } catch (error) {
     ElMessage.error(i18n.value.categoryPage.failedToLoadCategories)

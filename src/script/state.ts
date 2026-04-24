@@ -2,7 +2,7 @@ import { listen } from "@tauri-apps/api/event"
 import { isEnabled } from "@tauri-apps/plugin-autostart"
 import { locale } from "@tauri-apps/plugin-os"
 import { getAppConfig, setAppConfig } from "@/script/cmd.ts"
-import { Category, UpdateMetadata } from "@/script/models.ts"
+import { Category, StatisticSchemeDetail, UpdateMetadata } from "@/script/models.ts"
 
 export type LanguageEnum = "en" | "zh"
 export type ThemeEnum = "dark" | "light"
@@ -21,7 +21,7 @@ export type Config = {
   autoStartMcpServer: boolean
   mcpServerPort: number
 }
-
+export type StatisticType = "AppDuration" | "AppDays" | "CategoryDuration" | "CategoryDays" | "CategoryRhythm"
 export const updateDialogStore = reactive<{
   show: boolean
   meta: UpdateMetadata | null
@@ -31,9 +31,9 @@ export const updateDialogStore = reactive<{
 })
 
 export const statisticStore = reactive<{
-  statisticType: "Progress" | "Card"
+  params?: StatisticSchemeDetail
 }>({
-  statisticType: "Progress",
+  params: undefined,
 })
 
 export const categoryStore = reactive<{
