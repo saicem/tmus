@@ -111,7 +111,8 @@ onMounted(async () => {
       <div class="config-item">
         <label class="config-label">Display Style</label>
         <el-radio-group v-model="displayStyle">
-          <el-radio-button v-for="style in displayStyles" :key="style.value" :label="style.label" />
+          <el-radio-button v-for="style in displayStyles" :key="style.value" :label="style.label"
+            :value="style.value" />
         </el-radio-group>
       </div>
     </div>
