@@ -14,12 +14,11 @@ interface RawData {
   proportion: number
 }
 
-type DisplayStyle = "Card" | "Progress" | "Pie"
+type DisplayStyle = "Pie" | "Progress"
 
 const displayStyles = [
-  { label: i18n.value.statisticPage.displayStyle.card, value: "Card" },
-  { label: i18n.value.statisticPage.displayStyle.progress, value: "Progress" },
   { label: i18n.value.statisticPage.displayStyle.pie, value: "Pie" },
+  { label: i18n.value.statisticPage.displayStyle.progress, value: "Progress" },
 ]
 
 const pieChartTooltip = computed(() => ({
@@ -31,7 +30,7 @@ const pieChartTooltip = computed(() => ({
   }]
 }))
 
-const displayStyle = ref<DisplayStyle>("Card")
+const displayStyle = ref<DisplayStyle>("Pie")
 const categoryId = ref<number | undefined>(undefined)
 const data = ref<RawData[]>([])
 const loadingData = ref<boolean>(false)
@@ -40,7 +39,7 @@ const loadingCategories = ref<boolean>(false)
 const timeRange = ref<[Date, Date]>(getTimeRangeByDays(1))
 
 const formatValue = (value: number) => {
-  return value.toFixed(0) + "天"
+  return value.toFixed(0) + i18n.value.statisticPage.unit.day
 }
 
 const loadCategories = async () => {
@@ -106,8 +105,8 @@ onMounted(async () => {
 
       <div class="config-item">
         <label class="config-label">{{ i18n.statisticPage.categories.title }}</label>
-        <el-select v-model="categoryId" :placeholder="i18n.statisticPage.categories.placeholder" class="category-select" clearable
-          :loading="loadingCategories">
+        <el-select v-model="categoryId" :placeholder="i18n.statisticPage.categories.placeholder" class="category-select"
+          clearable :loading="loadingCategories">
           <el-option v-for="category in categories" :key="category.id" :label="category.name" :value="category.id" />
         </el-select>
       </div>
@@ -134,13 +133,6 @@ onMounted(async () => {
         <template #default>
           <div v-if="data.length === 0" class="empty-state">
             <el-empty :description="i18n.statisticPage.validation.noData" />
-          </div>
-
-          <div v-else-if="displayStyle === 'Card'">
-            <app-card-group :data="data.map(item => ({
-              app: item.app,
-              value: formatValue(item.value)
-            }))" />
           </div>
 
           <div v-else-if="displayStyle === 'Progress'">
@@ -212,8 +204,11 @@ onMounted(async () => {
   justify-content: center;
 }
 
-/* 骨架屏样式 */
 .skeleton-item {
   margin-bottom: 24px;
+}
+
+.el-radio-group {
+  flex-wrap: nowrap;
 }
 </style>

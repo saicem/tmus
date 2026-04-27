@@ -14,11 +14,11 @@ interface RawData {
   proportion: number
 }
 
-type DisplayStyle = "Progress" | "Pie" | "Bar"
+type DisplayStyle = "Pie" | "Progress" | "Bar"
 
 const displayStyles = [
+{ label: i18n.value.statisticPage.displayStyle.pie, value: "Pie" },
   { label: i18n.value.statisticPage.displayStyle.progress, value: "Progress" },
-  { label: i18n.value.statisticPage.displayStyle.pie, value: "Pie" },
   { label: i18n.value.statisticPage.displayStyle.bar, value: "Bar" },
 ]
 
@@ -27,11 +27,11 @@ const tooltip = computed(() => ({
   items: [{
     name: i18n.value.statisticPage.types.categoryDays,
     field: 'value',
-    valueFormatter: (value: number) => value + "天"
+    valueFormatter: (value: number) => value + i18n.value.statisticPage.unit.day
   }]
 }))
 
-const displayStyle = ref<DisplayStyle>("Progress")
+const displayStyle = ref<DisplayStyle>("Pie")
 const categoryIds = ref<number[]>([])
 const data = ref<RawData[]>([])
 const loadingData = ref<boolean>(false)
@@ -40,7 +40,7 @@ const loadingCategories = ref<boolean>(false)
 const timeRange = ref<[Date, Date]>(getTimeRangeByDays(1))
 
 const formatValue = (value: number) => {
-  return value.toFixed(0) + "天"
+  return value.toFixed(0) + i18n.value.statisticPage.unit.day
 }
 
 const loadCategories = async () => {
@@ -257,8 +257,11 @@ onMounted(async () => {
   color: var(--el-text-color-secondary);
 }
 
-/* 骨架屏样式 */
 .skeleton-item {
   margin-bottom: 24px;
+}
+
+.el-radio-group {
+  flex-wrap: nowrap;
 }
 </style>

@@ -14,11 +14,11 @@ interface RawData {
   proportion: number
 }
 
-type DisplayStyle = "Progress" | "Pie" | "Bar"
+type DisplayStyle = "Pie" | "Progress" | "Bar"
 
 const displayStyles = [
-  { label: i18n.value.statisticPage.displayStyle.progress, value: "Progress" },
   { label: i18n.value.statisticPage.displayStyle.pie, value: "Pie" },
+  { label: i18n.value.statisticPage.displayStyle.progress, value: "Progress" },
   { label: i18n.value.statisticPage.displayStyle.bar, value: "Bar" },
 ]
 
@@ -31,7 +31,7 @@ const tooltip = computed(() => ({
   }]
 }))
 
-const displayStyle = ref<DisplayStyle>("Progress")
+const displayStyle = ref<DisplayStyle>("Pie")
 const categoryIds = ref<number[]>([])
 const data = ref<RawData[]>([])
 const loadingData = ref<boolean>(false)
@@ -253,8 +253,11 @@ onMounted(async () => {
   color: var(--el-text-color-secondary);
 }
 
-/* 骨架屏样式 */
 .skeleton-item {
   margin-bottom: 24px;
+}
+
+.el-radio-group {
+  flex-wrap: nowrap;
 }
 </style>

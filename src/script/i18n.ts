@@ -82,6 +82,11 @@ type I18nMessageType = {
       minute15: string
       minute5: string
     }
+    unit: {
+      day: string
+      hour: string
+      minute: string
+    }
     placeholder: {
       startDate: string
       endDate: string
@@ -326,6 +331,11 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
       validation: {
         noData: "No data available",
       },
+      unit: {
+        day: "day",
+        hour: "hour",
+        minute: "minute",
+      },
     },
     applicationPage: {
       typeToSearchName: "Type to search name",
@@ -547,6 +557,11 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
       },
       validation: {
         noData: "暂无数据",
+      },
+      unit: {
+        day: "天",
+        hour: "小时",
+        minute: "分钟",
       },
     },
     homePage: {
