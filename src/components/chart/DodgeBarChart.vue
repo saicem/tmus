@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { ref, computed, onMounted, watch, onBeforeUnmount } from "vue"
-import { Chart, TooltipComponent } from "@antv/g2"
+import { ref, onMounted, watch, onBeforeUnmount } from "vue"
+import { Chart } from "@antv/g2"
 import { formatDurationRough } from "@/script/time-util"
 import { i18n } from "@/script/i18n"
 import { passiveStore } from "@/script/state"

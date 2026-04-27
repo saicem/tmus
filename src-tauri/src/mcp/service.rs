@@ -61,6 +61,23 @@ pub struct GetUncategorizedAppsCommand {
     limit: Option<usize>,
 }
 
+#[derive(Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct AppSimple {
+    pub id: AppId,
+    pub path: String,
+    pub description: String,
+    pub company: String,
+}
+
+#[derive(Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct UncategorizedAppsResult {
+    pub apps: Vec<AppSimple>,
+    pub total: usize,
+    pub has_more: bool,
+}
+
 #[derive(Clone)]
 pub struct McpService {
     tool_router: ToolRouter<McpService>,
@@ -225,7 +242,18 @@ impl McpService {
             limit,
             keyword: None,
         };
-        let uncategorized = category::get_uncategorized_apps(request).await;
+        let uncategorized = category::get_uncategorized_apps(request).await.map(|x| {
+            UncategorizedAppsResult {
+                apps: x.apps.into_iter().map(|app| AppSimple {
+                    id: app.id,
+                    path: app.path,
+                    description: app.version.as_ref().map(|v| v.file_description.clone().unwrap_or_default()).unwrap_or_default(),
+                    company: app.version.as_ref().map(|v| v.company_name.clone().unwrap_or_default()).unwrap_or_default(),
+                }).collect(),
+                total: x.total,
+                has_more: x.has_more,
+            }
+        });
         Ok(CallToolResult::success(vec![Content::text(
             serde_json::to_string(&uncategorized).unwrap(),
         )]))
