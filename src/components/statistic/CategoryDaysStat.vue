@@ -138,7 +138,7 @@ onMounted(async () => {
 
         <template #default>
           <div v-if="data.length === 0" class="empty-state">
-            <el-empty description="No data available" />
+            <el-empty :description="i18n.statisticPage.validation.noData" />
           </div>
 
           <div v-else-if="displayStyle === 'Progress'">

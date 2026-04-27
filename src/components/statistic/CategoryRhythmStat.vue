@@ -5,14 +5,14 @@ import { TimeSpan, RhythmGroup as RhythmGroupModel, CategorySimple } from "@/scr
 import { getCategoryUsageRhythm, getAllCategories } from "@/script/cmd.ts"
 import RhythmPolarChart from "@/components/chart/RhythmPolarChart.vue"
 
-type DisplayStyle = "polar" | "bar"
+type DisplayStyle = "radar" | "bar"
 
 interface RhythmGroup {
   timeRange: [Date, Date]
   categoryId?: number
 }
 
-const displayStyle = ref<DisplayStyle>("polar")
+const displayStyle = ref<DisplayStyle>("radar")
 const timeSpan = ref<TimeSpan>("day")
 const granularity = ref<number>(60 * 60 * 1000)
 const groups = ref<RhythmGroup[]>([])
@@ -22,7 +22,7 @@ const categories = ref<CategorySimple[]>([])
 const loadingCategories = ref<boolean>(false)
 
 const displayStyles = [
-  { label: i18n.value.statisticPage.displayStyle.polar, value: "polar" },
+  { label: i18n.value.statisticPage.displayStyle.radar, value: "radar" },
   { label: i18n.value.statisticPage.displayStyle.bar, value: "bar" },
 ]
 
@@ -181,9 +181,9 @@ onMounted(async () => {
         </template>
         <template #default>
           <div v-if="chartData.length === 0" class="empty-state">
-            <el-empty description="No data" />
+            <el-empty :description="i18n.statisticPage.validation.noData" />
           </div>
-          <div v-else-if="displayStyle === 'polar'">
+          <div v-else-if="displayStyle === 'radar'">
             <RhythmPolarChart :type="timeSpan" :granularity="granularity" :data="chartData" />
           </div>
         </template>

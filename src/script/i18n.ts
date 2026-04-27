@@ -33,6 +33,10 @@ type I18nMessageType = {
   statisticPage: {
     label: {
       timeRange: string
+      timeSpan: string
+      granularity: string
+      displayStyle: string
+      group: string
     }
     shortcuts: {
       last1day: string
@@ -42,9 +46,12 @@ type I18nMessageType = {
       last3months: string
       last1year: string
     }
-    type: {
+    displayStyle: {
       card: string
       progress: string
+      pie: string
+      radar: string
+      bar: string
     }
     categories: {
       title: string
@@ -54,15 +61,50 @@ type I18nMessageType = {
     }
     types: {
       title: string
-      duration: string
-      days: string
-      rhythm: string
-      rhythmNotImplemented: string
+      appDuration: string
+      appDays: string
+      categoryDuration: string
+      categoryDays: string
+      categoryRhythm: string
+    }
+    timeSpan: {
+      day: string
+      week: string
+    }
+    granularity: {
+      day1: string
+      hour1: string
+      hour2: string
+      hour3: string
+      hour4: string
+      hour6: string
+      minute30: string
+      minute15: string
+      minute5: string
     }
     placeholder: {
       startDate: string
       endDate: string
       rangeSeparator: string
+      schemeName: string
+    }
+    scheme: {
+      title: string
+      save: string
+      delete: string
+      saved: string
+      deleted: string
+      confirmDelete: string
+      defaultName: string
+    }
+    group: {
+      add: string
+      remove: string
+      timeRange: string
+      category: string
+    }
+    validation: {
+      noData: string
     }
   }
   applicationPage: {
@@ -211,6 +253,10 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
     statisticPage: {
       label: {
         timeRange: "Time Range",
+        timeSpan: "Time Span",
+        granularity: "Granularity",
+        displayStyle: "Display Style",
+        group: "Group",
       },
       shortcuts: {
         last1day: "Last 1 day",
@@ -220,9 +266,12 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
         last3months: "Last 3 months",
         last1year: "Last 1 year",
       },
-      type: {
-        card: "Card",
-        progress: "Progress",
+      displayStyle: {
+        card: "Card Chart",
+        progress: "Progress Chart",
+        pie: "Pie Chart",
+        radar: "Radar Chart",
+        bar: "Bar Chart",
       },
       categories: {
         title: "Category Filter",
@@ -232,16 +281,51 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
       },
       types: {
         title: "Statistic Type",
-        duration: "Total Duration",
-        days: "Usage Days",
-        rhythm: "Usage Rhythm",
-        rhythmNotImplemented: "Usage rhythm feature not implemented yet"
+        appDuration: "App Total Duration",
+        appDays: "App Usage Days",
+        categoryDuration: "Category Total Duration",
+        categoryDays: "Category Usage Days",
+        categoryRhythm: "Category Usage Rhythm",
+      },
+      timeSpan: {
+        day: "Day",
+        week: "Week",
+      },
+      granularity: {
+        day1: "1 Day",
+        hour1: "1 Hour",
+        hour2: "2 Hours",
+        hour3: "3 Hours",
+        hour4: "4 Hours",
+        hour6: "6 Hours",
+        minute30: "30 Minutes",
+        minute15: "15 Minutes",
+        minute5: "5 Minutes",
       },
       placeholder: {
         startDate: "Start date",
         endDate: "End date",
-        rangeSeparator: "to"
-      }
+        rangeSeparator: "to",
+        schemeName: "Plan name",
+      },
+      scheme: {
+        title: "Save Plan",
+        save: "Save",
+        delete: "Delete",
+        saved: "Plan saved successfully",
+        deleted: "Plan deleted successfully",
+        confirmDelete: "Are you sure you want to delete this plan?",
+        defaultName: "New Plan",
+      },
+      group: {
+        add: "Add Group",
+        remove: "Remove Group",
+        timeRange: "Group Time Range",
+        category: "Group Category",
+      },
+      validation: {
+        noData: "No data available",
+      },
     },
     applicationPage: {
       typeToSearchName: "Type to search name",
@@ -391,6 +475,10 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
     statisticPage: {
       label: {
         timeRange: "时间范围",
+        timeSpan: "时间跨度",
+        granularity: "统计粒度",
+        displayStyle: "展示样式",
+        group: "分组",
       },
       shortcuts: {
         last1day: "最近 1 天",
@@ -400,9 +488,12 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
         last3months: "最近 3 月",
         last1year: "最近 1 年",
       },
-      type: {
+      displayStyle: {
         card: "卡片",
-        progress: "进度条",
+        progress: "进度图",
+        pie: "饼图",
+        radar: "雷达图",
+        bar: "柱状图",
       },
       categories: {
         title: "分类筛选",
@@ -412,16 +503,51 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
       },
       types: {
         title: "统计类型",
-        duration: "使用总时长",
-        days: "使用天数",
-        rhythm: "使用节律",
-        rhythmNotImplemented: "使用节律功能尚未实现"
+        appDuration: "应用使用总时长",
+        appDays: "应用使用天数",
+        categoryDuration: "分类使用总时长",
+        categoryDays: "分类使用天数",
+        categoryRhythm: "分类使用节律",
+      },
+      timeSpan: {
+        day: "天",
+        week: "周",
+      },
+      granularity: {
+        day1: "1 天",
+        hour1: "1 小时",
+        hour2: "2 小时",
+        hour3: "3 小时",
+        hour4: "4 小时",
+        hour6: "6 小时",
+        minute30: "30 分钟",
+        minute15: "15 分钟",
+        minute5: "5 分钟",
       },
       placeholder: {
         startDate: "开始日期",
         endDate: "结束日期",
-        rangeSeparator: "至"
-      }
+        rangeSeparator: "至",
+        schemeName: "方案名称",
+      },
+      scheme: {
+        title: "保存方案",
+        save: "保存",
+        delete: "删除",
+        saved: "方案保存成功",
+        deleted: "方案删除成功",
+        confirmDelete: "确定要删除此方案吗？",
+        defaultName: "新方案",
+      },
+      group: {
+        add: "添加分组",
+        remove: "移除分组",
+        timeRange: "分组时间范围",
+        category: "分组分类",
+      },
+      validation: {
+        noData: "暂无数据",
+      },
     },
     homePage: {
       apps: "今日应用",

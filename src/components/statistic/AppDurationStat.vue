@@ -96,20 +96,20 @@ onMounted(async () => {
   <div class="app-duration-stat">
     <div class="config-section">
       <div class="config-item">
-        <label class="config-label">Time Range</label>
+        <label class="config-label">{{ i18n.statisticPage.label.timeRange }}</label>
         <date-time-picker v-model="timeRange" />
       </div>
 
       <div class="config-item">
-        <label class="config-label">Categories</label>
-        <el-select v-model="categoryId" placeholder="Select category" class="category-select" clearable
+        <label class="config-label">{{ i18n.statisticPage.categories.title }}</label>
+        <el-select v-model="categoryId" :placeholder="i18n.statisticPage.categories.placeholder" class="category-select" clearable
           :loading="loadingCategories">
           <el-option v-for="category in categories" :key="category.id" :label="category.name" :value="category.id" />
         </el-select>
       </div>
 
       <div class="config-item">
-        <label class="config-label">Display Style</label>
+        <label class="config-label">{{ i18n.statisticPage.label.displayStyle }}</label>
         <el-radio-group v-model="displayStyle">
           <el-radio-button v-for="style in displayStyles" :key="style.value" :label="style.label"
             :value="style.value" />
@@ -129,7 +129,7 @@ onMounted(async () => {
 
         <template #default>
           <div v-if="data.length === 0" class="empty-state">
-            <el-empty description="No data available" />
+            <el-empty :description="i18n.statisticPage.validation.noData" />
           </div>
 
           <div v-else-if="displayStyle === 'Card'">

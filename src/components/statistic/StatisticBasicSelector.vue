@@ -5,7 +5,6 @@ import { i18n } from "@/script/i18n.ts"
 import {
   getStatisticSchemeList,
   addStatisticScheme,
-  deleteStatisticScheme,
 } from "@/script/cmd.ts"
 import { StatisticScheme } from "@/script/models.ts"
 import { StatisticType } from "@/script/state.ts"
@@ -61,20 +60,6 @@ const handleSaveScheme = async () => {
   }
 }
 
-const handleDeleteScheme = async (id: number) => {
-  try {
-    await deleteStatisticScheme(id)
-    await loadSchemeList()
-    if (selectedSchemeId.value === id) {
-      selectedSchemeId.value = undefined
-    }
-    ElMessage.success("Scheme deleted successfully")
-  } catch (error) {
-    console.error("Failed to delete scheme:", error)
-    ElMessage.error("Failed to delete scheme")
-  }
-}
-
 onMounted(async () => {
   await loadSchemeList()
 })
@@ -109,14 +94,14 @@ onMounted(async () => {
       </el-select>
     </div>
 
-    <el-dialog v-model="showSaveDialog" :title="i18n.statisticPage.plan.title" width="400px">
-      <el-input v-model="schemeNameInput" :placeholder="i18n.statisticPage.placeholder.planName" />
+    <el-dialog v-model="showSaveDialog" :title="i18n.statisticPage.scheme.title" width="400px">
+      <el-input v-model="schemeNameInput" :placeholder="i18n.statisticPage.placeholder.schemeName" />
       <template #footer>
         <el-button @click="showSaveDialog = false">{{
           i18n.common.cancel
           }}</el-button>
         <el-button type="primary" @click="handleSaveScheme">{{
-          i18n.statisticPage.plan.save
+          i18n.statisticPage.scheme.save
           }}</el-button>
       </template>
     </el-dialog>
