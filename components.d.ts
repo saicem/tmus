@@ -81,7 +81,6 @@ declare module 'vue' {
     RuleDialog: typeof import('./src/components/setting/RuleDialog.vue')['default']
     SettingGroup: typeof import('./src/components/setting/SettingGroup.vue')['default']
     SettingItem: typeof import('./src/components/setting/SettingItem.vue')['default']
-    StackBarChart: typeof import('./src/components/chart/StackBarChart.vue')['default']
     StatisticBasicSelector: typeof import('./src/components/statistic/StatisticBasicSelector.vue')['default']
     TitleBar: typeof import('./src/components/TitleBar.vue')['default']
     UpdateDialog: typeof import('./src/components/global/UpdateDialog.vue')['default']

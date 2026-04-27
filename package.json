@@ -22,7 +22,7 @@
     "@vueuse/core": "^10.11.1",
     "date-fns": "^4.1.0",
     "element-plus": "^2.13.7",
-    "vue": "^3.5.32",
+    "vue": "^3.5.33",
     "vue-router": "^4.6.4"
   },
   "devDependencies": {
@@ -31,7 +31,6 @@
     "@vitejs/plugin-vue": "^5.2.4",
     "eslint": "^9.39.4",
     "prettier": "3.0.0-alpha.6",
-    "sass-embedded": "^1.99.0",
     "typescript": "5.6.3",
     "typescript-eslint": "^7.18.0",
     "unplugin-auto-import": "^19.3.0",
