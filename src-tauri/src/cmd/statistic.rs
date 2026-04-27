@@ -113,7 +113,7 @@ pub struct CategoryDayCountResponse {
 pub struct RhythmGroup {
     pub start_time: Timestamp,
     pub end_time: Timestamp,
-    pub category_id: CategoryId,
+    pub category_id: Option<CategoryId>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -347,18 +347,23 @@ pub fn get_category_usage_rhythm(request: RhythmRequest) -> Result<RhythmDataRes
                  category_id,
              }| {
                 let time_span_multiple = (end_time - start_time) / time_span;
-                let filter_records = {
-                    let valid_app_ids = match get_category_and_descendants_app_ids(&category_id) {
-                        Ok(v) => v,
-                        Err(_) => {
+                let filter_records: Box<dyn Fn(&FocusRecord) -> bool> = {
+                    if category_id.is_none() {
+                        Box::new(move |_record: &FocusRecord| -> bool { true })
+                    } else {
+                        let category_id = category_id.unwrap();
+                        let valid_app_ids = get_category_and_descendants_app_ids(&category_id);
+                        if valid_app_ids.is_err() {
                             tracing::error!(
                                 "get_category_and_descendants_app_ids error: {:?}",
                                 category_id
                             );
-                            HashSet::new()
+                            Box::new(move |_record: &FocusRecord| -> bool { false })
+                        } else {
+                            let valid_app_ids = valid_app_ids.unwrap();
+                            Box::new(move |record: &FocusRecord| -> bool { valid_app_ids.contains(&record.id) })
                         }
-                    };
-                    move |record: &FocusRecord| -> bool { valid_app_ids.contains(&record.id) }
+                    }
                 };
                 let mut ret = vec![0; granularity_multiple as usize];
                 let records = read_helper::read_by_timestamp(start_time, end_time);

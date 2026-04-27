@@ -209,7 +209,7 @@ export interface CategoryDayCountResponse {
 export interface RhythmGroup {
   startTime: number
   endTime: number
-  categoryId: CategoryId
+  categoryId?: CategoryId
 }
 
 export interface RhythmRequest {

@@ -82,7 +82,7 @@ onMounted(async () => {
 
 <template>
   <div class="section">
-    <div class="group">
+    <!-- <div class="group">
       <el-select v-model="selectedSchemeId" :placeholder="i18n.statisticPage.placeholder.selectPlan" clearable
         class="plan-select">
         <el-option v-for="scheme in schemeList.items" :key="scheme.id" :label="scheme.name" :value="scheme.id">
@@ -97,7 +97,7 @@ onMounted(async () => {
       <el-button type="primary" @click="showSaveDialog = true">
         {{ i18n.statisticPage.plan.save }}
       </el-button>
-    </div>
+    </div> -->
 
     <div class="group">
       <el-select v-model="statisticType" class="type-select">
@@ -114,10 +114,10 @@ onMounted(async () => {
       <template #footer>
         <el-button @click="showSaveDialog = false">{{
           i18n.common.cancel
-        }}</el-button>
+          }}</el-button>
         <el-button type="primary" @click="handleSaveScheme">{{
           i18n.statisticPage.plan.save
-        }}</el-button>
+          }}</el-button>
       </template>
     </el-dialog>
   </div>
