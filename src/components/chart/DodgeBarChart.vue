@@ -1,25 +1,22 @@
 <script lang="ts" setup>
 import { ref, computed, onMounted, watch, onBeforeUnmount } from "vue"
 import { Chart, TooltipComponent } from "@antv/g2"
-import { passiveStore } from "@/script/state";
+import { formatDurationRough } from "@/script/time-util"
+import { i18n } from "@/script/i18n"
+import { passiveStore } from "@/script/state"
 
-export interface BarChartData {
-  name: string
-  value: number
+export interface StackBarChartData {
+  label: string
+  x: string
+  y: number
 }
 
 const props = defineProps<{
-  data: BarChartData[]
-  tooltip?: TooltipComponent
-  yAxisLabelFormat?: (value: number) => string
+  data: StackBarChartData[]
 }>()
 
 const containerRef = ref<HTMLDivElement | null>(null)
 let chart: Chart | null = null
-
-const processedData = computed<BarChartData[]>(() => {
-  return [...props.data].sort((a, b) => b.value - a.value)
-})
 
 function renderChart(container: HTMLElement) {
   if (chart) {
@@ -29,31 +26,30 @@ function renderChart(container: HTMLElement) {
   chart = new Chart({
     container,
     autoFit: true,
-    height: 300,
+    height: 400,
   })
   chart.theme({ type: passiveStore.theme })
 
-  const markNode = chart
-    .interval()
-    .data(processedData.value)
-    .encode('x', 'name')
-    .encode('y', 'value')
-    .encode('color', 'name')
-    .scale('color', {
-      palette: 'spectral',
-      offset: (t) => t * 0.8 + 0.1,
-    })
+  chart.interval()
+    .data(props.data)
+    .encode("x", "x")
+    .encode("y", "y")
+    .encode("color", "label")
+    .transform({ type: 'dodgeX' })
     .axis('x', {
       title: null,
     })
     .axis('y', {
       title: null,
-      labelFormatter: props.yAxisLabelFormat,
+      labelFormatter: formatDurationRough
     })
-
-  if (props.tooltip) {
-    markNode.tooltip(props.tooltip)
-  }
+    .tooltip({
+      items: [{
+        name: i18n.value.statisticPage.types.duration,
+        field: 'y',
+        valueFormatter: formatDurationRough
+      }],
+    })
 
   chart.render()
 }
@@ -83,7 +79,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div ref="containerRef" style="width: 100%; height: 300px"></div>
+  <div ref="containerRef" style="width: 100%; height: 400px"></div>
 </template>
 
 <style scoped></style>

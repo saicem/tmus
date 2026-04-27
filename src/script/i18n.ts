@@ -61,6 +61,7 @@ type I18nMessageType = {
     }
     types: {
       title: string
+      duration: string
       appDuration: string
       appDays: string
       categoryDuration: string
@@ -286,6 +287,7 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
       },
       types: {
         title: "Statistic Type",
+        duration: "Duration",
         appDuration: "App Total Duration",
         appDays: "App Usage Days",
         categoryDuration: "Category Total Duration",
@@ -513,6 +515,7 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
       },
       types: {
         title: "统计类型",
+        duration: "时长",
         appDuration: "应用使用总时长",
         appDays: "应用使用天数",
         categoryDuration: "分类使用总时长",

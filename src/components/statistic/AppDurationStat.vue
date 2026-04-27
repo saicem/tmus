@@ -16,10 +16,10 @@ interface RawData {
 
 type DisplayStyle = "Pie" | "Progress"
 
-const displayStyles = [
+const displayStyles = computed(() => [
   { label: i18n.value.statisticPage.displayStyle.pie, value: "Pie" },
   { label: i18n.value.statisticPage.displayStyle.progress, value: "Progress" },
-]
+])
 
 const displayStyle = ref<DisplayStyle>("Pie")
 const categoryId = ref<number | undefined>(undefined)

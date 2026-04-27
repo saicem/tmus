@@ -74,3 +74,15 @@ export const getTimeRangeByMonths = (startMonthsBefore: number, endMonthsBefore:
   end.setMonth(end.getMonth() - endMonthsBefore)
   return [start, end]
 }
+
+export const minutesFormatInDay = (minutes: number) => {
+  const h = Math.floor(minutes / 60)
+  const m = minutes % 60
+  return `${h}:${m.toString().padStart(2, "02")}`
+}
+
+export const minutesFormatInWeek = (minutes: number) => {
+  const dayMinutes = 24 * 60
+  const dayOfWeek = Math.floor(minutes / dayMinutes)
+  return ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][dayOfWeek] + " " + minutesFormatInDay(minutes % dayMinutes)
+}

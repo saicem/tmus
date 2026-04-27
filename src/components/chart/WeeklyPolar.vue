@@ -7,7 +7,7 @@ import {
 import { startOfDay, subDays } from "date-fns"
 import { queryDurationStatistic } from "@/script/cmd.ts"
 import { i18n } from "@/script/i18n.ts"
-import { configStore } from "@/script/state.ts"
+import { configStore, passiveStore } from "@/script/state.ts"
 
 interface ChartData {
   time: number
@@ -106,6 +106,7 @@ function renderChart() {
     autoFit: true,
     height: 320,
   })
+  chart.theme({ type: passiveStore.theme })
 
   chart
     .coordinate({ type: "polar" })

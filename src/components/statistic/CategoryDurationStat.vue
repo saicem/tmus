@@ -16,11 +16,11 @@ interface RawData {
 
 type DisplayStyle = "Pie" | "Progress" | "Bar"
 
-const displayStyles = [
+const displayStyles = computed(() => [
   { label: i18n.value.statisticPage.displayStyle.pie, value: "Pie" },
   { label: i18n.value.statisticPage.displayStyle.progress, value: "Progress" },
   { label: i18n.value.statisticPage.displayStyle.bar, value: "Bar" },
-]
+])
 
 const tooltip = computed(() => ({
   title: "name",

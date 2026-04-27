@@ -3,9 +3,14 @@ import { ref, computed, watch, onMounted } from "vue"
 import { i18n } from "@/script/i18n.ts"
 import { TimeSpan, RhythmGroup as RhythmGroupModel, CategorySimple } from "@/script/models.ts"
 import { getCategoryUsageRhythm, getAllCategories } from "@/script/cmd.ts"
-import RhythmPolarChart from "@/components/chart/RhythmPolarChart.vue"
+import { minutesFormatInDay } from "@/script/time-util"
 
 type DisplayStyle = "radar" | "bar"
+
+const displayStyles = computed(() => [
+  { label: i18n.value.statisticPage.displayStyle.radar, value: "radar" },
+  { label: i18n.value.statisticPage.displayStyle.bar, value: "bar" },
+])
 
 interface RhythmGroup {
   timeRange: [Date, Date]
@@ -20,11 +25,6 @@ const chartData = ref<number[][]>([])
 const loadingData = ref<boolean>(false)
 const categories = ref<CategorySimple[]>([])
 const loadingCategories = ref<boolean>(false)
-
-const displayStyles = [
-  { label: i18n.value.statisticPage.displayStyle.radar, value: "radar" },
-  { label: i18n.value.statisticPage.displayStyle.bar, value: "bar" },
-]
 
 const granularityOptions = computed(() => timeSpan.value === "day" ? [
   { label: i18n.value.statisticPage.granularity.minute5, value: 5 * 60 * 1000 },
@@ -184,7 +184,17 @@ onMounted(async () => {
             <el-empty :description="i18n.statisticPage.validation.noData" />
           </div>
           <div v-else-if="displayStyle === 'radar'">
-            <RhythmPolarChart :type="timeSpan" :granularity="granularity" :data="chartData" />
+            <rhythm-radar-chart :type="timeSpan" :granularity="granularity" :data="chartData" />
+          </div>
+          <div v-else-if="displayStyle === 'bar'">
+            <dodge-bar-chart :data="chartData.map((group, index) => {
+              const granularityMinutes = Math.round(granularity / (60 * 1000))
+              return group.map((value, i) => ({
+                label: `Group ${index + 1}`,
+                x: timeSpan === 'day' ? minutesFormatInDay(i * granularityMinutes) : minutesFormatInDay(i * granularityMinutes),
+                y: value
+              }))
+            }).flat()" />
           </div>
         </template>
       </el-skeleton>

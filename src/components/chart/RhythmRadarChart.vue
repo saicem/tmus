@@ -4,6 +4,7 @@ import { Chart } from "@antv/g2"
 import { formatDurationRough, MILLISECONDS_PER_DAY, MILLISECONDS_PER_MINUTE } from "@/script/time-util"
 import { i18n } from "@/script/i18n.ts"
 import { TimeSpan } from "@/script/models"
+import { passiveStore } from "@/script/state"
 
 interface ChartData {
   index: number
@@ -121,16 +122,17 @@ function renderChart() {
 
   if (chart) {
     chart.destroy()
-    chart = null
   }
 
-  let chartInstance = new Chart({
+  chart = new Chart({
     container: chartContainer.value,
     autoFit: true,
     height: 320,
   })
+  chart.theme({ type: passiveStore.theme })
 
-  chartInstance.options({
+
+  chart.options({
     coordinate: {
       type: "polar",
     },
@@ -138,7 +140,7 @@ function renderChart() {
     ...scaleAndAxis(),
   })
 
-  chartInstance
+  chart
     .area()
     .encode("x", "index")
     .encode("y", "duration")
@@ -156,15 +158,14 @@ function renderChart() {
       ],
     })
 
-  chartInstance.interaction("tooltip", {
+  chart.interaction("tooltip", {
     crosshairsLineDash: [4, 4],
     filter: (d: any) => {
       return d.value != "0m"
     },
   })
 
-  chartInstance.render()
-  chart = chartInstance
+  chart.render()
 }
 
 watch(

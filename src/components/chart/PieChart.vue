@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { passiveStore } from "@/script/state";
 import { Chart, TooltipComponent } from "@antv/g2"
 
 export interface PieChartData {
@@ -53,6 +54,7 @@ function renderChart(container: HTMLElement) {
     autoFit: true,
     height: 300,
   })
+  chart.theme({ type: passiveStore.theme })
 
   chart.coordinate({ type: 'theta', innerRadius: 0.5, outerRadius: 0.8 });
 
