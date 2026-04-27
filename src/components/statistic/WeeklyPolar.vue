@@ -97,9 +97,12 @@ function computeTooltipTitleItem(cycleNo: number) {
   return `${h}:${m.toString().padStart(2, "0")}`
 }
 
-function renderChart(container: HTMLElement) {
+function renderChart() {
+  if (!chartContainer.value) {
+    return
+  }
   const chart = new Chart({
-    container,
+    container: chartContainer.value,
     autoFit: true,
     height: 320,
   })
@@ -161,19 +164,15 @@ function renderChart(container: HTMLElement) {
 }
 
 onMounted(async () => {
-  if (chartContainer?.value) {
-    await loadData()
-    renderChart(chartContainer.value)
-  }
+  await loadData()
+  renderChart()
 })
 
 watch(
   [() => configStore.theme, i18n],
   async (_old, _new) => {
-    if (chartContainer?.value) {
-      await loadData()
-      renderChart(chartContainer.value)
-    }
+    await loadData()
+    renderChart()
   },
   { deep: true }
 )

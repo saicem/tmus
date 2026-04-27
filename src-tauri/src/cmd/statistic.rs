@@ -4,7 +4,7 @@ use std::{
     time::{SystemTime, UNIX_EPOCH},
 };
 use tmus_engine::{
-    models::AppId,
+    models::{AppId, FocusRecord},
     util::{d_as_ms, ms_as_d, Timestamp},
 };
 
@@ -127,6 +127,7 @@ pub struct RhythmRequest {
 #[derive(Debug, Deserialize, Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct RhythmDataResponse {
+    /// Group<Granularity<AverageDuration>>
     pub values: Vec<Vec<Timestamp>>,
 }
 
@@ -318,8 +319,8 @@ pub fn get_category_usage_rhythm(request: RhythmRequest) -> Result<RhythmDataRes
     if time_span % granularity != 0 {
         return Err("span must be a multiple of granularity".to_string());
     }
-    let multiple = time_span / granularity;
-    if multiple > 24 * 60 {
+    let granularity_multiple = time_span / granularity;
+    if granularity_multiple > 24 * 60 {
         return Err("granularity is too small".to_string());
     }
     if request.groups.is_empty() {
@@ -330,7 +331,7 @@ pub fn get_category_usage_rhythm(request: RhythmRequest) -> Result<RhythmDataRes
             return Err("start_time must be before end_time".to_string());
         }
         if (group.end_time - group.start_time) % time_span != 0 {
-            return Err("end_time must be a multiple of span".to_string());
+            return Err("end_time - start_time must be a multiple of span".to_string());
         }
     }
 
@@ -345,6 +346,7 @@ pub fn get_category_usage_rhythm(request: RhythmRequest) -> Result<RhythmDataRes
                  end_time,
                  category_id,
              }| {
+                let time_span_multiple = (end_time - start_time) / time_span;
                 let valid_app_ids = get_category_and_descendants_app_ids(&category_id);
                 if valid_app_ids.is_err() {
                     tracing::error!(
@@ -354,56 +356,84 @@ pub fn get_category_usage_rhythm(request: RhythmRequest) -> Result<RhythmDataRes
                     return Vec::new();
                 }
                 let valid_app_ids = valid_app_ids.unwrap();
-
                 let records = read_helper::read_by_timestamp(start_time, end_time);
-                // This vec use for store less than granularity duration
-                let mut partial_vec: Vec<Timestamp> = Vec::with_capacity(multiple as usize);
-                // This vec use for store fully occupied granularity duration in adjacent difference vec
-                let mut full_adj_dif_vec: Vec<i64> = Vec::with_capacity(multiple as usize);
-
-                for record in records {
-                    if !valid_app_ids.contains(&record.id) {
-                        continue;
-                    }
-                    let start_tz = record.focus_at + timezone_offset;
-                    let end_tz = record.blur_at + timezone_offset;
-                    let start_in_span = start_tz % time_span;
-                    let end_in_span = end_tz % time_span;
-                    let cycle = (end_tz - start_tz) / time_span;
-                    let start_in_granularity = start_in_span % granularity;
-                    let end_in_granularity = end_in_span % granularity;
-                    let start_index = start_in_granularity / granularity;
-                    let end_index = end_in_granularity / granularity;
-
-                    if start_index == end_index {
-                        partial_vec[start_index as usize] +=
-                            end_in_granularity - start_in_granularity;
-                    } else {
-                        if start_in_granularity != 0 {
-                            partial_vec[start_index as usize] += start_in_granularity;
-                        }
-                        if end_in_granularity != 0 {
-                            partial_vec[end_index as usize] += granularity - end_in_granularity;
-                        }
-                        full_adj_dif_vec[((start_index + 1) % multiple) as usize] += 1;
-                        full_adj_dif_vec[(end_index as usize) - 1] -= 1;
-                        if end_index < start_index {
-                            full_adj_dif_vec[0] += 1;
-                        }
-                    }
-                    full_adj_dif_vec[0] += cycle;
-                }
-
-                partial_vec
-                    .into_iter()
-                    .zip(full_adj_dif_vec.into_iter())
-                    .map(|(partial, full)| partial + full * granularity)
-                    .collect::<Vec<_>>()
+                compute_rhythm(
+                    &records,
+                    &valid_app_ids,
+                    timezone_offset,
+                    time_span,
+                    granularity,
+                    granularity_multiple,
+                    time_span_multiple,
+                )
             },
         )
         .collect();
 
     Ok(RhythmDataResponse { values: result })
+}
+
+pub fn compute_rhythm(
+    records: &[FocusRecord],
+    valid_app_ids: &HashSet<AppId>,
+    timezone_offset: Timestamp,
+    time_span: Timestamp,
+    granularity: Timestamp,
+    granularity_multiple: Timestamp,
+    span_multiple: i64,
+) -> Vec<Timestamp> {
+    // This vec use for store less than granularity duration
+    let mut partial_vec: Vec<Timestamp> = vec![0; granularity_multiple as usize];
+    // This vec use for store fully occupied granularity duration in adjacent difference vec
+    let mut full_adj_dif_vec: Vec<Timestamp> = vec![0; granularity_multiple as usize];
+    for record in records {
+        if !valid_app_ids.contains(&record.id) {
+            continue;
+        }
+        let cycle = (record.blur_at - record.focus_at) / time_span;
+        let start_in_span = (record.focus_at + timezone_offset) % time_span;
+        let end_in_span = (record.blur_at + timezone_offset) % time_span;
+        let start_in_granularity = start_in_span % granularity;
+        let end_in_granularity = end_in_span % granularity;
+        let start_index = start_in_span / granularity;
+        let end_index = end_in_span / granularity;
+
+        if start_in_span <= end_in_span {
+            if start_index + 1 < end_index {
+                full_adj_dif_vec[(start_index + 1) as usize] += 1;
+                full_adj_dif_vec[end_index as usize] -= 1;
+                partial_vec[start_index as usize] += granularity - start_in_granularity;
+            }
+        } else {
+            full_adj_dif_vec[0] += 1;
+            full_adj_dif_vec[end_index as usize] -= 1;
+            if start_index + 1 < granularity_multiple {
+                full_adj_dif_vec[(start_index + 1) as usize] += 1;
+            }
+        }
+        if start_index == end_index {
+            if start_in_granularity < end_in_granularity {
+                partial_vec[start_index as usize] += end_in_granularity - start_in_granularity;
+            } else {
+                partial_vec[start_index as usize] +=
+                    granularity + end_in_granularity - start_in_granularity;
+            }
+        } else {
+            partial_vec[start_index as usize] += granularity - start_in_granularity;
+            partial_vec[end_index as usize] += end_in_granularity;
+        }
+        full_adj_dif_vec[0] += cycle;
+    }
+    // accumulate full_adj_dif_vec
+    for i in 1..granularity_multiple as usize {
+        full_adj_dif_vec[i] += full_adj_dif_vec[i - 1];
+    }
+
+    partial_vec
+        .into_iter()
+        .zip(full_adj_dif_vec.into_iter())
+        .map(|(partial, full)| (partial + full * granularity) / span_multiple)
+        .collect::<Vec<_>>()
 }
 
 async fn match_app_detail(

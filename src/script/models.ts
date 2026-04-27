@@ -148,10 +148,7 @@ export interface RemoveAppCategoryRequest {
   appId: AppId
 }
 
-export enum TimeSpan {
-  Day = "day",
-  Week = "week"
-}
+export type TimeSpan = "day" | "week"
 
 export interface AppStatisticDetail {
   value: number
@@ -236,11 +233,11 @@ export interface StatisticScheme {
 }
 
 export type StatisticSchemeDetail =
-  | { type: "appDurationRequest" } & AppDurationRequest
-  | { type: "appDayCountRequest" } & AppDayCountRequest
-  | { type: "categoryDurationRequest" } & CategoryDurationRequest
-  | { type: "categoryDayCountRequest" } & CategoryDayCountRequest
-  | { type: "rhythmRequest" } & RhythmRequest
+  | { type: "AppDurationRequest" } & AppDurationRequest
+  | { type: "AppDayCountRequest" } & AppDayCountRequest
+  | { type: "CategoryDurationRequest" } & CategoryDurationRequest
+  | { type: "CategoryDayCountRequest" } & CategoryDayCountRequest
+  | { type: "RhythmRequest" } & RhythmRequest
 
 export interface AddSchemeItemRequest {
   name: string
