@@ -1,16 +1,24 @@
 use std::path::PathBuf;
 use std::sync::OnceLock;
 
-pub static APP_NAME: &str = "tmus";
+#[cfg(debug_assertions)]
+pub const APP_NAME: &str = "tmus.dev";
+#[cfg(not(debug_assertions))]
+pub const APP_NAME: &str = "tmus";
+
+#[cfg(debug_assertions)]
+pub const APP_TITLE: &str = "Tmus Dev";
+#[cfg(not(debug_assertions))]
+pub const APP_TITLE: &str = "Tmus";
 
 pub fn data_dir() -> &'static PathBuf {
     static DATA_DIR: OnceLock<PathBuf> = OnceLock::new();
-    DATA_DIR.get_or_init(|| dirs_next::data_dir().unwrap().join(&APP_NAME))
+    DATA_DIR.get_or_init(|| dirs_next::data_dir().unwrap().join(APP_NAME))
 }
 
 pub fn cache_dir() -> &'static PathBuf {
     static CACHE_DIR: OnceLock<PathBuf> = OnceLock::new();
-    CACHE_DIR.get_or_init(|| dirs_next::cache_dir().unwrap().join(&APP_NAME))
+    CACHE_DIR.get_or_init(|| dirs_next::cache_dir().unwrap().join(APP_NAME))
 }
 
 pub fn config_file_path() -> &'static PathBuf {

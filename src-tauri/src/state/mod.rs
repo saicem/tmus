@@ -22,7 +22,7 @@ pub async fn get_app_config() -> Config {
 
 #[tauri::command]
 pub async fn set_app_config(config: Config, app_handle: tauri::AppHandle) {
-    dump_json(&config, config_file_path());
+    let _ = dump_json(&config, config_file_path());
     {
         *get_config() = config
     };
@@ -36,7 +36,7 @@ pub async fn get_app_rule() -> rule::Rule {
 
 #[tauri::command]
 pub async fn set_app_rule(config: rule::Rule) {
-    dump_json(&config, rule_file_path());
+    let _ = dump_json(&config, rule_file_path());
     {
         *get_rule().lock().unwrap() = config.clone()
     };

@@ -1,3 +1,4 @@
+use crate::app::constant::APP_TITLE;
 use tauri::AppHandle;
 use tauri::Manager;
 
@@ -9,6 +10,7 @@ pub fn focus_main_window(app: &AppHandle) {
             &app.config().app.windows.get(0).unwrap().clone(),
         )
         .unwrap()
+        .title(APP_TITLE)
         .build()
         .unwrap();
         _window.set_focus().unwrap();

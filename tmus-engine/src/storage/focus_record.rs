@@ -65,7 +65,7 @@ pub fn read(start: Option<usize>, end: Option<usize>) -> Vec<RecordByte> {
         debug_assert!(end * RECORD_SIZE <= state.len);
         end * RECORD_SIZE
     });
-    debug_assert!(start < end, "Start must less than end.");
+    debug_assert!(start <= end, "Start must less than or equal to end.");
     state.mmap[start..end]
         .chunks(RECORD_SIZE)
         .map(|chunk| chunk.try_into().unwrap())
