@@ -1,3 +1,4 @@
+use std::fs;
 use std::path::PathBuf;
 use std::sync::OnceLock;
 
@@ -13,12 +14,20 @@ pub const APP_TITLE: &str = "Tmus";
 
 pub fn data_dir() -> &'static PathBuf {
     static DATA_DIR: OnceLock<PathBuf> = OnceLock::new();
-    DATA_DIR.get_or_init(|| dirs_next::data_dir().unwrap().join(APP_NAME))
+    DATA_DIR.get_or_init(|| {
+        let dir = dirs_next::data_dir().unwrap().join(APP_NAME);
+        let _ = fs::create_dir_all(&dir);
+        dir
+    })
 }
 
 pub fn cache_dir() -> &'static PathBuf {
     static CACHE_DIR: OnceLock<PathBuf> = OnceLock::new();
-    CACHE_DIR.get_or_init(|| dirs_next::cache_dir().unwrap().join(APP_NAME))
+    CACHE_DIR.get_or_init(|| {
+        let dir = dirs_next::cache_dir().unwrap().join(APP_NAME);
+        let _ = fs::create_dir_all(&dir);
+        dir
+    })
 }
 
 pub fn config_file_path() -> &'static PathBuf {

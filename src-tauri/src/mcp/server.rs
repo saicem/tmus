@@ -47,9 +47,10 @@ pub async fn start_mcp_server(port: u16) -> Result<(), String> {
 
     let router = axum::Router::new().nest_service("/mcp", service);
 
-    let listener = tokio::net::TcpListener::bind(format!("127.0.0.1:{}", port))
+    let bind_addr = format!("127.0.0.1:{}", port);
+    let listener = tokio::net::TcpListener::bind(&bind_addr)
         .await
-        .expect("Server bind address failed");
+        .map_err(|e| format!("Failed to bind address {}: {}", bind_addr, e))?;
 
     let shutdown_ct = ct.clone();
     let server = axum::serve(listener, router).with_graceful_shutdown(async move {
@@ -64,7 +65,7 @@ pub async fn start_mcp_server(port: u16) -> Result<(), String> {
     });
 
     *server_state = Some(McpServerState { port, ct });
-    info!("Server started");
+    info!("Server started on port {}", port);
     Ok(())
 }
 

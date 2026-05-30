@@ -12,17 +12,17 @@ use windows::{
     },
 };
 
-fn get_mutex_key() -> String {
+fn mutex_key() -> String {
     format!("tmus_singleton{}", app::constant::APP_NAME)
 }
 
-fn get_pipe_name() -> String {
+fn pipe_name() -> String {
     format!("\\\\.\\pipe\\{}", app::constant::APP_NAME)
 }
 
 /// Check if the application has another instance which is already started.
 pub async fn force_singleton() {
-    let mutex = unsafe { CreateMutexW(None, true, &HSTRING::from(get_mutex_key())) };
+    let mutex = unsafe { CreateMutexW(None, true, &HSTRING::from(mutex_key())) };
     let last_error = unsafe { GetLastError() };
 
     if last_error == ERROR_ALREADY_EXISTS {
@@ -37,18 +37,16 @@ pub async fn force_singleton() {
         error!("Failed to create mutex, {}", mutex.err().unwrap());
         exit(1);
     }
-
-    run_server().expect("Create pipeline server failed.");
 }
 
 fn focus_main_window() {
     app::focus_main_window(app::global::get_app_handle());
 }
 
-fn run_server() -> Result<(), io::Error> {
+pub fn run_new_instance_listener() -> Result<(), io::Error> {
     let mut server = ServerOptions::new()
         .first_pipe_instance(true)
-        .create(get_pipe_name())?;
+        .create(pipe_name())?;
 
     let _server_task: JoinHandle<Result<(), io::Error>> = tauri::async_runtime::spawn(async move {
         loop {
@@ -56,7 +54,7 @@ fn run_server() -> Result<(), io::Error> {
             info!("Another instance is trying start.");
             focus_main_window();
             let _connected_client = server;
-            server = ServerOptions::new().create(get_pipe_name())?;
+            server = ServerOptions::new().create(pipe_name())?;
             let _client = tauri::async_runtime::spawn(async move {});
         }
     });
@@ -64,6 +62,6 @@ fn run_server() -> Result<(), io::Error> {
 }
 
 async fn run_client() -> Result<(), io::Error> {
-    ClientOptions::new().open(get_pipe_name())?;
+    ClientOptions::new().open(pipe_name())?;
     Ok(())
 }

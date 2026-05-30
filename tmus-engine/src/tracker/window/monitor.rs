@@ -25,7 +25,7 @@ pub fn set_window_tracker(sender: Sender<WindowFocusEvent>) {
     ));
 }
 
-#[instrument]
+#[instrument(level = "debug")]
 async fn loop_get_current_window(interval: Duration) {
     let mut interval = time::interval(interval);
     loop {

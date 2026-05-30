@@ -10,7 +10,7 @@ mod time_util;
 pub use explorer::show_in_folder;
 pub use file_version::get_file_version;
 pub use file_version::FileVersion;
-pub use force_singleton::force_singleton;
+pub use force_singleton::{force_singleton, run_new_instance_listener};
 pub use json::dump as dump_json;
 pub use json::load as load_json;
 pub use time_util::date_str_from_days;

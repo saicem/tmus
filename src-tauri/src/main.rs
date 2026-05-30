@@ -12,7 +12,10 @@ use tauri::{AppHandle, Manager, RunEvent};
 use tauri_plugin_autostart::MacosLauncher;
 use tmus_engine::{async_runtime, engine_start};
 use tokio::sync::Mutex;
-use tracing::info;
+use tracing::Level;
+use tracing::{error, info};
+use tracing_subscriber::fmt::format::FmtSpan;
+use tracing_subscriber::FmtSubscriber;
 
 mod app;
 mod cmd;
@@ -22,12 +25,18 @@ mod util;
 
 #[tokio::main]
 async fn main() {
+    let subscriber = FmtSubscriber::builder()
+        .with_span_events(FmtSpan::ACTIVE)
+        .with_max_level(Level::DEBUG)
+        .finish();
+    tracing::subscriber::set_global_default(subscriber)
+        .expect("Failed to set global default subscriber");
+
+    util::force_singleton().await;
     tauri::async_runtime::set(tokio::runtime::Handle::current());
     async_runtime::set_runtime(tokio::runtime::Handle::current());
-    tracing_subscriber::fmt()
-        .with_max_level(tracing::Level::DEBUG)
-        .init();
-    util::force_singleton().await;
+    util::run_new_instance_listener().expect("Create new instance listener failed.");
+
     let app = tauri::Builder::default()
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_dialog::init())
@@ -54,7 +63,13 @@ pub fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     start_timer();
 
     if config.auto_start_mcp_server {
-        tauri::async_runtime::spawn(start_mcp_server(config.mcp_server_port));
+        let port = config.mcp_server_port;
+        tauri::async_runtime::spawn(async move {
+            match start_mcp_server(port).await {
+                Ok(_) => info!("MCP server started on port {}", port),
+                Err(e) => error!("Failed to start MCP server on port {}: {}", port, e),
+            }
+        });
     }
 
     app.manage(update::PendingUpdate(Mutex::new(None)));
