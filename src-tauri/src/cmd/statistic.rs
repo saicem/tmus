@@ -132,6 +132,7 @@ pub struct RhythmDataResponse {
 }
 
 #[tauri::command]
+#[tracing::instrument]
 pub fn get_base_time() -> u64 {
     let now = SystemTime::now();
     let since_epoch = now.duration_since(UNIX_EPOCH).unwrap();
@@ -139,7 +140,8 @@ pub fn get_base_time() -> u64 {
     days * 24 * 60 * 60
 }
 
-#[tauri::command(async)]
+#[tauri::command]
+#[tracing::instrument]
 pub async fn get_app_total_duration(
     request: AppDurationRequest,
 ) -> Result<AppDurationResponse, String> {
@@ -159,7 +161,8 @@ pub async fn get_app_total_duration(
     Ok(AppDurationResponse { detail })
 }
 
-#[tauri::command(async)]
+#[tauri::command]
+#[tracing::instrument]
 pub async fn get_app_usage_days(
     request: AppDurationRequest,
 ) -> Result<AppDayCountResponse, String> {
@@ -189,6 +192,7 @@ pub async fn get_app_usage_days(
 }
 
 #[tauri::command]
+#[tracing::instrument]
 pub fn get_category_total_duration(
     request: CategoryDurationRequest,
 ) -> Result<CategoryDurationResponse, String> {
@@ -245,6 +249,7 @@ pub fn get_category_total_duration(
 }
 
 #[tauri::command]
+#[tracing::instrument]
 pub fn get_category_usage_days(
     request: CategoryDayCountRequest,
 ) -> Result<CategoryDayCountResponse, String> {
@@ -312,6 +317,7 @@ pub fn get_category_usage_days(
 }
 
 #[tauri::command]
+#[tracing::instrument]
 pub fn get_category_usage_rhythm(request: RhythmRequest) -> Result<RhythmDataResponse, String> {
     // Valid check
     let time_span = request.span.to_ms();
@@ -361,7 +367,9 @@ pub fn get_category_usage_rhythm(request: RhythmRequest) -> Result<RhythmDataRes
                             Box::new(move |_record: &FocusRecord| -> bool { false })
                         } else {
                             let valid_app_ids = valid_app_ids.unwrap();
-                            Box::new(move |record: &FocusRecord| -> bool { valid_app_ids.contains(&record.id) })
+                            Box::new(move |record: &FocusRecord| -> bool {
+                                valid_app_ids.contains(&record.id)
+                            })
                         }
                     }
                 };

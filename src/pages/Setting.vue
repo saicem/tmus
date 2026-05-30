@@ -35,10 +35,7 @@ onMounted(async () => {
             </el-select>
           </setting-item>
           <setting-item :label="i18n.configPage.firstDayOfWeek">
-            <el-select
-              v-model="configStore.firstDayOfWeek"
-              style="width: 100px"
-            >
+            <el-select v-model="configStore.firstDayOfWeek" style="width: 100px">
               <el-option :label="i18n.configPage.monday" :value="0" />
               <el-option :label="i18n.configPage.tuesday" :value="1" />
               <el-option :label="i18n.configPage.wednesday" :value="2" />
@@ -63,10 +60,7 @@ onMounted(async () => {
         </setting-group>
         <setting-group>
           <setting-item :label="i18n.configPage.autoStart">
-            <el-switch
-              v-model="passiveStore.autoStart"
-              @change="(val) => (val ? enable() : disable())"
-            />
+            <el-switch v-model="passiveStore.autoStart" @change="(val) => (val ? enable() : disable())" />
           </setting-item>
           <setting-item :label="i18n.configPage.autoStartMcpServer">
             <el-switch v-model="configStore.autoStartMcpServer" />
@@ -76,11 +70,8 @@ onMounted(async () => {
       </div>
       <div class="column">
         <setting-group>
-          <setting-item
-            :label="i18n.configPage.appRule"
-            :tip="i18n.configPage.appRuleTip"
-            @click="dialogVisibleRule = true"
-          />
+          <setting-item :label="i18n.configPage.appRule" :tip="i18n.configPage.appRuleTip"
+            @click="dialogVisibleRule = true" />
           <setting-item :label="i18n.configPage.filterUninstalledApp">
             <el-switch v-model="configStore.filterUninstalledApp" />
           </setting-item>

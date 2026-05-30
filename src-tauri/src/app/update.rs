@@ -1,6 +1,7 @@
 use crate::app::global::get_app_handle;
 use serde::Serialize;
 use std::env;
+use std::fmt::Debug;
 use tauri::ipc::Channel;
 use tauri::{AppHandle, State};
 use tauri_plugin_updater::{Update, Updater, UpdaterExt};
@@ -28,7 +29,7 @@ impl Serialize for Error {
 
 type Result<T> = std::result::Result<T, Error>;
 
-#[derive(Clone, Serialize)]
+#[derive(Debug, Clone, Serialize)]
 #[serde(tag = "event", content = "data")]
 pub enum DownloadEvent {
     #[serde(rename_all = "camelCase")]
@@ -50,6 +51,7 @@ pub struct UpdateMetadata {
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(_app, pending_update))]
 pub async fn fetch_update(
     _app: AppHandle,
     pending_update: State<'_, PendingUpdate>,
@@ -64,6 +66,7 @@ pub async fn fetch_update(
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(pending_update, on_event))]
 pub async fn install_update(
     pending_update: State<'_, PendingUpdate>,
     on_event: Channel<DownloadEvent>,

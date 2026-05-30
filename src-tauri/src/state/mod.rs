@@ -16,12 +16,14 @@ pub use rule::get_rule;
 pub use rule::get_rule_radix_tree;
 
 #[tauri::command]
-pub async fn get_app_config() -> Config {
+#[tracing::instrument]
+pub fn get_app_config() -> Config {
     get_config().clone()
 }
 
 #[tauri::command]
-pub async fn set_app_config(config: Config, app_handle: tauri::AppHandle) {
+#[tracing::instrument(skip(config, app_handle))]
+pub fn set_app_config(config: Config, app_handle: tauri::AppHandle) {
     let _ = dump_json(&config, config_file_path());
     {
         *get_config() = config
@@ -30,12 +32,14 @@ pub async fn set_app_config(config: Config, app_handle: tauri::AppHandle) {
 }
 
 #[tauri::command]
-pub async fn get_app_rule() -> rule::Rule {
+#[tracing::instrument]
+pub fn get_app_rule() -> rule::Rule {
     get_rule().lock().unwrap().clone()
 }
 
 #[tauri::command]
-pub async fn set_app_rule(config: rule::Rule) {
+#[tracing::instrument(skip(config))]
+pub fn set_app_rule(config: rule::Rule) {
     let _ = dump_json(&config, rule_file_path());
     {
         *get_rule().lock().unwrap() = config.clone()

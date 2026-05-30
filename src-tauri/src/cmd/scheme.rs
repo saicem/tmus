@@ -24,6 +24,7 @@ pub fn get_statistic_scheme_list() -> StatisticScheme {
 }
 
 #[tauri::command]
+#[tracing::instrument]
 pub fn add_statistic_scheme(request: AddSchemeItemRequest) -> AddSchemeItemResponse {
     let id = get_statistic_scheme().items.len() as u64;
     add_statistic_scheme_item(request.name, request.detail);
@@ -36,6 +37,7 @@ pub fn delete_statistic_scheme(id: u64) -> Result<(), String> {
 }
 
 #[tauri::command]
+#[tracing::instrument]
 pub fn save_statistic_scheme_manual() {
     let _ = save_statistic_scheme();
 }

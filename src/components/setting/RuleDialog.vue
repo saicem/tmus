@@ -55,40 +55,23 @@ function setRule() {
 </script>
 
 <template>
-  <el-dialog
-    v-model="model"
-    :before-close="handleClose"
-    :title="i18n.configPage.appRule"
-  >
+  <el-dialog v-model="model" :before-close="handleClose" :title="i18n.configPage.appRule">
     <el-tabs v-model="tabModel">
       <el-tab-pane :label="i18n.ruleDialog.excludeApp" name="exclude">
         <el-table :data="rule?.exclude" max-height="300" style="width: 100%">
           <el-table-column :label="i18n.ruleDialog.path" prop="path">
             <template #default="scope">
-              <file-selector
-                v-model="scope.row.path"
-                :change="() => (modified = true)"
-                name="file"
-              />
+              <file-selector v-model="scope.row.path" :change="() => (modified = true)" name="file" />
             </template>
           </el-table-column>
-          <el-table-column
-            :label="i18n.ruleDialog.operation"
-            fixed="right"
-            width="120"
-          >
+          <el-table-column :label="i18n.ruleDialog.operation" fixed="right" width="120">
             <template #default="scope">
-              <el-button
-                link
-                size="small"
-                type="primary"
-                @click.prevent="
-                  () => {
-                    rule?.exclude.splice(scope.$index, 1)
-                    modified = true
-                  }
-                "
-              >
+              <el-button link size="small" type="primary" @click.prevent="
+                () => {
+                  rule?.exclude.splice(scope.$index, 1)
+                  modified = true
+                }
+              ">
                 {{ i18n.ruleDialog.remove }}
               </el-button>
             </template>
@@ -103,23 +86,14 @@ function setRule() {
               <FileSelector v-model="scope.row.path" name="file" />
             </template>
           </el-table-column>
-          <el-table-column
-            :label="i18n.ruleDialog.operation"
-            fixed="right"
-            width="120"
-          >
+          <el-table-column :label="i18n.ruleDialog.operation" fixed="right" width="120">
             <template #default="scope">
-              <el-button
-                link
-                size="small"
-                type="primary"
-                @click.prevent="
-                  () => {
-                    rule?.include.splice(scope.$index, 1)
-                    modified = true
-                  }
-                "
-              >
+              <el-button link size="small" type="primary" @click.prevent="
+                () => {
+                  rule?.include.splice(scope.$index, 1)
+                  modified = true
+                }
+              ">
                 {{ i18n.ruleDialog.remove }}
               </el-button>
             </template>
@@ -139,23 +113,14 @@ function setRule() {
               <FileSelector v-model="scope.row.toPath" name="file" />
             </template>
           </el-table-column>
-          <el-table-column
-            :label="i18n.ruleDialog.operation"
-            fixed="right"
-            width="120"
-          >
+          <el-table-column :label="i18n.ruleDialog.operation" fixed="right" width="120">
             <template #default="scope">
-              <el-button
-                link
-                size="small"
-                type="primary"
-                @click.prevent="
-                  () => {
-                    rule?.merge.splice(scope.$index, 1)
-                    modified = true
-                  }
-                "
-              >
+              <el-button link size="small" type="primary" @click.prevent="
+                () => {
+                  rule?.merge.splice(scope.$index, 1)
+                  modified = true
+                }
+              ">
                 {{ i18n.ruleDialog.remove }}
               </el-button>
             </template>
@@ -167,8 +132,7 @@ function setRule() {
       <div>
         <el-button @click="addItem">{{ i18n.ruleDialog.add }}</el-button>
         <el-button @click="model = false">{{ i18n.common.cancel }}</el-button>
-        <el-button type="primary" @click="setRule"
-          >{{ i18n.common.ok }}
+        <el-button type="primary" @click="setRule">{{ i18n.common.ok }}
         </el-button>
       </div>
     </template>

@@ -77,13 +77,13 @@ pub fn get_raw_record(start_timestamp: Timestamp, end_timestamp: Timestamp) -> V
 
 #[tauri::command]
 #[tracing::instrument]
-pub async fn show_in_folder(path: String) {
+pub fn show_in_folder(path: String) {
     util::show_in_folder(&path)
 }
 
 #[tauri::command]
 #[tracing::instrument]
-pub async fn get_tmus_meta() -> TmusMeta {
+pub fn get_tmus_meta() -> TmusMeta {
     let EngineMeta {
         initial_timestamp,
         engine_version,
@@ -97,6 +97,6 @@ pub async fn get_tmus_meta() -> TmusMeta {
 
 #[tauri::command]
 #[tracing::instrument]
-pub async fn focus_index_record() -> Vec<focus_index::FileIndexRecord> {
+pub fn focus_index_record() -> Vec<focus_index::FileIndexRecord> {
     focus_index::all_record()
 }
