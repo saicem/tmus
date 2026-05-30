@@ -26,8 +26,7 @@ onMounted(async () => {
 const progressData = ref<AppDuration[]>([])
 
 async function loadData() {
-  await getYearData()
-  await getDayData()
+  await Promise.all([getYearData(), getDayData()])
 }
 
 async function getYearData() {
@@ -82,16 +81,9 @@ async function getDayData() {
   <content-view-scrollbar>
     <div style="display: flex; flex-direction: column; row-gap: 16px">
       <div class="cards no-select">
-        <general-card
-          :content="todayUseAppCount + i18n.homePage.appsUnit"
-          :icon="app"
-          :illustration="i18n.homePage.apps"
-        />
-        <general-card
-          :content="todayUseAppDuration"
-          :icon="usage"
-          :illustration="i18n.homePage.totalUse"
-        />
+        <general-card :content="todayUseAppCount + i18n.homePage.appsUnit" :icon="app"
+          :illustration="i18n.homePage.apps" />
+        <general-card :content="todayUseAppDuration" :icon="usage" :illustration="i18n.homePage.totalUse" />
       </div>
       <el-card class="heat-calendar-card">
         <heat-calendar v-if="yearData" :data="yearData" />

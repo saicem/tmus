@@ -11,11 +11,12 @@ where
         .unwrap_or(T::default())
 }
 
-pub fn dump<T, P>(json: &T, path: P) -> bool
+pub fn dump<T, P>(json: &T, path: P) -> Result<(), Box<dyn std::error::Error>>
 where
     T: Serialize,
     P: AsRef<Path>,
 {
-    let str = serde_json::to_string_pretty(json).unwrap();
-    fs::write(path, str).is_ok()
+    let str = serde_json::to_string_pretty(json)?;
+    fs::write(path, str)?;
+    Ok(())
 }

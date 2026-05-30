@@ -316,12 +316,13 @@ pub async fn get_uncategorized_apps(
     })
 }
 
-pub fn save_category_data() {
+pub fn save_category_data() -> Result<(), Box<dyn std::error::Error>> {
     if !get_state().category_changed.swap(false, Ordering::Relaxed) {
-        return;
+        return Ok(());
     }
-    dump_json(&get_state().category_root, category_file_path());
+    dump_json(&get_state().category_root, category_file_path())?;
     info!("Category data saved");
+    Ok(())
 }
 
 pub fn get_category_self_and_descendants_map() -> HashMap<CategoryId, HashSet<CategoryId>> {

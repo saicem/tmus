@@ -57,13 +57,14 @@ pub fn get_statistic_scheme<'a>() -> MutexGuard<'a, StatisticScheme> {
         .unwrap()
 }
 
-pub fn save_statistic_scheme() {
+pub fn save_statistic_scheme() -> Result<(), Box<dyn std::error::Error>> {
     if !STATISTIC_SCHEME_CHANGED.swap(false, Ordering::Relaxed) {
-        return;
+        return Ok(());
     }
     let scheme = get_statistic_scheme();
-    dump_json(&*scheme, statistic_scheme_file_path());
+    dump_json(&*scheme, statistic_scheme_file_path())?;
     info!("Saved statistic scheme");
+    Ok(())
 }
 
 pub fn add_statistic_scheme_item(name: String, detail: StatisticSchemeDetail) {

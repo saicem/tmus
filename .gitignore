@@ -26,3 +26,4 @@ dist-ssr
 **/Cargo.lock
 .qodo
 src-tauri/gen/*
+todo*.md

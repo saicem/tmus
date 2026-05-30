@@ -6,6 +6,6 @@ pub fn app_exit() {
 }
 
 pub fn save_on_exit() {
-    save_category_data();
-    save_statistic_scheme();
+    let _ = save_category_data();
+    let _ = save_statistic_scheme();
 }

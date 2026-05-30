@@ -49,13 +49,11 @@ impl FocusRecord {
     /// Split record into multiple records.
     /// Ensure that the duration of each record is less than 0.76 day(The maximum time that can be represented)
     /// and not span across one day which could make index easier.
-    /// TODO: Optimizing with iterators!
     pub(crate) fn split_record(&self) -> Vec<FocusRecord> {
         assert!(self.blur_at >= self.focus_at);
         self.split_by_not_across_day()
-            .iter()
-            .map(|x| x.split_by_max_duration())
-            .flatten()
+            .into_iter()
+            .flat_map(|x| x.split_by_max_duration())
             .collect()
     }
 

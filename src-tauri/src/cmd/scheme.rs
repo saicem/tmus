@@ -37,5 +37,5 @@ pub fn delete_statistic_scheme(id: u64) -> Result<(), String> {
 
 #[tauri::command]
 pub fn save_statistic_scheme_manual() {
-    save_statistic_scheme();
+    let _ = save_statistic_scheme();
 }

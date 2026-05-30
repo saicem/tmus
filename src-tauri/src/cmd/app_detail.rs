@@ -44,13 +44,15 @@ pub async fn update_app_detail_cache(
     for detail in details {
         app_detail_map.insert(detail.id, detail);
     }
-    dump_json(
+    if let Err(e) = dump_json(
         &app_detail_map
             .values()
             .map(|x| x.to_owned())
             .collect::<Vec<FileDetail>>(),
         app_detail_cache_path(),
-    );
+    ) {
+        tracing::error!("Failed to save app detail cache: {}", e);
+    }
 }
 
 #[tauri::command]
