@@ -1,5 +1,4 @@
 use crate::app::update;
-use crate::cmd::read_helper::read_by_timestamp;
 
 use crate::util;
 use serde::{Deserialize, Serialize};
@@ -14,10 +13,11 @@ pub mod app_detail;
 pub mod app_duration_area;
 pub mod category;
 pub mod duration;
+pub mod read_helper;
 pub mod scheme;
 pub mod statistic;
 
-mod read_helper;
+pub use read_helper::read_by_timestamp;
 
 pub fn handler() -> impl Fn(Invoke<Wry>) -> bool + Send + Sync + 'static {
     tauri::generate_handler![
@@ -72,7 +72,7 @@ pub struct TmusMeta {
 #[tauri::command]
 #[tracing::instrument]
 pub fn get_raw_record(start_timestamp: Timestamp, end_timestamp: Timestamp) -> Vec<FocusRecord> {
-    read_by_timestamp(start_timestamp, end_timestamp)
+    read_helper::read_by_timestamp(start_timestamp, end_timestamp)
 }
 
 #[tauri::command]
