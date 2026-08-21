@@ -32,7 +32,7 @@
 - **时间线视图**: 按时间顺序精确回顾您的应用使用轨迹。
 - **轻量高效**: 核心由 Rust 编写，占用资源少，运行速度快，安全可靠。
 - **开源免费**: 完全开源，无任何广告或付费功能。
-- **MCP 支持**: 提供模型上下文协议 (Model Context Protocol) 支持，供外部应用程序访问使用数据和功能。
+- **CLI 支持**: 提供丰富的命令行接口，支持友好文本和 JSON 输出，便于脚本和 AI 代理查询使用数据、管理分类。
 
 ## 📸 截图
 
@@ -74,6 +74,24 @@
    pnpm tauri dev
    ```
 
+### 命令行接口
+
+Tmus 内置命令行接口，便于脚本和 AI 代理使用。所有命令均支持 `--json` 输出机器可读结果。
+
+```bash
+tmus time                          # 当前本地时间
+tmus usage --start 2026-08-01 --top-k 10   # 查询时间范围内使用时长 Top 应用
+tmus app list                      # 列出所有被追踪的应用
+tmus app detail 3                  # 应用详情
+tmus app category 3                # 查询应用分类
+tmus app set-category 3 --category 1   # 为应用分配分类
+tmus app uncategorized             # 未分类应用
+tmus category list                 # 分类树
+tmus category add "开发工具"        # 添加根分类
+tmus records --start 2026-08-01    # 原始使用记录
+```
+
+运行 `tmus --help` 查看完整命令参考。
 ### 打包构建
 
 执行以下命令来为您的平台打包应用程序：

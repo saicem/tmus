@@ -150,9 +150,6 @@ type I18nMessageType = {
     updateAvailable: (version: string, currentVersion: string) => string
     versionUpdateTitle: string
     autoCheckUpdate: string
-    autoStartMcpServer: string
-    mcpServer: string
-    usePort: string
   }
   detailPage: {
     icon: string
@@ -387,9 +384,6 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
         `Update available: ${version} (current: ${currentVersion})`,
       versionUpdateTitle: "Version Update",
       autoCheckUpdate: "Auto Check Update",
-      autoStartMcpServer: "Auto Start MCP Server",
-      mcpServer: "MCP Server",
-      usePort: "Use Port",
     },
     detailPage: {
       icon: "Icon",
@@ -622,9 +616,6 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
         `有新版本 ${version}，当前版本为 ${currentVersion}，是否更新？`,
       versionUpdateTitle: "版本更新",
       autoCheckUpdate: "自动检查更新",
-      autoStartMcpServer: "自动启动 MCP 服务器",
-      mcpServer: "MCP 服务器",
-      usePort: "使用端口",
     },
     detailPage: {
       icon: "图标",

@@ -1,24 +1,52 @@
 pub mod focus_app;
 pub mod focus_index;
 pub mod focus_record;
+mod lock;
 
 use super::models;
 use crate::models::{CursorPosition, EngineMeta, FocusRecord};
 use crate::storage::focus_app::get_id_by_path;
 use crate::tracker::TrackingSpanEvent;
 use crate::util::{Timestamp, d_as_ms, ms_as_d, s_as_ms};
+use crate::EngineError;
 use std::fs;
 use std::path::Path;
+use std::sync::OnceLock;
+
+pub use lock::WorkingLock;
 
 const FILE_SHARE_READ: u32 = 1u32;
 
-pub fn init(data_dir: impl AsRef<Path>) {
-    if !data_dir.as_ref().is_dir() {
-        fs::create_dir_all(&data_dir).expect("create date directory failed.");
+/// Held for the process lifetime while a working-mode engine is running, so the
+/// OS keeps the exclusive lock on the data directory.
+static WORKING_LOCK: OnceLock<WorkingLock> = OnceLock::new();
+
+/// Start the storage in working mode: acquire the exclusive data lock first,
+/// then initialize the writable storage. Fails with
+/// [`EngineError::AlreadyRunning`] when another working-mode engine holds the
+/// lock, preventing write conflicts or file deadlocks.
+pub fn start_working(data_dir: impl AsRef<Path>) -> Result<(), EngineError> {
+    let data_dir = data_dir.as_ref();
+    if !data_dir.is_dir() {
+        fs::create_dir_all(data_dir)?;
     }
-    focus_app::init(&data_dir);
-    focus_index::init(&data_dir);
-    focus_record::init(&data_dir);
+    let lock = WorkingLock::acquire(data_dir)?;
+    focus_app::init(data_dir);
+    focus_index::init(data_dir);
+    focus_record::init(data_dir);
+    WORKING_LOCK
+        .set(lock)
+        .map_err(|_| EngineError::AlreadyRunning)?;
+    Ok(())
+}
+
+/// Start the storage in read-only mode: initialize the read-only storage
+/// without acquiring the lock or creating any directory. Missing files are
+/// treated as empty data.
+pub fn start_readonly(data_dir: impl AsRef<Path>) {
+    focus_app::init_readonly(&data_dir);
+    focus_index::init_readonly(&data_dir);
+    focus_record::init_readonly(&data_dir);
 }
 
 /// Read records. Include records which blur_at >= start and focus_at <= end,
@@ -68,5 +96,41 @@ pub fn get_tmus_meta() -> EngineMeta {
     EngineMeta {
         initial_timestamp: d_as_ms(focus_index::start_day() as i64),
         engine_version: env!("CARGO_PKG_VERSION").to_string(),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::path::PathBuf;
+
+    fn temp_dir(name: &str) -> PathBuf {
+        let dir = std::env::temp_dir().join(format!("tmus-engine-{name}-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        dir
+    }
+
+    #[test]
+    fn working_lock_is_exclusive_and_reusable() {
+        let dir = temp_dir("lock");
+
+        let lock1 = WorkingLock::acquire(&dir).expect("first acquire should succeed");
+        let err = WorkingLock::acquire(&dir).expect_err("second acquire must fail");
+
+        assert!(matches!(err, EngineError::AlreadyRunning));
+
+        drop(lock1);
+        // After the handle is released the lock can be acquired again, which
+        // mirrors a crashed working engine leaving a stale lock file behind.
+        WorkingLock::acquire(&dir).expect("acquire after release should succeed");
+    }
+
+    #[test]
+    fn start_working_is_exclusive() {
+        let dir = temp_dir("working");
+        start_working(&dir).expect("first start should succeed");
+        let err = start_working(&dir).expect_err("second start must fail");
+        assert!(matches!(err, EngineError::AlreadyRunning));
     }
 }

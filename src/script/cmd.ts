@@ -11,7 +11,7 @@ import {
   DurationStat,
   FileDetail,
   FileIndexRecord,
-  IdDuration, McpServerStatus,
+  IdDuration,
   RuleConfig,
   TagConfig,
   UpdateMetadata,
@@ -136,20 +136,6 @@ export async function getAppDurationArea(
     endTimestamp,
     timezoneOffset,
   })
-}
-
-export async function startMcpServer(port: number) {
-  return await ivk("start_mcp_server", {
-    port,
-  })
-}
-
-export async function stopMcpServer() {
-  return await ivk("stop_mcp_server")
-}
-
-export async function getMcpServerStatus(): Promise<McpServerStatus> {
-  return await invoke("get_mcp_server_status")
 }
 
 export async function getCategoryTree(): Promise<Category> {

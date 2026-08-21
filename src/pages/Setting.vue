@@ -62,10 +62,6 @@ onMounted(async () => {
           <setting-item :label="i18n.configPage.autoStart">
             <el-switch v-model="passiveStore.autoStart" @change="(val) => (val ? enable() : disable())" />
           </setting-item>
-          <setting-item :label="i18n.configPage.autoStartMcpServer">
-            <el-switch v-model="configStore.autoStartMcpServer" />
-          </setting-item>
-          <mcp-setting-item />
         </setting-group>
       </div>
       <div class="column">

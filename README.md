@@ -32,7 +32,7 @@
 - **Timeline View**: Accurately review your application usage history in chronological order.
 - **Lightweight & Efficient**: The core is written in Rust, ensuring low resource consumption, fast performance, and high security.
 - **Open Source & Free**: Completely open source with no ads or paid features.
-- **MCP Support**: Provides Model Context Protocol (MCP) support for external applications to access usage data and functionality.
+- **CLI Support**: Rich command-line interface with human-friendly and JSON output for scripts and AI agents to query usage data and manage categories.
 
 ## 📸 Screenshots
 
@@ -73,6 +73,24 @@ Before you begin, ensure you have [Node.js](https://nodejs.org/en) (v18+), [pnpm
     pnpm tauri dev
     ```
 
+### Command Line Interface
+
+Tmus ships a CLI for scripting and AI agents. Every command supports `--json` for machine-readable output.
+
+```bash
+tmus time                          # current local time
+tmus usage --start 2026-08-01 --top-k 10   # top apps by duration in a range
+tmus app list                      # all tracked applications
+tmus app detail 3                  # app detail
+tmus app category 3                # category of an app
+tmus app set-category 3 --category 1   # assign an app to a category
+tmus app uncategorized             # apps without category
+tmus category list                 # category tree
+tmus category add "Dev Tools"      # add a root category
+tmus records --start 2026-08-01    # raw focus records
+```
+
+Run `tmus --help` for the full command reference.
 ### Building the Application
 
 Run the following command to build the application for your platform:

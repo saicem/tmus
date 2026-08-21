@@ -29,7 +29,7 @@ tmus/
 │   ├── src/              # Rust 源代码
 │   │   ├── app/          # 应用相关功能
 │   │   ├── cmd/          # Tauri 命令
-│   │   ├── mcp/          # MCP 服务
+│   │   ├── cli/          # CLI 命令（支持 JSON 输出）
 │   │   └── main.rs       # 后端入口
 ├── tmus-engine/          # 应用使用统计引擎
 ├── spec/                 # 项目规范文件

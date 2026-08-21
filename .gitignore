@@ -27,3 +27,5 @@ dist-ssr
 .qodo
 src-tauri/gen/*
 todo*.md
+.agents/
+skills-lock.json

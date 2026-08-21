@@ -13,8 +13,6 @@ pub struct Config {
     pub date_format: String,
     pub time_format: String,
     pub auto_check_update: bool,
-    pub auto_start_mcp_server: bool,
-    pub mcp_server_port: u16,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
@@ -47,8 +45,6 @@ impl Default for Config {
             date_format: "yyyy-MM-dd".to_string(),
             time_format: "H:mm:ss".to_string(),
             auto_check_update: true,
-            auto_start_mcp_server: false,
-            mcp_server_port: 2371u16,
         }
     }
 }

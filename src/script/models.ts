@@ -113,11 +113,6 @@ export interface AppDurationAreaModelItem {
   value: number
 }
 
-export interface McpServerStatus {
-  running: boolean
-  port?: number
-}
-
 export interface Category {
   id: CategoryId
   name: string
@@ -247,4 +242,3 @@ export interface AddSchemeItemRequest {
 export interface AddSchemeItemResponse {
   id: number
 }
-

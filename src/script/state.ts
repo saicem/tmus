@@ -18,8 +18,6 @@ export type Config = {
   dateFormat: DateFormatEnum
   timeFormat: TimeFormatEnum
   autoCheckUpdate: boolean
-  autoStartMcpServer: boolean
-  mcpServerPort: number
 }
 export type StatisticType = "AppDuration" | "AppDays" | "CategoryDuration" | "CategoryDays" | "CategoryRhythm"
 export const updateDialogStore = reactive<{
@@ -56,18 +54,14 @@ export const configStore = reactive<Config>({
   dateFormat: "yyyy-MM-dd",
   timeFormat: "H:mm:ss",
   autoCheckUpdate: true,
-  autoStartMcpServer: false,
-  mcpServerPort: 2371,
 })
 
 export const passiveStore = reactive<{
   autoStart: boolean
-  mcpServerRunning: boolean
   lang: LanguageEnum
   theme: ThemeEnum
 }>({
   autoStart: false,
-  mcpServerRunning: true,
   lang: "en",
   theme: "light",
 })
