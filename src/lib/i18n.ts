@@ -123,6 +123,7 @@ interface I18nMessageType {
     copyPathSuccess: string
     copyPathError: string
     showInFolder: string
+    dragToResize: string
     deleted: string
     count: string
   }
@@ -359,6 +360,7 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
       copyPathSuccess: "Path copied",
       copyPathError: "Failed to copy path",
       showInFolder: "Show in folder",
+      dragToResize: "Drag to resize",
       deleted: "Deleted",
       count: "apps",
     },
@@ -608,6 +610,7 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
       copyPathSuccess: "路径已复制",
       copyPathError: "复制失败",
       showInFolder: "在文件夹中显示",
+      dragToResize: "拖动调整宽度",
       deleted: "已删除",
       count: "个应用",
     },

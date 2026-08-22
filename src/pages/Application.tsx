@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import {
   columnFilteringFeature,
+  columnResizingFeature,
+  columnSizingFeature,
   columnVisibilityFeature,
   createColumnHelper,
   createFilteredRowModel,
@@ -16,6 +18,7 @@ import {
   type Column,
   type ColumnFiltersState,
   type SortingState,
+  type Table as TanstackTable,
 } from "@tanstack/react-table"
 import {
   ArrowDown,
@@ -63,6 +66,8 @@ const features = tableFeatures({
   globalFilteringFeature,
   columnVisibilityFeature,
   rowSortingFeature,
+  columnSizingFeature,
+  columnResizingFeature,
   filteredRowModel: createFilteredRowModel(),
   sortedRowModel: createSortedRowModel(),
   filterFns: { includesString: filterFn_includesString },
@@ -134,6 +139,58 @@ function SortableHeader<TValue>({
   )
 }
 
+function ColumnResizer<TValue>({
+  column,
+  table,
+  title,
+}: {
+  column: Column<typeof features, FileDetail, TValue>
+  table: TanstackTable<typeof features, FileDetail>
+  title: string
+}) {
+  const [resizing, setResizing] = useState(false)
+  const startRef = useRef<{ x: number; size: number } | null>(null)
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    e.currentTarget.setPointerCapture(e.pointerId)
+    startRef.current = { x: e.clientX, size: column.getSize() }
+    setResizing(true)
+  }
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const start = startRef.current
+    if (!start) return
+    const minSize = column.columnDef.minSize ?? 20
+    const next = Math.max(minSize, start.size + e.clientX - start.x)
+    // Resize only the dragged column; other columns keep their widths.
+    table.setColumnSizing((prev) => ({ ...prev, [column.id]: next }))
+  }
+
+  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    startRef.current = null
+    setResizing(false)
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+      e.currentTarget.releasePointerCapture(e.pointerId)
+    }
+  }
+
+  return (
+    <div
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
+      className={cn(
+        "absolute inset-y-0 right-0 w-2 cursor-col-resize touch-none",
+        resizing ? "bg-primary" : "bg-transparent hover:bg-primary/60"
+      )}
+      title={title}
+    />
+  )
+}
+
 export function Application() {
   const t = useI18n()
   const navigate = useNavigate()
@@ -187,6 +244,8 @@ export function Application() {
       columnHelper.columns([
         columnHelper.accessor("name", {
           id: "name",
+          size: 180,
+          minSize: 40,
           header: ({ column }) => (
             <SortableHeader
               column={column}
@@ -210,6 +269,8 @@ export function Application() {
         }),
         columnHelper.accessor((row) => row.version?.companyName ?? "", {
           id: "company",
+          size: 200,
+          minSize: 40,
           header: ({ column }) => (
             <SortableHeader column={column} title={t.applicationPage.company} />
           ),
@@ -222,6 +283,8 @@ export function Application() {
         }),
         columnHelper.accessor("path", {
           id: "path",
+          size: 360,
+          minSize: 120,
           header: ({ column }) => (
             <SortableHeader column={column} title={t.applicationPage.path} />
           ),
@@ -234,6 +297,8 @@ export function Application() {
         }),
         columnHelper.display({
           id: "actions",
+          size: 110,
+          minSize: 60,
           enableSorting: false,
           enableHiding: false,
           cell: ({ row }) => {
@@ -288,6 +353,7 @@ export function Application() {
     data: apps,
     columns,
     state: { sorting, columnFilters, globalFilter, columnVisibility },
+    enableColumnResizing: true,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onGlobalFilterChange: setGlobalFilter,
@@ -347,18 +413,33 @@ export function Application() {
           onScroll={updateScrollShadows}
           className="h-full overflow-auto rounded-md border"
         >
-          <Table containerClassName="overflow-x-visible">
+          <Table
+            containerClassName="overflow-x-visible"
+            className="table-fixed"
+            style={{ width: table.getTotalSize() }}
+          >
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <TableHead
-                      key={header.id}
-                      className="sticky top-0 z-10 bg-background"
-                    >
-                      <FlexRender header={header} />
-                    </TableHead>
-                  ))}
+                  {headerGroup.headers.map((header) => {
+                    const width = header.getSize()
+                    return (
+                      <TableHead
+                        key={header.id}
+                        className="sticky top-0 z-10 bg-background"
+                        style={{ width }}
+                      >
+                        <FlexRender header={header} />
+                        {header.column.getCanResize() && (
+                          <ColumnResizer
+                            column={header.column}
+                            table={table}
+                            title={t.applicationPage.dragToResize}
+                          />
+                        )}
+                      </TableHead>
+                    )
+                  })}
                 </TableRow>
               ))}
             </TableHeader>
@@ -376,7 +457,10 @@ export function Application() {
                 table.getRowModel().rows.map((row) => (
                   <TableRow key={row.id}>
                     {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
+                      <TableCell
+                        key={cell.id}
+                        style={{ width: cell.column.getSize() }}
+                      >
                         <FlexRender cell={cell} />
                       </TableCell>
                     ))}
