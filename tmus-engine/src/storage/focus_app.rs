@@ -127,11 +127,13 @@ fn normalize_store_app_path(path: &str) -> String {
 fn build_canonical_id_map(id_path_map: &[String]) -> Vec<AppId> {
     let mut canonical_by_path: HashMap<String, AppId> = HashMap::new();
     for (id, path) in id_path_map.iter().enumerate() {
-        canonical_by_path.insert(normalize_store_app_path(path), id);
+        // Windows paths are case-insensitive, so compare normalized paths
+        // case-insensitively to merge records that differ only in casing.
+        canonical_by_path.insert(normalize_store_app_path(path).to_lowercase(), id);
     }
     id_path_map
         .iter()
-        .map(|path| canonical_by_path[&normalize_store_app_path(path)])
+        .map(|path| canonical_by_path[&normalize_store_app_path(path).to_lowercase()])
         .collect()
 }
 
@@ -238,10 +240,13 @@ mod tests {
             r"C:\Program Files\WindowsApps\OpenAI.Codex_26.818.5229.0_x64__2p2nqsd0c76g0\app\ChatGPT.exe".to_owned(),
             r"C:\Program Files\WindowsApps\OpenAI.Codex_26.818.3698.0_x64__2p2nqsd0c76g0\app\ChatGPT.exe".to_owned(),
             r"C:\Program Files\WindowsApps\OpenAI.Codex_26.519.5221.0_x64__2p2nqsd0c76g0\app\Codex.exe".to_owned(),
+            r"C:\Program Files (x86)\Steam\steam.exe".to_owned(),
+            r"C:\Program Files (x86)\Steam\Steam.exe".to_owned(),
         ];
         let map = build_canonical_id_map(&paths);
         // All versions of the same in-package executable resolve to the newest
-        // id (3); the renamed entry point (Codex.exe) and other apps stay as-is.
-        assert_eq!(map, vec![3, 1, 3, 3, 4]);
+        // id (3); the renamed entry point (Codex.exe) and other apps stay
+        // as-is; paths that differ only in casing share one id.
+        assert_eq!(map, vec![3, 1, 3, 3, 4, 6, 6]);
     }
 }

@@ -63,11 +63,14 @@ pub async fn get_app_detail(id: usize) -> FileDetail {
     let path = focus_app::get_path_by_id(id);
     let mut detail = query_file_detail(id, &path);
     let mut app_detail_cache = get_app_detail_cache().await;
-    // File has been deleted, use cache data
+    // File has been deleted, use cache data only when it still matches the
+    // current app.txt entry for this id.
     if !detail.exist {
         if let Some(cached_detail) = app_detail_cache.get_mut(&id) {
-            detail = cached_detail.clone();
-            detail.exist = false;
+            if cached_detail.path == path {
+                detail = cached_detail.clone();
+                detail.exist = false;
+            }
         }
     }
     update_app_detail_cache(&mut app_detail_cache, vec![detail.clone()]).await;
@@ -80,6 +83,20 @@ pub async fn get_all_app_detail() -> HashMap<AppId, FileDetail> {
     let app_vec = focus_app::get_all_app();
     let mut app_detail_cache = get_app_detail_cache().await;
     let mut cache_changed = false;
+
+    // Drop stale cache entries whose path no longer matches app.txt (the file
+    // can be rewritten, shifting ids), and entries for duplicate or merged app
+    // ids so one logical app is listed only once.
+    let canonical_id_map = focus_app::get_canonical_id_map();
+    app_detail_cache.retain(|id, detail| {
+        let valid = app_vec.get(*id).is_some_and(|path| path == &detail.path)
+            && canonical_id_map.get(*id).copied().unwrap_or(*id) == *id;
+        if !valid {
+            cache_changed = true;
+        }
+        valid
+    });
+
     for detail in app_detail_cache.values_mut() {
         detail.exist = Path::new(&detail.path).exists();
         // Store apps keep their real icon as manifest assets; refresh it so
@@ -97,6 +114,7 @@ pub async fn get_all_app_detail() -> HashMap<AppId, FileDetail> {
         .iter()
         .enumerate()
         .filter(|(id, _)| !app_detail_cache.contains_key(id))
+        .filter(|(id, _)| canonical_id_map.get(*id).copied().unwrap_or(*id) == *id)
         .map(|(id, path)| query_file_detail(id, path))
         .collect();
     if !not_exist_app_detail.is_empty() || cache_changed {
