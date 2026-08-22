@@ -150,6 +150,7 @@ export function Detail() {
                     value: d.value,
                   }))}
                   formatValue={formatDurationRough}
+                  yName={t.detailPage.durationAreaChart.dateChart.yName}
                 />
               )}
             </TabsContent>
@@ -160,7 +161,12 @@ export function Detail() {
                     label: d.index,
                     value: d.value,
                   }))}
-                  formatValue={formatDurationRough}
+                  formatValue={(v) =>
+                    `${Math.round(v)} ${
+                      t.detailPage.durationAreaChart.dayChart.dayUnit
+                    }`
+                  }
+                  yName={t.detailPage.durationAreaChart.dayChart.yName}
                 />
               )}
             </TabsContent>

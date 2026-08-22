@@ -180,6 +180,7 @@ interface I18nMessageType {
       dayChart: {
         xName: string
         yName: string
+        dayUnit: string
       }
     }
     fileHasBeenDeleted: string
@@ -426,6 +427,7 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
         dayChart: {
           xName: "Time",
           yName: "Days",
+          dayUnit: "day",
         },
       },
       fileHasBeenDeleted: "The file has been deleted",
@@ -673,6 +675,7 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
         dayChart: {
           xName: "时间",
           yName: "天数",
+          dayUnit: "天",
         },
       },
       fileHasBeenDeleted: "文件已被删除",

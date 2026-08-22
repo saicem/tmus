@@ -16,10 +16,12 @@ export function AreaChart({
   data,
   height = 300,
   formatValue,
+  yName,
 }: {
   data: { label: string; value: number }[]
   height?: number
   formatValue?: (value: number) => string
+  yName?: string
 }) {
   const colors = getChartColors()
   const muted = getMutedColor()
@@ -44,9 +46,20 @@ export function AreaChart({
           tick={{ fill: muted, fontSize: 12 }}
           tickLine={false}
           axisLine={false}
-          width={46}
+          width={64}
+          allowDecimals={false}
           tickFormatter={(v: number) =>
             formatValue ? formatValue(v) : String(v)
+          }
+          label={
+            yName
+              ? {
+                  value: yName,
+                  angle: -90,
+                  position: "insideLeft",
+                  style: { fill: muted, fontSize: 12, textAnchor: "middle" },
+                }
+              : undefined
           }
         />
         <Tooltip
