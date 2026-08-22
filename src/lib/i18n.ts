@@ -202,6 +202,8 @@ interface I18nMessageType {
     addChild: string
     edit: string
     delete: string
+    expand: string
+    collapse: string
     save: string
     cancelEdit: string
     enterCategoryName: string
@@ -463,6 +465,8 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
       enterCategoryName: "Enter category name",
       edit: "Edit",
       delete: "Delete",
+      expand: "Expand",
+      collapse: "Collapse",
       save: "Save",
       cancelEdit: "Cancel",
       rootLevel: "Root Level",
@@ -711,6 +715,8 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
       addChild: "添加子分类",
       edit: "编辑",
       delete: "删除",
+      expand: "展开",
+      collapse: "折叠",
       save: "保存",
       cancelEdit: "取消",
       rootLevel: "根级别",

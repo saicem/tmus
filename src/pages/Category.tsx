@@ -1,5 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { FolderPlus, Pencil, Plus, Trash2 } from "lucide-react"
+import {
+  ChevronDown,
+  ChevronRight,
+  Folder,
+  FolderOpen,
+  FolderPlus,
+  Pencil,
+  Plus,
+  Trash2,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -38,6 +47,7 @@ import {
 } from "@/lib/cmd"
 import { toast } from "sonner"
 import { useI18n } from "@/lib/i18n"
+import { cn } from "@/lib/utils"
 import type { Category, CategoryId, FileDetail } from "@/lib/models"
 
 interface CategoryOption {
@@ -58,7 +68,7 @@ function buildCategoryOptions(categories: Category[]): CategoryOption[] {
 
 interface TreeNodeProps {
   node: Category
-  depth: number
+  selectedId: CategoryId | null
   onSelect: (node: Category) => void
   onAddChild: (parent: Category) => void
   onUpdate: (id: CategoryId, name: string) => void
@@ -67,7 +77,7 @@ interface TreeNodeProps {
 
 function TreeNode({
   node,
-  depth,
+  selectedId,
   onSelect,
   onAddChild,
   onUpdate,
@@ -76,6 +86,9 @@ function TreeNode({
   const t = useI18n()
   const [editing, setEditing] = useState(false)
   const [editName, setEditName] = useState(node.name)
+  const [expanded, setExpanded] = useState(true)
+  const hasChildren = node.children.length > 0
+  const selected = node.id === selectedId
 
   const saveEdit = () => {
     const name = editName.trim()
@@ -90,10 +103,38 @@ function TreeNode({
   return (
     <div>
       <div
-        className="group flex cursor-pointer items-center justify-between rounded-md px-2 py-1.5 hover:bg-accent"
-        style={{ paddingLeft: `${8 + depth * 16}px` }}
+        className={cn(
+          "group flex cursor-pointer items-center gap-1.5 rounded-md py-1.5 pr-2 pl-2 text-sm hover:bg-accent",
+          selected && "bg-accent"
+        )}
         onClick={() => onSelect(node)}
       >
+        {hasChildren ? (
+          <button
+            type="button"
+            className="flex size-4 shrink-0 items-center justify-center rounded hover:bg-muted"
+            onClick={(e) => {
+              e.stopPropagation()
+              setExpanded((v) => !v)
+            }}
+            aria-label={
+              expanded ? t.categoryPage.collapse : t.categoryPage.expand
+            }
+          >
+            {expanded ? (
+              <ChevronDown className="size-4" />
+            ) : (
+              <ChevronRight className="size-4" />
+            )}
+          </button>
+        ) : (
+          <span className="size-4 shrink-0" />
+        )}
+        {expanded ? (
+          <FolderOpen className="size-4 shrink-0 text-muted-foreground" />
+        ) : (
+          <Folder className="size-4 shrink-0 text-muted-foreground" />
+        )}
         {editing ? (
           <Input
             autoFocus
@@ -104,10 +145,10 @@ function TreeNode({
               if (e.key === "Escape") setEditing(false)
             }}
             onClick={(e) => e.stopPropagation()}
-            className="h-7 max-w-40"
+            className="h-7 min-w-0 flex-1"
           />
         ) : (
-          <span className="truncate text-sm font-medium">
+          <span className="min-w-0 flex-1 truncate font-medium">
             {node.name}
             <span className="ml-1 text-xs text-muted-foreground">
               ({node.appIds?.length ?? 0})
@@ -152,17 +193,21 @@ function TreeNode({
           </span>
         )}
       </div>
-      {node.children.map((child) => (
-        <TreeNode
-          key={child.id}
-          node={child}
-          depth={depth + 1}
-          onSelect={onSelect}
-          onAddChild={onAddChild}
-          onUpdate={onUpdate}
-          onDelete={onDelete}
-        />
-      ))}
+      {expanded && hasChildren && (
+        <div className="ml-[21px] border-l pl-1.5">
+          {node.children.map((child) => (
+            <TreeNode
+              key={child.id}
+              node={child}
+              selectedId={selectedId}
+              onSelect={onSelect}
+              onAddChild={onAddChild}
+              onUpdate={onUpdate}
+              onDelete={onDelete}
+            />
+          ))}
+        </div>
+      )}
     </div>
   )
 }
@@ -333,7 +378,7 @@ export function CategoryPage() {
               <TreeNode
                 key={child.id}
                 node={child}
-                depth={0}
+                selectedId={selected?.id ?? null}
                 onSelect={handleNodeSelect}
                 onAddChild={openAddDialog}
                 onUpdate={handleUpdateCategory}
