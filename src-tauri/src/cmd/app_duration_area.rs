@@ -20,23 +20,27 @@ pub struct AppDurationAreaModelItem {
     value: i64,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AppDurationAreaRequest {
+    pub app_id: usize,
+    pub start_timestamp: Timestamp,
+    pub end_timestamp: Timestamp,
+    pub timezone_offset: Timestamp,
+}
+
 #[tauri::command]
-#[tracing::instrument]
-pub async fn get_app_duration_area(
-    app_id: usize,
-    start_timestamp: Timestamp,
-    end_timestamp: Timestamp,
-    timezone_offset: Timestamp,
-) -> AppDurationAreaModel {
+#[tracing::instrument(skip(request))]
+pub async fn get_app_duration_area(request: AppDurationAreaRequest) -> AppDurationAreaModel {
     let result: Vec<FocusRecord> = timezone_convert(
-        read_by_timestamp(start_timestamp, end_timestamp),
-        timezone_offset,
+        read_by_timestamp(request.start_timestamp, request.end_timestamp),
+        request.timezone_offset,
     )
     .into_iter()
-    .filter(|x| x.id == app_id)
+    .filter(|x| x.id == request.app_id)
     .collect();
     AppDurationAreaModel {
-        app_id,
+        app_id: request.app_id,
         date_area: compute_date_area(&result),
         day_area: compute_day_area(&result),
     }

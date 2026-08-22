@@ -1,4 +1,4 @@
-use crate::state::{category::save_category_data, scheme::save_statistic_scheme};
+use crate::state::category::save_category_data;
 
 pub fn app_exit() {
     save_on_exit();
@@ -7,5 +7,4 @@ pub fn app_exit() {
 
 pub fn save_on_exit() {
     let _ = save_category_data();
-    let _ = save_statistic_scheme();
 }

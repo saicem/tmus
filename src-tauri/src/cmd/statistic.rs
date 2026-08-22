@@ -1,18 +1,13 @@
 use crate::{
-    cmd::{
-        app_detail::{get_all_app_detail, FileDetail},
-        read_helper,
-    },
+    cmd::{app_detail::get_app_name_map, read_helper},
+    error::TmusError,
     state::category::{
         get_app_category_map, get_category_detail_map, get_category_self_and_descendants_map,
         CategoryId, CategoryNode, CategorySimple, UNCATEGORIZED_CATEGORY_ID,
     },
 };
 use serde::{Deserialize, Serialize};
-use std::{
-    collections::{HashMap, HashSet},
-    time::{SystemTime, UNIX_EPOCH},
-};
+use std::collections::{HashMap, HashSet};
 use tmus_engine::models::FocusRecord;
 use tmus_engine::{
     models::AppId,
@@ -38,21 +33,29 @@ impl TimeSpan {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+/// Lightweight app info returned by statistics (no icons or file metadata).
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct AppSimple {
+    pub id: AppId,
+    pub name: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct AppStatisticDetail {
     pub value: Value,
-    pub app: FileDetail,
+    pub app: AppSimple,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct CategoryStatisticDetail {
     pub value: Value,
     pub category: CategorySimple,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct AppDurationRequest {
     pub start_time: Timestamp,
@@ -60,13 +63,13 @@ pub struct AppDurationRequest {
     pub category_id: Option<CategoryId>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct AppDurationResponse {
     pub detail: Vec<AppStatisticDetail>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct AppDayCountRequest {
     pub start_time: Timestamp,
@@ -74,13 +77,13 @@ pub struct AppDayCountRequest {
     pub category_id: Option<CategoryId>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct AppDayCountResponse {
     pub detail: Vec<AppStatisticDetail>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct CategoryDurationRequest {
     pub start_time: Timestamp,
@@ -88,13 +91,13 @@ pub struct CategoryDurationRequest {
     pub category_ids: Vec<CategoryId>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct CategoryDurationResponse {
     pub detail: Vec<CategoryStatisticDetail>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct CategoryDayCountRequest {
     pub start_time: Timestamp,
@@ -102,13 +105,13 @@ pub struct CategoryDayCountRequest {
     pub category_ids: Vec<CategoryId>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct CategoryDayCountResponse {
     pub detail: Vec<CategoryStatisticDetail>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct RhythmGroup {
     pub start_time: Timestamp,
@@ -116,7 +119,7 @@ pub struct RhythmGroup {
     pub category_id: Option<CategoryId>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct RhythmRequest {
     pub groups: Vec<RhythmGroup>,
@@ -124,7 +127,7 @@ pub struct RhythmRequest {
     pub granularity: Timestamp,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct RhythmDataResponse {
     /// Group<Granularity<AverageDuration>>
@@ -133,18 +136,9 @@ pub struct RhythmDataResponse {
 
 #[tauri::command]
 #[tracing::instrument]
-pub fn get_base_time() -> u64 {
-    let now = SystemTime::now();
-    let since_epoch = now.duration_since(UNIX_EPOCH).unwrap();
-    let days = since_epoch.as_secs() / (24 * 60 * 60);
-    days * 24 * 60 * 60
-}
-
-#[tauri::command]
-#[tracing::instrument]
 pub async fn get_app_total_duration(
     request: AppDurationRequest,
-) -> Result<AppDurationResponse, String> {
+) -> Result<AppDurationResponse, TmusError> {
     let records = read_helper::read_by_timestamp(request.start_time, request.end_time);
     let mut map = HashMap::new();
     for record in records {
@@ -153,10 +147,11 @@ pub async fn get_app_total_duration(
         *map.entry(app_id).or_insert(0) += duration;
     }
     if let Some(category_id) = request.category_id {
-        let valid_app_ids = get_category_and_descendants_app_ids(&category_id)?;
+        let valid_app_ids =
+            get_category_and_descendants_app_ids(&category_id).map_err(TmusError::internal)?;
         map.retain(|app_id, _| valid_app_ids.contains(app_id));
     }
-    let mut detail = match_app_detail(map.into_iter().map(|(app_id, value)| (app_id, value))).await;
+    let mut detail = match_app_detail(map.into_iter()).await;
     detail.sort_by_key(|x| -x.value);
     Ok(AppDurationResponse { detail })
 }
@@ -165,21 +160,22 @@ pub async fn get_app_total_duration(
 #[tracing::instrument]
 pub async fn get_app_usage_days(
     request: AppDurationRequest,
-) -> Result<AppDayCountResponse, String> {
+) -> Result<AppDayCountResponse, TmusError> {
     let records = read_helper::read_by_timestamp(request.start_time, request.end_time);
     let timezone_offset = infer_timezone_offset(request.start_time);
     let mut map: HashMap<AppId, HashSet<i64>> = HashMap::new();
     for record in records {
         let start_day = ms_as_d(record.focus_at + timezone_offset);
         let end_day = ms_as_d(record.blur_at + timezone_offset);
-        let entry = map.entry(record.id).or_insert_with(HashSet::new);
+        let entry = map.entry(record.id).or_default();
         entry.insert(start_day);
         if end_day != start_day {
             entry.insert(end_day);
         }
     }
     if let Some(category_id) = request.category_id {
-        let valid_app_ids = get_category_and_descendants_app_ids(&category_id)?;
+        let valid_app_ids =
+            get_category_and_descendants_app_ids(&category_id).map_err(TmusError::internal)?;
         map.retain(|app_id, _| valid_app_ids.contains(app_id));
     }
     let mut detail = match_app_detail(
@@ -195,9 +191,12 @@ pub async fn get_app_usage_days(
 #[tracing::instrument]
 pub fn get_category_total_duration(
     request: CategoryDurationRequest,
-) -> Result<CategoryDurationResponse, String> {
+) -> Result<CategoryDurationResponse, TmusError> {
     if request.category_ids.is_empty() {
-        return Err("category_ids is empty".to_string());
+        return Err(TmusError::new(
+            "empty_category_ids",
+            "category_ids is empty",
+        ));
     }
 
     let app_category_map = get_app_category_map();
@@ -228,11 +227,7 @@ pub fn get_category_total_duration(
         }
     }
 
-    let mut detail = match_category_detail(
-        category_with_descendants_duration_map
-            .into_iter()
-            .map(|(category_id, value)| (category_id, value)),
-    );
+    let mut detail = match_category_detail(category_with_descendants_duration_map.into_iter());
 
     if include_uncategorized_category {
         detail.push(CategoryStatisticDetail {
@@ -252,9 +247,12 @@ pub fn get_category_total_duration(
 #[tracing::instrument]
 pub fn get_category_usage_days(
     request: CategoryDayCountRequest,
-) -> Result<CategoryDayCountResponse, String> {
+) -> Result<CategoryDayCountResponse, TmusError> {
     if request.category_ids.is_empty() {
-        return Err("category_ids is empty".to_string());
+        return Err(TmusError::new(
+            "empty_category_ids",
+            "category_ids is empty",
+        ));
     }
 
     let app_category_map = get_app_category_map();
@@ -267,9 +265,7 @@ pub fn get_category_usage_days(
         let start_day = ms_as_d(record.focus_at + timezone_offset);
         let end_day = ms_as_d(record.blur_at + timezone_offset);
         if let Some(category_id) = category_id {
-            let entry = categorized_days_map
-                .entry(*category_id)
-                .or_insert_with(HashSet::new);
+            let entry = categorized_days_map.entry(*category_id).or_default();
             entry.insert(start_day);
             if end_day != start_day {
                 entry.insert(end_day);
@@ -303,7 +299,7 @@ pub fn get_category_usage_days(
             .map(|(category_id, value)| (category_id, value as i64)),
     );
 
-    if uncategorized_days.len() > 0 && include_uncategorized_category {
+    if !uncategorized_days.is_empty() && include_uncategorized_category {
         detail.push(CategoryStatisticDetail {
             category: CategorySimple {
                 id: UNCATEGORIZED_CATEGORY_ID,
@@ -318,26 +314,38 @@ pub fn get_category_usage_days(
 
 #[tauri::command]
 #[tracing::instrument]
-pub fn get_category_usage_rhythm(request: RhythmRequest) -> Result<RhythmDataResponse, String> {
+pub fn get_category_usage_rhythm(request: RhythmRequest) -> Result<RhythmDataResponse, TmusError> {
     // Valid check
     let time_span = request.span.to_ms();
     let granularity = request.granularity;
     if time_span % granularity != 0 {
-        return Err("span must be a multiple of granularity".to_string());
+        return Err(TmusError::new(
+            "invalid_granularity",
+            "span must be a multiple of granularity",
+        ));
     }
     let granularity_multiple = time_span / granularity;
     if granularity_multiple > 24 * 60 {
-        return Err("granularity is too small".to_string());
+        return Err(TmusError::new(
+            "granularity_too_small",
+            "granularity is too small",
+        ));
     }
     if request.groups.is_empty() {
-        return Err("groups is empty".to_string());
+        return Err(TmusError::new("empty_groups", "groups is empty"));
     }
     for group in &request.groups {
         if group.start_time >= group.end_time {
-            return Err("start_time must be before end_time".to_string());
+            return Err(TmusError::new(
+                "invalid_time_range",
+                "start_time must be before end_time",
+            ));
         }
         if (group.end_time - group.start_time) % time_span != 0 {
-            return Err("end_time - start_time must be a multiple of span".to_string());
+            return Err(TmusError::new(
+                "invalid_time_span",
+                "end_time - start_time must be a multiple of span",
+            ));
         }
     }
 
@@ -353,25 +361,17 @@ pub fn get_category_usage_rhythm(request: RhythmRequest) -> Result<RhythmDataRes
                  category_id,
              }| {
                 let time_span_multiple = (end_time - start_time) / time_span;
-                let filter_records: Box<dyn Fn(&FocusRecord) -> bool> = {
-                    if category_id.is_none() {
-                        Box::new(move |_record: &FocusRecord| -> bool { true })
-                    } else {
-                        let category_id = category_id.unwrap();
-                        let valid_app_ids = get_category_and_descendants_app_ids(&category_id);
-                        if valid_app_ids.is_err() {
-                            tracing::error!(
-                                "get_category_and_descendants_app_ids error: {:?}",
-                                category_id
-                            );
-                            Box::new(move |_record: &FocusRecord| -> bool { false })
-                        } else {
-                            let valid_app_ids = valid_app_ids.unwrap();
-                            Box::new(move |record: &FocusRecord| -> bool {
-                                valid_app_ids.contains(&record.id)
-                            })
+                let filter_records: Box<dyn Fn(&FocusRecord) -> bool> = match category_id {
+                    None => Box::new(|_record: &FocusRecord| -> bool { true }),
+                    Some(category_id) => match get_category_and_descendants_app_ids(&category_id) {
+                        Ok(valid_app_ids) => Box::new(move |record: &FocusRecord| -> bool {
+                            valid_app_ids.contains(&record.id)
+                        }),
+                        Err(e) => {
+                            tracing::error!("get_category_and_descendants_app_ids error: {:?}", e);
+                            Box::new(|_record: &FocusRecord| -> bool { false })
                         }
-                    }
+                    },
                 };
                 let mut ret = vec![0; granularity_multiple as usize];
                 let records = read_helper::read_by_timestamp(start_time, end_time);
@@ -420,11 +420,16 @@ pub fn get_category_usage_rhythm(request: RhythmRequest) -> Result<RhythmDataRes
 async fn match_app_detail(
     collection: impl Iterator<Item = (AppId, Value)>,
 ) -> Vec<AppStatisticDetail> {
-    let app_detail_map = get_all_app_detail().await;
+    let name_map = get_app_name_map().await;
     collection
-        .map(|(app_id, value)| AppStatisticDetail {
-            app: app_detail_map.get(&app_id).unwrap().clone(),
-            value,
+        .filter_map(|(app_id, value)| {
+            name_map.get(&app_id).map(|name| AppStatisticDetail {
+                app: AppSimple {
+                    id: app_id,
+                    name: name.clone(),
+                },
+                value,
+            })
         })
         .collect()
 }

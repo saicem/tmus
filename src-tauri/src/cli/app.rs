@@ -3,7 +3,7 @@ use serde::Serialize;
 use crate::cli::output::{format_duration, print_json, print_table};
 use crate::cli::{now_timestamp, parse_timestamp, AppCommand, UsageArgs};
 use crate::cmd::app_detail::{get_all_app_detail, FileDetail};
-use crate::cmd::duration::get_duration_by_id;
+use crate::cmd::duration::duration_by_id;
 use crate::state::category::{get_app_category, save_category_data, set_app_category, CategoryId};
 use crate::util::FileVersion;
 
@@ -55,8 +55,10 @@ async fn list(json: bool) -> Result<(), String> {
     details.sort_by_key(|d| d.id);
 
     if json {
-        let items: Vec<AppListItem> =
-            details.iter().map(|d| AppListItem::from_detail(d)).collect();
+        let items: Vec<AppListItem> = details
+            .iter()
+            .map(|d| AppListItem::from_detail(d))
+            .collect();
         return print_json(&items);
     }
 
@@ -198,8 +200,8 @@ pub async fn usage(args: UsageArgs, json: bool) -> Result<(), String> {
         return Err("Start time must be before end time".to_string());
     }
 
-    let mut durations = get_duration_by_id(start, end);
-    durations.sort_by(|a, b| b.duration.cmp(&a.duration));
+    let mut durations = duration_by_id(start, end);
+    durations.sort_by_key(|x| std::cmp::Reverse(x.duration));
     if let Some(top_k) = args.top_k {
         durations.truncate(top_k);
     }
@@ -252,6 +254,9 @@ pub async fn usage(args: UsageArgs, json: bool) -> Result<(), String> {
         })
         .collect();
     print_table(&["ID", "Name", "Duration", "Category"], &rows);
-    println!("Total duration in range: {}", format_duration(total_duration));
+    println!(
+        "Total duration in range: {}",
+        format_duration(total_duration)
+    );
     Ok(())
 }

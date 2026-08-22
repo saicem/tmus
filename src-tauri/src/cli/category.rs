@@ -71,10 +71,8 @@ async fn apps(category_id: CategoryId, json: bool) -> Result<(), String> {
         .app_ids
         .clone();
 
-    let mut details: Vec<&FileDetail> = app_ids
-        .iter()
-        .filter_map(|id| detail_map.get(id))
-        .collect();
+    let mut details: Vec<&FileDetail> =
+        app_ids.iter().filter_map(|id| detail_map.get(id)).collect();
     details.sort_by_key(|d| d.id);
 
     if json {

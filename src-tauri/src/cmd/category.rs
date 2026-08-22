@@ -2,6 +2,7 @@ use std::sync::{Arc, Mutex};
 
 use crate::{
     cmd::app_detail::{get_app_detail_cache, FileDetail},
+    error::TmusError,
     state::category::{self, CategoryId, CategoryNode, CategorySimple, ROOT_NODE_ID},
 };
 use serde::{Deserialize, Serialize};
@@ -69,13 +70,20 @@ pub fn get_all_categories() -> Vec<CategorySimple> {
 
 #[command(async)]
 #[tracing::instrument]
-pub async fn get_category_apps(category_id: CategoryId) -> Result<Vec<FileDetail>, String> {
+pub async fn get_category_apps(category_id: CategoryId) -> Result<Vec<FileDetail>, TmusError> {
     let app_map = get_app_detail_cache().await;
-    let app_details = category::get_category_detail_map()
+    let detail_map = category::get_category_detail_map();
+    let node = detail_map
         .get(&category_id)
-        .unwrap()
+        .ok_or_else(|| {
+            TmusError::new(
+                "category_not_found",
+                format!("category not found: {category_id}"),
+            )
+        })?
         .lock()
-        .unwrap()
+        .map_err(|_| TmusError::internal("category state poisoned"))?;
+    let app_details = node
         .app_ids
         .iter()
         .filter_map(|app_id| app_map.get(app_id).map(ToOwned::to_owned))
@@ -85,31 +93,31 @@ pub async fn get_category_apps(category_id: CategoryId) -> Result<Vec<FileDetail
 
 #[command]
 #[tracing::instrument]
-pub fn add_category(request: AddCategoryRequest) -> Result<(), String> {
-    category::add_category(request.parent_id, request.name)
+pub fn add_category(request: AddCategoryRequest) -> Result<(), TmusError> {
+    category::add_category(request.parent_id, request.name).map_err(TmusError::internal)
 }
 
 #[command]
 #[tracing::instrument]
-pub fn update_category(request: UpdateCategoryRequest) -> Result<(), String> {
-    category::rename_category(request.id, request.name)
+pub fn update_category(request: UpdateCategoryRequest) -> Result<(), TmusError> {
+    category::rename_category(request.id, request.name).map_err(TmusError::internal)
 }
 
 #[command]
 #[tracing::instrument]
-pub fn delete_category(request: DeleteCategoryRequest) -> Result<(), String> {
-    category::delete_category(request.id)
+pub fn delete_category(request: DeleteCategoryRequest) -> Result<(), TmusError> {
+    category::delete_category(request.id).map_err(TmusError::internal)
 }
 
 #[command]
 #[tracing::instrument]
-pub fn set_app_category(request: SetAppCategoryRequest) -> Result<(), String> {
-    category::set_app_category(request.app_id, request.category_id)
+pub fn set_app_category(request: SetAppCategoryRequest) -> Result<(), TmusError> {
+    category::set_app_category(request.app_id, request.category_id).map_err(TmusError::internal)
 }
 
 #[command]
 #[tracing::instrument]
-pub fn remove_app_from_category(request: RemoveAppCategoryRequest) -> Result<(), String> {
+pub fn remove_app_from_category(request: RemoveAppCategoryRequest) -> Result<(), TmusError> {
     category::remove_app_from_category(request.app_id);
     Ok(())
 }
@@ -118,6 +126,8 @@ pub fn remove_app_from_category(request: RemoveAppCategoryRequest) -> Result<(),
 #[tracing::instrument]
 pub async fn get_uncategorized_apps(
     request: GetUncategorizedAppsRequest,
-) -> Result<UncategorizedAppsResult, String> {
-    category::get_uncategorized_apps(request.offset, request.limit, request.keyword).await
+) -> Result<UncategorizedAppsResult, TmusError> {
+    category::get_uncategorized_apps(request.offset, request.limit, request.keyword)
+        .await
+        .map_err(TmusError::internal)
 }

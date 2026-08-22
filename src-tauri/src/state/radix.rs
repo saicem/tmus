@@ -89,7 +89,7 @@ impl<T: Clone> RadixNode<T> {
             Some(c) => self
                 .children
                 .get(&c)
-                .map_or(false, |child| child.contain(remaining_s)),
+                .is_some_and(|child| child.contain(remaining_s)),
             None => false,
         }
     }

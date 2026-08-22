@@ -1,7 +1,7 @@
 use tokio::time::{interval, Duration};
 use tracing::{error, info};
 
-use crate::state::{category::save_category_data, scheme::save_statistic_scheme};
+use crate::state::category::save_category_data;
 
 // Start a timer to save data
 pub fn start_timer() {
@@ -18,8 +18,5 @@ pub fn start_timer() {
 fn save_data() {
     if let Err(e) = save_category_data() {
         error!("Failed to save category data: {}", e);
-    }
-    if let Err(e) = save_statistic_scheme() {
-        error!("Failed to save statistic scheme: {}", e);
     }
 }

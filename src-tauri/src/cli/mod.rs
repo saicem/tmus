@@ -8,8 +8,8 @@ mod output;
 use crate::app::constant::{data_dir, APP_NAME};
 use crate::cmd::read_by_timestamp;
 use output::{format_duration, format_timestamp, print_json, print_table};
-use tmus_engine::{engine_start, EngineMode};
 use tmus_engine::util::Timestamp;
+use tmus_engine::{engine_start, EngineMode};
 
 #[derive(Debug, Clone, Copy, ValueEnum, Default)]
 pub enum LogLevel {

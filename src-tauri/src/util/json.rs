@@ -8,7 +8,7 @@ where
 {
     fs::read_to_string(path)
         .map(|content| serde_json::from_str(&content).unwrap_or(T::default()))
-        .unwrap_or(T::default())
+        .unwrap_or_default()
 }
 
 pub fn dump<T, P>(json: &T, path: P) -> Result<(), Box<dyn std::error::Error>>

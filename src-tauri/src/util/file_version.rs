@@ -90,9 +90,10 @@ unsafe fn file_version_item(
         return None;
     }
 
-    Some(load_wstring_vec(
-        &slice::from_raw_parts(buffer.cast(), len as usize).to_vec(),
-    ))
+    Some(load_wstring_vec(slice::from_raw_parts(
+        buffer.cast(),
+        len as usize,
+    )))
 }
 
 unsafe fn query_lang_id(data: *const c_void) -> i32 {

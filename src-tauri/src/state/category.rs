@@ -24,13 +24,13 @@ pub struct CategoryNode {
 
 impl Default for CategoryNode {
     fn default() -> Self {
-        return CategoryNode {
+        CategoryNode {
             id: ROOT_NODE_ID,
             parent_id: ROOT_NODE_ID,
             name: "ROOT".to_string(),
             children: Vec::new(),
             app_ids: Vec::new(),
-        };
+        }
     }
 }
 
@@ -118,7 +118,7 @@ fn get_state<'a>() -> &'a CategoryState {
             detail_map: &mut HashMap<CategoryId, Arc<Mutex<CategoryNode>>>,
         ) {
             let node = node_mutex.lock().unwrap();
-            detail_map.insert(node.id, Arc::clone(&node_mutex));
+            detail_map.insert(node.id, Arc::clone(node_mutex));
             for child in &node.children {
                 build_map(child, app_category_map, detail_map);
             }
@@ -214,8 +214,8 @@ pub fn add_category(parent_id: CategoryId, name: String) -> Result<(), String> {
 
     // Create new category node
     let new_category = Arc::new(Mutex::new(CategoryNode {
-        id: category_id.clone(),
-        parent_id: parent_id,
+        id: category_id,
+        parent_id,
         name: name.clone(),
         children: Vec::new(),
         app_ids: Vec::new(),
@@ -223,7 +223,7 @@ pub fn add_category(parent_id: CategoryId, name: String) -> Result<(), String> {
 
     parent_node.children.push(new_category.clone());
     drop(parent_node);
-    detail_map.insert(category_id.clone(), new_category);
+    detail_map.insert(category_id, new_category);
     get_state().category_changed.store(true, Ordering::Relaxed);
     Ok(())
 }
@@ -380,7 +380,7 @@ fn get_self_and_descendants_ids(node: &CategoryNode) -> (Vec<CategoryId>, Vec<Ap
     let mut node_ids = Vec::new();
     let mut app_ids = Vec::new();
     fn dfs(node: &CategoryNode, node_ids: &mut Vec<CategoryId>, app_ids: &mut Vec<AppId>) {
-        node_ids.push(node.id.clone());
+        node_ids.push(node.id);
         app_ids.extend(&node.app_ids);
         for child in &node.children {
             dfs(&child.lock().unwrap(), node_ids, app_ids);

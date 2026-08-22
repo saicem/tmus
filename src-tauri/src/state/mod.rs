@@ -1,6 +1,5 @@
 use crate::app::constant::{config_file_path, rule_file_path};
 use crate::app::refresh_tray_menu;
-use crate::state::config::Config;
 use crate::util::dump_json;
 
 pub mod category;
@@ -8,7 +7,6 @@ mod config;
 mod i18n;
 mod radix;
 mod rule;
-pub mod scheme;
 
 pub use config::*;
 pub use i18n::I18n;
@@ -25,9 +23,7 @@ pub fn get_app_config() -> Config {
 #[tracing::instrument(skip(config, app_handle))]
 pub fn set_app_config(config: Config, app_handle: tauri::AppHandle) {
     let _ = dump_json(&config, config_file_path());
-    {
-        *get_config() = config
-    };
+    *get_config() = config;
     refresh_tray_menu(&app_handle);
 }
 
@@ -41,7 +37,5 @@ pub fn get_app_rule() -> rule::Rule {
 #[tracing::instrument(skip(config))]
 pub fn set_app_rule(config: rule::Rule) {
     let _ = dump_json(&config, rule_file_path());
-    {
-        *get_rule().lock().unwrap() = config.clone()
-    };
+    *get_rule().lock().unwrap() = config.clone();
 }

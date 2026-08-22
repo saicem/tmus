@@ -1,4 +1,5 @@
 use crate::cmd::read_helper::read_by_timestamp;
+use crate::error::TmusError;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::ops::Not;
@@ -12,9 +13,9 @@ pub struct IdDuration {
     pub duration: i64,
 }
 
-#[tauri::command]
-#[tracing::instrument]
-pub fn get_duration_by_id(start_timestamp: Timestamp, end_timestamp: Timestamp) -> Vec<IdDuration> {
+/// Aggregate total duration per app within [start, end). Shared by the Tauri
+/// command and the CLI.
+pub fn duration_by_id(start_timestamp: Timestamp, end_timestamp: Timestamp) -> Vec<IdDuration> {
     read_by_timestamp(start_timestamp, end_timestamp)
         .into_iter()
         .fold(HashMap::new(), |mut acc, record| {
@@ -31,6 +32,19 @@ pub fn get_duration_by_id(start_timestamp: Timestamp, end_timestamp: Timestamp) 
         .collect()
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DurationByIdRequest {
+    pub start_timestamp: Timestamp,
+    pub end_timestamp: Timestamp,
+}
+
+#[tauri::command]
+#[tracing::instrument(skip(request))]
+pub fn get_duration_by_id(request: DurationByIdRequest) -> Vec<IdDuration> {
+    duration_by_id(request.start_timestamp, request.end_timestamp)
+}
+
 /// Represents a duration statistic for a specific application within a time interval
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -43,51 +57,49 @@ pub struct DurationStat {
     duration: i64,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DurationStatisticRequest {
+    /// The start time (inclusive) for filtering focus records.
+    pub start_timestamp: Timestamp,
+    /// The end time (inclusive) for filtering focus records.
+    pub end_timestamp: Timestamp,
+    /// Whether to merge data across all applications into a single result set.
+    pub merge_apps: bool,
+    /// Optional list of application IDs to filter by.
+    pub app_ids: Option<HashSet<AppId>>,
+    /// The time interval (in milliseconds) used to split records for aggregation.
+    pub granularity: Timestamp,
+    /// Optional cycle length in units of `granularity` for repeating cycles.
+    pub cycle: Option<i64>,
+}
+
 /// Query duration statistics with customizable filters and aggregation.
-///
-/// # Arguments
-///
-/// * `start_timestamp` - The start time (inclusive) for filtering focus records.
-/// * `end_timestamp` - The end time (inclusive) for filtering focus records.
-/// * `merge_apps` - Whether to merge data across all applications into a single result set.  
-///   Set this to `true` if application-specific details are not required.
-/// * `app_ids` - An optional list of application IDs to filter by.  
-///   If only specific applications are of interest, provide their IDs here.
-/// * `granularity` - The time interval (in milliseconds) used to split records for aggregation.  
-///   For example:
-///   - Use `86400000` to aggregate by day.
-///   - Use `3600000` to aggregate by hour.
-///   If not need granularity, use [get_duration_by_id].
-/// * `cycle` - An optional cycle length in units of `granularity`.  
-///   This allows grouping intervals into repeating cycles.  
-///   For example:
-///   - To analyze how much time is spent each hour within a day, use `granularity=3600000` and `cycle=24`.
-///   - To analyze how much time is spent each day within a week, use `granularity=86400000` and `cycle=7`.
 #[tauri::command]
-#[tracing::instrument]
+#[tracing::instrument(skip(request))]
 pub async fn query_duration_statistic(
-    start_timestamp: Timestamp,
-    end_timestamp: Timestamp,
-    merge_apps: bool,
-    app_ids: Option<HashSet<AppId>>,
-    granularity: Timestamp,
-    cycle: Option<i64>,
-) -> Result<Vec<DurationStat>, &'static str> {
-    if start_timestamp >= end_timestamp {
-        return Err("start_timestamp must be greater than end_timestamp");
+    request: DurationStatisticRequest,
+) -> Result<Vec<DurationStat>, TmusError> {
+    if request.start_timestamp >= request.end_timestamp {
+        return Err(TmusError::new(
+            "invalid_time_range",
+            "start_timestamp must be less than end_timestamp",
+        ));
     }
 
-    let mut raw_data = read_by_timestamp(start_timestamp, end_timestamp);
+    let mut raw_data = read_by_timestamp(request.start_timestamp, request.end_timestamp);
 
-    if let Some(selected_app_ids) = app_ids {
-        raw_data = raw_data
-            .into_iter()
-            .filter(|record| selected_app_ids.contains(&record.id))
-            .collect();
+    if let Some(selected_app_ids) = request.app_ids {
+        raw_data.retain(|record| selected_app_ids.contains(&record.id));
     }
 
-    let aggregated_data =
-        aggregate_by_interval(&raw_data, start_timestamp, granularity, merge_apps, cycle);
+    let aggregated_data = aggregate_by_interval(
+        &raw_data,
+        request.start_timestamp,
+        request.granularity,
+        request.merge_apps,
+        request.cycle,
+    );
 
     Ok(aggregated_data
         .into_iter()

@@ -68,7 +68,7 @@ pub async fn get_app_detail(id: usize) -> FileDetail {
             detail.exist = false;
         }
     }
-    update_app_detail_cache(&mut *app_detail_cache, vec![detail.clone()]).await;
+    update_app_detail_cache(&mut app_detail_cache, vec![detail.clone()]).await;
     detail
 }
 
@@ -86,8 +86,8 @@ pub async fn get_all_app_detail() -> HashMap<AppId, FileDetail> {
         .filter(|(id, _)| !app_detail_cache.contains_key(id))
         .map(|(id, path)| query_file_detail(id, path))
         .collect();
-    if not_exist_app_detail.len() > 0 {
-        update_app_detail_cache(&mut *app_detail_cache, not_exist_app_detail).await;
+    if !not_exist_app_detail.is_empty() {
+        update_app_detail_cache(&mut app_detail_cache, not_exist_app_detail).await;
     }
     app_detail_cache.clone()
 }
@@ -96,13 +96,12 @@ fn query_file_detail(id: usize, path: &str) -> FileDetail {
     let extract_name_from_path = |path: &str| {
         Path::new(&path)
             .file_stem()
-            .map(|file_stem| file_stem.to_str())
-            .flatten()
+            .and_then(|file_stem| file_stem.to_str())
             .map_or_else(|| path.to_owned(), |file_stem| file_stem.to_owned())
     };
     if !Path::new(&path).exists() {
         return FileDetail {
-            name: extract_name_from_path(&path),
+            name: extract_name_from_path(path),
             id,
             path: path.to_owned(),
             exist: false,
@@ -110,8 +109,8 @@ fn query_file_detail(id: usize, path: &str) -> FileDetail {
             version: None,
         };
     }
-    let version = util::get_file_version(&path);
-    let icon = get_icon_base64_by_path(&path)
+    let version = util::get_file_version(path);
+    let icon = get_icon_base64_by_path(path)
         .ok()
         .map(|base64| format!("data:image/png;base64,{base64}"));
     let name: String = match &version {
@@ -125,7 +124,7 @@ fn query_file_detail(id: usize, path: &str) -> FileDetail {
             file_description: Some(name),
             ..
         }) if !name.is_empty() => name.to_owned(),
-        _ => extract_name_from_path(&path),
+        _ => extract_name_from_path(path),
     };
     FileDetail {
         name,
@@ -135,4 +134,13 @@ fn query_file_detail(id: usize, path: &str) -> FileDetail {
         icon,
         version,
     }
+}
+/// Lightweight id -> display name map read from the detail cache without
+/// touching exe metadata or icons. Used by statistics where only names matter.
+pub async fn get_app_name_map() -> HashMap<AppId, String> {
+    get_app_detail_cache()
+        .await
+        .iter()
+        .map(|(id, detail)| (*id, detail.name.clone()))
+        .collect()
 }

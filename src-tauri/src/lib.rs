@@ -1,6 +1,7 @@
 pub mod app;
 pub mod cli;
 pub mod cmd;
+pub mod error;
 pub mod state;
 pub mod util;
 
@@ -14,8 +15,8 @@ use tauri::{AppHandle, Manager, RunEvent};
 use tauri_plugin_autostart::MacosLauncher;
 use tmus_engine::{async_runtime, engine_start, EngineMode};
 use tokio::sync::Mutex;
-use tracing::Level;
 use tracing::info;
+use tracing::Level;
 use tracing_subscriber::fmt::format::FmtSpan;
 use tracing_subscriber::FmtSubscriber;
 
@@ -40,11 +41,8 @@ pub fn setup(app: &mut tauri::App, nw: bool) -> Result<(), Box<dyn std::error::E
 }
 
 pub fn event_callback(_: &AppHandle, event: RunEvent) {
-    match event {
-        RunEvent::ExitRequested { api, .. } => {
-            api.prevent_exit();
-        }
-        _ => {}
+    if let RunEvent::ExitRequested { api, .. } = event {
+        api.prevent_exit();
     }
 }
 

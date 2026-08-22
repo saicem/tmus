@@ -94,11 +94,10 @@ impl RuleRadixTree {
     }
 
     pub fn filter(&self, app_path: &str) -> Option<String> {
-        if app_path.is_empty() || (self.is_exclude(&app_path) && !self.is_include(&app_path)) {
+        if app_path.is_empty() || (self.is_exclude(app_path) && !self.is_include(app_path)) {
             return None;
         }
-        self.get_merged_path(&app_path)
-            .or(Some(app_path.to_owned()))
+        self.get_merged_path(app_path).or(Some(app_path.to_owned()))
     }
 }
 

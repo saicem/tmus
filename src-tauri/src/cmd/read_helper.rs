@@ -7,8 +7,8 @@ use tracing::debug;
 // For compute convenience, remember convert them back after compute.
 pub fn timezone_convert(mut vec: Vec<FocusRecord>, timezone_offset: Timestamp) -> Vec<FocusRecord> {
     for item in vec.iter_mut() {
-        item.focus_at = item.focus_at - timezone_offset;
-        item.blur_at = item.blur_at - timezone_offset;
+        item.focus_at -= timezone_offset;
+        item.blur_at -= timezone_offset;
     }
     vec
 }
@@ -71,12 +71,15 @@ fn trim_focus_records(
         return vec![];
     }
     records = records[start_index..end_index].to_vec();
-    records
-        .first_mut()
-        .map(|x| x.focus_at = max(x.focus_at, start_timestamp));
-    records
-        .last_mut()
-        .map(|x| x.blur_at = min(x.blur_at, end_timestamp));
+    if let Some(x) = records.first_mut() {
+        x.focus_at = max(x.focus_at, start_timestamp);
+    }
+    if let Some(x) = records.last_mut() {
+        x.blur_at = min(x.blur_at, end_timestamp);
+    }
+    // A record starting exactly at the end boundary is trimmed to zero
+    // duration; drop it so statistics/timelines never show empty entries.
+    records.retain(|x| x.blur_at > x.focus_at);
     records
 }
 
@@ -119,6 +122,14 @@ mod tests {
         );
     }
 
+    #[test]
+    fn test_trim_excludes_zero_duration_at_end_boundary() {
+        // A record starting exactly at `end` is trimmed to zero duration and
+        // must be dropped; the one ending at `end` stays.
+        let records = vec![ms(2000, 2500), ms(2500, 3000)];
+        let result = trim_focus_records(records, 1500, 2500);
+        assert_eq!(result, vec![ms(2000, 2500)]);
+    }
     fn sub_test_trim_focus_records(
         start: i64,
         end: i64,

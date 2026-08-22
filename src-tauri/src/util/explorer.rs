@@ -7,10 +7,12 @@ use std::{fs::metadata, path::PathBuf};
 pub fn show_in_folder(path: &str) {
     #[cfg(target_os = "windows")]
     {
-        Command::new("explorer")
+        if let Ok(mut child) = Command::new("explorer")
             .args(["/select,", path]) // The comma after select is not a typo
             .spawn()
-            .unwrap();
+        {
+            let _ = child.wait();
+        }
     }
 
     #[cfg(target_os = "linux")]
