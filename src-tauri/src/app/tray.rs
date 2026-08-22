@@ -1,3 +1,4 @@
+use crate::app::constant::APP_TITLE;
 use crate::app::exit;
 use crate::app::window::focus_main_window;
 use crate::state::{get_config, I18n, LangConfig, ThemeConfig};
@@ -16,6 +17,7 @@ pub fn tray(app_handle: &AppHandle) -> Result<(), Box<dyn Error>> {
     tray.set_show_menu_on_left_click(false)?;
     tray.on_tray_icon_event(on_tray_icon_event);
     tray.on_menu_event(on_menu_event);
+    tray.set_tooltip(Some(APP_TITLE))?;
     Ok(())
 }
 
