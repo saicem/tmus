@@ -29,3 +29,7 @@ src-tauri/gen/*
 todo*.md
 .agents/
 skills-lock.json
+
+# TypeScript build info
+*.tsbuildinfo
+

@@ -1,0 +1,231 @@
+import {
+  Channel,
+  invoke,
+  InvokeArgs,
+  InvokeOptions,
+} from "@tauri-apps/api/core"
+import {
+  AppDurationAreaModel,
+  AppMeta,
+  DownloadEvent,
+  DurationStat,
+  FileDetail,
+  IdDuration,
+  RuleConfig,
+  UpdateMetadata,
+  Category,
+  AddCategoryRequest,
+  UpdateCategoryRequest,
+  DeleteCategoryRequest,
+  AssignCategoryRequest,
+  RemoveAppCategoryRequest,
+  AppDurationRequest,
+  AppDurationResponse,
+  AppDayCountRequest,
+  AppDayCountResponse,
+  CategoryDurationRequest,
+  CategoryDurationResponse,
+  CategoryDayCountRequest,
+  CategoryDayCountResponse,
+  RhythmRequest,
+  RhythmDataResponse,
+  CategorySimple,
+} from "@/lib/models"
+import { Config } from "@/lib/state"
+import { toast } from "sonner"
+
+export async function getDurationById(request: {
+  startTimestamp: number
+  endTimestamp: number
+}): Promise<IdDuration[]> {
+  return await ivk("get_duration_by_id", { request })
+}
+
+export async function queryDurationStatistic(request: {
+  startTimestamp: number
+  endTimestamp: number
+  mergeApps: boolean
+  appIds: number[] | null
+  granularity: number
+  cycle: number | null
+}): Promise<DurationStat[]> {
+  return await ivk("query_duration_statistic", { request })
+}
+
+export async function showInFolder(path: string | undefined) {
+  if (!path) return
+  return await ivk("show_in_folder", { path })
+}
+
+export async function getAppConfig(): Promise<Config> {
+  return await ivk("get_app_config")
+}
+
+export async function setAppConfig(config: Config): Promise<void> {
+  return await ivk("set_app_config", { config })
+}
+
+export async function getAppRule(): Promise<RuleConfig> {
+  return await ivk("get_app_rule")
+}
+
+export async function setAppRule(config: RuleConfig): Promise<void> {
+  return await ivk("set_app_rule", { config })
+}
+
+export async function getTmusMeta(): Promise<AppMeta> {
+  return await ivk("get_tmus_meta")
+}
+
+export async function getAppDetail(id: number): Promise<FileDetail> {
+  return await ivk("get_app_detail", { id: id })
+}
+
+export async function getAppDetailMap(): Promise<Record<number, FileDetail>> {
+  return await ivk("get_all_app_detail")
+}
+
+export async function fetchUpdate(): Promise<UpdateMetadata | null> {
+  return await ivk("fetch_update")
+}
+
+export async function installUpdate(
+  onMessage: (event: DownloadEvent) => void
+): Promise<void> {
+  const onEvent = new Channel<DownloadEvent>()
+  onEvent.onmessage = onMessage
+  return await ivk("install_update", { onEvent })
+}
+
+export async function getAppDurationArea(request: {
+  appId: number
+  startTimestamp: number
+  endTimestamp: number
+  timezoneOffset: number
+}): Promise<AppDurationAreaModel> {
+  return await ivk("get_app_duration_area", { request })
+}
+
+export async function getCategoryTree(): Promise<Category> {
+  return await ivk("get_category_tree")
+}
+
+export async function getAllCategories(): Promise<CategorySimple[]> {
+  return await ivk("get_all_categories")
+}
+
+export async function addCategory(request: AddCategoryRequest): Promise<void> {
+  await ivk("add_category", { request })
+}
+
+export async function updateCategory(
+  request: UpdateCategoryRequest
+): Promise<void> {
+  await ivk("update_category", { request })
+}
+
+export async function deleteCategory(
+  request: DeleteCategoryRequest
+): Promise<void> {
+  await ivk("delete_category", { request })
+}
+
+export async function setAppCategory(
+  request: AssignCategoryRequest
+): Promise<void> {
+  await ivk("set_app_category", { request })
+}
+
+export async function removeAppFromCategory(
+  request: RemoveAppCategoryRequest
+): Promise<void> {
+  await ivk("remove_app_from_category", { request })
+}
+
+export async function getUncategorizedApps(
+  offset = 0,
+  limit = 100,
+  keyword?: string
+): Promise<FileDetail[]> {
+  const result = await ivk<{
+    apps: FileDetail[]
+    total: number
+    has_more: boolean
+  }>("get_uncategorized_apps", { request: { offset, limit, keyword } })
+  return result.apps
+}
+
+export async function getCategoryApps(
+  categoryId: number
+): Promise<FileDetail[]> {
+  return await ivk<FileDetail[]>("get_category_apps", {
+    categoryId: categoryId,
+  })
+}
+
+async function ivk<T>(
+  cmd: string,
+  args?: InvokeArgs,
+  options?: InvokeOptions
+): Promise<T> {
+  console.log(`[ivk] Calling command: ${cmd}`, { args, options })
+  const startTime = performance.now()
+
+  try {
+    const result = await invoke(cmd, args, options)
+    const endTime = performance.now()
+    console.log(`[ivk] Command ${cmd} completed in ${endTime - startTime}ms`, {
+      result,
+    })
+    return result as T
+  } catch (error) {
+    const endTime = performance.now()
+    console.error(`[ivk] Command ${cmd} failed in ${endTime - startTime}ms`, {
+      error,
+    })
+
+    let errorMessage = "An unknown error occurred."
+    if (typeof error === "string") {
+      errorMessage = error
+    } else if (error instanceof Error) {
+      errorMessage = error.message
+    } else if (error && typeof error === "object" && "message" in error) {
+      errorMessage = String(
+        (error as { message?: unknown }).message ?? errorMessage
+      )
+    }
+
+    toast.error(errorMessage)
+    throw new Error(errorMessage, { cause: error })
+  }
+}
+
+export async function getAppTotalDuration(
+  request: AppDurationRequest
+): Promise<AppDurationResponse> {
+  return await ivk("get_app_total_duration", { request })
+}
+
+export async function getAppUsageDays(
+  request: AppDayCountRequest
+): Promise<AppDayCountResponse> {
+  return await ivk("get_app_usage_days", { request })
+}
+
+export async function getCategoryTotalDuration(
+  request: CategoryDurationRequest
+): Promise<CategoryDurationResponse> {
+  return await ivk("get_category_total_duration", { request })
+}
+
+export async function getCategoryUsageDays(
+  request: CategoryDayCountRequest
+): Promise<CategoryDayCountResponse> {
+  return await ivk("get_category_usage_days", { request })
+}
+
+export async function getCategoryUsageRhythm(
+  request: RhythmRequest
+): Promise<RhythmDataResponse> {
+  return await ivk("get_category_usage_rhythm", { request })
+}

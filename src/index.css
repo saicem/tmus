@@ -1,0 +1,312 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "./shadcn.css";
+@import "@fontsource-variable/geist";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-heading: var(--font-sans);
+
+  --font-sans: "Geist Variable", sans-serif;
+
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --color-sidebar-border: var(--sidebar-border);
+
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+
+  --color-sidebar-accent: var(--sidebar-accent);
+
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+
+  --color-sidebar-primary: var(--sidebar-primary);
+
+  --color-sidebar-foreground: var(--sidebar-foreground);
+
+  --color-sidebar: var(--sidebar);
+
+  --color-chart-5: var(--chart-5);
+
+  --color-chart-4: var(--chart-4);
+
+  --color-chart-3: var(--chart-3);
+
+  --color-chart-2: var(--chart-2);
+
+  --color-chart-1: var(--chart-1);
+
+  --color-ring: var(--ring);
+
+  --color-input: var(--input);
+
+  --color-border: var(--border);
+
+  --color-destructive: var(--destructive);
+
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-accent: var(--accent);
+
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-muted: var(--muted);
+
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  --color-secondary: var(--secondary);
+
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-primary: var(--primary);
+
+  --color-popover-foreground: var(--popover-foreground);
+
+  --color-popover: var(--popover);
+
+  --color-card-foreground: var(--card-foreground);
+
+  --color-card: var(--card);
+
+  --color-foreground: var(--foreground);
+
+  --color-background: var(--background);
+
+  --radius-sm: calc(var(--radius) * 0.6);
+
+  --radius-md: calc(var(--radius) * 0.8);
+
+  --radius-lg: var(--radius);
+
+  --radius-xl: calc(var(--radius) * 1.4);
+
+  --radius-2xl: calc(var(--radius) * 1.8);
+
+  --radius-3xl: calc(var(--radius) * 2.2);
+
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+/*
+ * Tmus brand theme, ported from the legacy Element Plus palette:
+ *   --accent-color: #396afc  (indigo blue)
+ * Derived shades keep the same hue (≈265°) so the whole UI reads as one
+ * coherent blue family. Dark mode uses a lifted blue for primary so text on
+ * primary buttons keeps WCAG AA contrast.
+ */
+:root {
+  --background: oklch(0.981 0.005 258);
+
+  --foreground: oklch(0.19 0.015 260);
+
+  --card: oklch(1 0 0);
+
+  --card-foreground: oklch(0.19 0.015 260);
+
+  --popover: oklch(1 0 0);
+
+  --popover-foreground: oklch(0.19 0.015 260);
+
+  --primary: oklch(0.58 0.224 265.5);
+
+  --primary-foreground: oklch(0.985 0 0);
+
+  --secondary: oklch(0.955 0.015 258);
+
+  --secondary-foreground: oklch(0.35 0.1 265);
+
+  --muted: oklch(0.955 0.012 258);
+
+  --muted-foreground: oklch(0.55 0.02 258);
+
+  --accent: oklch(0.93 0.04 265);
+
+  --accent-foreground: oklch(0.45 0.16 265);
+
+  --destructive: oklch(0.577 0.245 27.325);
+
+  --border: oklch(0.92 0.015 258);
+
+  --input: oklch(0.92 0.015 258);
+
+  --ring: oklch(0.58 0.224 265.5);
+
+  --chart-1: oklch(0.58 0.224 265.5);
+
+  --chart-2: oklch(0.66 0.17 240);
+
+  --chart-3: oklch(0.65 0.14 300);
+
+  --chart-4: oklch(0.68 0.1 190);
+
+  --chart-5: oklch(0.45 0.12 265);
+
+  --radius: 0.625rem;
+
+  --sidebar: oklch(0.985 0.005 258);
+
+  --sidebar-foreground: oklch(0.19 0.015 260);
+
+  --sidebar-primary: oklch(0.58 0.224 265.5);
+
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+
+  --sidebar-accent: oklch(0.93 0.04 265);
+
+  --sidebar-accent-foreground: oklch(0.45 0.16 265);
+
+  --sidebar-border: oklch(0.92 0.015 258);
+
+  --sidebar-ring: oklch(0.58 0.224 265.5);
+}
+
+.dark {
+  --background: oklch(0.235 0.015 258);
+
+  --foreground: oklch(0.94 0.008 258);
+
+  --card: oklch(0.27 0.02 258);
+
+  --card-foreground: oklch(0.94 0.008 258);
+
+  --popover: oklch(0.27 0.02 258);
+
+  --popover-foreground: oklch(0.94 0.008 258);
+
+  --primary: oklch(0.713 0.149 269.3);
+
+  --primary-foreground: oklch(0.25 0.08 265);
+
+  --secondary: oklch(0.32 0.025 258);
+
+  --secondary-foreground: oklch(0.94 0.008 258);
+
+  --muted: oklch(0.32 0.02 258);
+
+  --muted-foreground: oklch(0.72 0.02 258);
+
+  --accent: oklch(0.34 0.05 265);
+
+  --accent-foreground: oklch(0.94 0.01 258);
+
+  --destructive: oklch(0.704 0.191 22.216);
+
+  --border: oklch(1 0 0 / 10%);
+
+  --input: oklch(1 0 0 / 15%);
+
+  --ring: oklch(0.713 0.149 269.3);
+
+  --chart-1: oklch(0.713 0.149 269.3);
+
+  --chart-2: oklch(0.74 0.12 235);
+
+  --chart-3: oklch(0.7 0.11 300);
+
+  --chart-4: oklch(0.74 0.09 190);
+
+  --chart-5: oklch(0.55 0.1 265);
+
+  --sidebar: oklch(0.25 0.02 258);
+
+  --sidebar-foreground: oklch(0.94 0.008 258);
+
+  --sidebar-primary: oklch(0.713 0.149 269.3);
+
+  --sidebar-primary-foreground: oklch(0.25 0.08 265);
+
+  --sidebar-accent: oklch(0.34 0.05 265);
+
+  --sidebar-accent-foreground: oklch(0.94 0.01 258);
+
+  --sidebar-border: oklch(1 0 0 / 10%);
+
+  --sidebar-ring: oklch(0.713 0.149 269.3);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}
+
+/* Usage heatmap cells */
+.heat-cell {
+  height: 10px;
+  width: 10px;
+  border-radius: 2px;
+}
+
+.heat-cell:hover {
+  box-shadow: 0 0 5px rgb(57 106 252);
+}
+
+:root {
+  --heat-0: oklch(0.965 0.02 265);
+  --heat-1: oklch(0.92 0.05 265);
+  --heat-2: oklch(0.85 0.09 265);
+  --heat-3: oklch(0.72 0.15 265);
+  --heat-4: oklch(0.58 0.224 265.5);
+}
+
+.dark {
+  --heat-0: oklch(0.25 0.02 265);
+  --heat-1: oklch(0.3 0.05 265);
+  --heat-2: oklch(0.38 0.08 265);
+  --heat-3: oklch(0.5 0.12 265);
+  --heat-4: oklch(0.713 0.149 269.3);
+}
+
+.heat-cell[data-tag="0"] {
+  background: var(--heat-0);
+}
+.heat-cell[data-tag="1"] {
+  background: var(--heat-1);
+}
+.heat-cell[data-tag="2"] {
+  background: var(--heat-2);
+}
+.heat-cell[data-tag="3"] {
+  background: var(--heat-3);
+}
+.heat-cell[data-tag="4"] {
+  background: var(--heat-4);
+}
+
+/* Global scrollbars (WebView2 / Chromium) */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklch, var(--foreground) 20%, transparent)
+    transparent;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: color-mix(in oklch, var(--foreground) 18%, transparent);
+  border-radius: 4px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in oklch, var(--foreground) 32%, transparent);
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
