@@ -49,6 +49,9 @@ importers:
       react:
         specifier: ^19.2.8
         version: 19.2.8
+      react-day-picker:
+        specifier: ^10.0.1
+        version: 10.0.1(@types/react@19.2.18)(react@19.2.8)
       react-dom:
         specifier: ^19.2.8
         version: 19.2.8(react@19.2.8)
@@ -118,6 +121,12 @@ importers:
         version: 8.0.14(jiti@2.7.0)(yaml@2.9.0)
 
 packages:
+  "@date-fns/tz@1.5.0":
+    resolution:
+      {
+        integrity: sha512-lwYN/vDPeNRULcepoE/LO2Pgx+7/RV+S9ARfbc9lr2DtGkOD7pAiruHvbR1RX3Qyf6ja47EWJDMsNK5vK08DJg==,
+      }
+
   "@emnapi/core@1.10.0":
     resolution:
       {
@@ -3219,6 +3228,19 @@ packages:
       "@types/react-dom":
         optional: true
 
+  react-day-picker@10.0.1:
+    resolution:
+      {
+        integrity: sha512-eNh6BlwcYInWaJtRv18mXQ06Ys/H6rdTZAnTaSdOYJuTpwP1JMCHNd1FDRadA+gbeinq+psdULN5Xnowy9mV8w==,
+      }
+    engines: { node: ">=18" }
+    peerDependencies:
+      "@types/react": ">=16.8.0"
+      react: ">=16.8.0"
+    peerDependenciesMeta:
+      "@types/react":
+        optional: true
+
   react-dom@19.2.8:
     resolution:
       {
@@ -3759,6 +3781,8 @@ packages:
         optional: true
 
 snapshots:
+  "@date-fns/tz@1.5.0": {}
+
   "@emnapi/core@1.10.0":
     dependencies:
       "@emnapi/wasi-threads": 1.2.1
@@ -5721,6 +5745,14 @@ snapshots:
     optionalDependencies:
       "@types/react": 19.2.18
       "@types/react-dom": 19.2.4(@types/react@19.2.18)
+
+  react-day-picker@10.0.1(@types/react@19.2.18)(react@19.2.8):
+    dependencies:
+      "@date-fns/tz": 1.5.0
+      date-fns: 4.3.0
+      react: 19.2.8
+    optionalDependencies:
+      "@types/react": 19.2.18
 
   react-dom@19.2.8(react@19.2.8):
     dependencies:

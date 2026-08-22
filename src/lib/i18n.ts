@@ -47,6 +47,7 @@ interface I18nMessageType {
       granularity: string
       displayStyle: string
       group: string
+      pickDateRange: string
     }
     shortcuts: {
       last1day: string
@@ -68,6 +69,8 @@ interface I18nMessageType {
       placeholder: string
       all: string
       uncategorized: string
+      clear: string
+      more: string
     }
     types: {
       title: string
@@ -287,6 +290,7 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
         granularity: "Granularity",
         displayStyle: "Display Style",
         group: "Group",
+        pickDateRange: "Pick a date range",
       },
       shortcuts: {
         last1day: "Last 1 day",
@@ -308,6 +312,8 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
         placeholder: "Please select categories",
         all: "All Categories",
         uncategorized: "Uncategorized",
+        clear: "Clear",
+        more: "+{count}",
       },
       types: {
         title: "Statistic Type",
@@ -528,6 +534,7 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
         granularity: "统计粒度",
         displayStyle: "展示样式",
         group: "分组",
+        pickDateRange: "选择日期范围",
       },
       shortcuts: {
         last1day: "最近 1 天",
@@ -549,6 +556,8 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
         placeholder: "请选择分类",
         all: "不区分分类",
         uncategorized: "未分类",
+        clear: "清空",
+        more: "+{count}",
       },
       types: {
         title: "统计类型",

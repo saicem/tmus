@@ -1,13 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { Plus, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Empty } from "@/components/ui/empty"
 import { Progress } from "@/components/ui/progress"
+import { CategoryTreeSelect } from "@/components/common/CategoryTreeSelect"
+import { DateRangePicker } from "@/components/common/DateRangePicker"
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
@@ -15,20 +19,19 @@ import { BarChart } from "@/lib/charts/BarChart"
 import { PieChart } from "@/lib/charts/PieChart"
 import { RadarChart } from "@/lib/charts/RadarChart"
 import {
-  getAllCategories,
   getAppTotalDuration,
   getAppUsageDays,
+  getCategoryTree,
   getCategoryTotalDuration,
   getCategoryUsageDays,
   getCategoryUsageRhythm,
 } from "@/lib/cmd"
 import { useI18n } from "@/lib/i18n"
-import type { CategorySimple, TimeSpan } from "@/lib/models"
+import type { Category, TimeSpan } from "@/lib/models"
 import {
   formatDurationRough,
   formatTimeOfDay,
   getTimeRangeByDays,
-  getTimeRangeByMonths,
   MILLISECONDS_PER_DAY,
   MILLISECONDS_PER_HOUR,
   MILLISECONDS_PER_MINUTE,
@@ -41,125 +44,6 @@ type StatisticType =
   | "CategoryDays"
   | "CategoryRhythm"
 type DisplayStyle = "Pie" | "Bar" | "radar"
-
-function dateToInput(d: Date): string {
-  const y = d.getFullYear()
-  const m = String(d.getMonth() + 1).padStart(2, "0")
-  const day = String(d.getDate()).padStart(2, "0")
-  return `${y}-${m}-${day}`
-}
-
-function inputToStart(s: string): number {
-  const [y, m, d] = s.split("-").map(Number)
-  return new Date(y, m - 1, d).getTime()
-}
-
-function inputToEnd(s: string): number {
-  return inputToStart(s) + MILLISECONDS_PER_DAY - 1
-}
-
-function startToInput(ms: number): string {
-  return dateToInput(new Date(ms))
-}
-
-function endToInput(ms: number): string {
-  return dateToInput(new Date(ms))
-}
-
-function TimeRangePicker({
-  value,
-  onChange,
-}: {
-  value: [number, number]
-  onChange: (v: [number, number]) => void
-}) {
-  const t = useI18n()
-  const shortcuts: { label: string; range: () => [Date, Date] }[] = [
-    {
-      label: t.statisticPage.shortcuts.last1day,
-      range: () => getTimeRangeByDays(1),
-    },
-    {
-      label: t.statisticPage.shortcuts.last3days,
-      range: () => getTimeRangeByDays(3),
-    },
-    {
-      label: t.statisticPage.shortcuts.last1week,
-      range: () => getTimeRangeByDays(7),
-    },
-    {
-      label: t.statisticPage.shortcuts.last1month,
-      range: () => getTimeRangeByMonths(1),
-    },
-    {
-      label: t.statisticPage.shortcuts.last3months,
-      range: () => getTimeRangeByMonths(3),
-    },
-    {
-      label: t.statisticPage.shortcuts.last1year,
-      range: () => getTimeRangeByMonths(12),
-    },
-  ]
-  return (
-    <div className="flex flex-wrap items-center gap-2">
-      <input
-        type="date"
-        className="h-9 rounded-md border bg-transparent px-3 text-sm"
-        value={startToInput(value[0])}
-        onChange={(e) => onChange([inputToStart(e.target.value), value[1]])}
-      />
-      <span className="text-muted-foreground">~</span>
-      <input
-        type="date"
-        className="h-9 rounded-md border bg-transparent px-3 text-sm"
-        value={endToInput(value[1])}
-        onChange={(e) => onChange([value[0], inputToEnd(e.target.value)])}
-      />
-      <Select
-        onValueChange={(idx) => {
-          const [s, e] = shortcuts[Number(idx)].range()
-          onChange([s.getTime(), e.getTime()])
-        }}
-      >
-        <SelectTrigger className="h-9 w-36">
-          <SelectValue placeholder={t.statisticPage.label.timeRange} />
-        </SelectTrigger>
-        <SelectContent>
-          {shortcuts.map((s, i) => (
-            <SelectItem key={i} value={String(i)}>
-              {s.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
-  )
-}
-
-function StylePicker({
-  value,
-  options,
-  onChange,
-}: {
-  value: DisplayStyle
-  options: { label: string; value: DisplayStyle }[]
-  onChange: (v: DisplayStyle) => void
-}) {
-  return (
-    <div className="flex gap-1">
-      {options.map((opt) => (
-        <Button
-          key={opt.value}
-          size="sm"
-          variant={value === opt.value ? "default" : "outline"}
-          onClick={() => onChange(opt.value)}
-        >
-          {opt.label}
-        </Button>
-      ))}
-    </div>
-  )
-}
 
 function ProgressList({
   items,
@@ -186,6 +70,43 @@ function ProgressList({
   )
 }
 
+function StatisticTypeSelect({
+  value,
+  onChange,
+}: {
+  value: StatisticType
+  onChange: (v: StatisticType) => void
+}) {
+  const t = useI18n()
+  return (
+    <Select value={value} onValueChange={(v) => onChange(v as StatisticType)}>
+      <SelectTrigger className="h-9 w-56">
+        <SelectValue placeholder={t.statisticPage.types.title} />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectGroup>
+          <SelectLabel>{t.statisticPage.types.title}</SelectLabel>
+          <SelectItem value="AppDuration">
+            {t.statisticPage.types.appDuration}
+          </SelectItem>
+          <SelectItem value="AppDays">
+            {t.statisticPage.types.appDays}
+          </SelectItem>
+          <SelectItem value="CategoryDuration">
+            {t.statisticPage.types.categoryDuration}
+          </SelectItem>
+          <SelectItem value="CategoryDays">
+            {t.statisticPage.types.categoryDays}
+          </SelectItem>
+          <SelectItem value="CategoryRhythm">
+            {t.statisticPage.types.categoryRhythm}
+          </SelectItem>
+        </SelectGroup>
+      </SelectContent>
+    </Select>
+  )
+}
+
 interface DurationItem {
   id: number
   name: string
@@ -194,11 +115,11 @@ interface DurationItem {
 }
 
 function useCategories() {
-  const [categories, setCategories] = useState<CategorySimple[]>([])
+  const [categories, setCategories] = useState<Category[]>([])
   useEffect(() => {
     let cancelled = false
-    void getAllCategories().then((result) => {
-      if (!cancelled) setCategories(result)
+    void getCategoryTree().then((result) => {
+      if (!cancelled) setCategories(result.children)
     })
     return () => {
       cancelled = true
@@ -207,7 +128,15 @@ function useCategories() {
   return categories
 }
 
-function AppDurationPanel({ t }: { t: ReturnType<typeof useI18n> }) {
+function AppDurationPanel({
+  t,
+  type,
+  onTypeChange,
+}: {
+  t: ReturnType<typeof useI18n>
+  type: StatisticType
+  onTypeChange: (v: StatisticType) => void
+}) {
   const categories = useCategories()
   const [range, setRange] = useState<[number, number]>(() => {
     const [s, e] = getTimeRangeByDays(1)
@@ -243,52 +172,57 @@ function AppDurationPanel({ t }: { t: ReturnType<typeof useI18n> }) {
       <Card>
         <CardContent className="flex flex-col gap-4 pt-6">
           <div className="flex flex-wrap items-end gap-4">
-            <div className="flex flex-col gap-2">
-              <span className="text-sm font-medium">
-                {t.statisticPage.label.timeRange}
-              </span>
-              <TimeRangePicker value={range} onChange={setRange} />
-            </div>
-            <div className="flex flex-col gap-2">
-              <span className="text-sm font-medium">
-                {t.statisticPage.categories.title}
-              </span>
-              <Select value={categoryId} onValueChange={setCategoryId}>
-                <SelectTrigger className="h-9 w-48">
-                  <SelectValue
-                    placeholder={t.statisticPage.categories.placeholder}
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((c) => (
-                    <SelectItem key={c.id} value={String(c.id)}>
-                      {c.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex flex-col gap-2">
-              <span className="text-sm font-medium">
-                {t.statisticPage.label.displayStyle}
-              </span>
-              <StylePicker
-                value={style}
-                options={[
-                  { label: t.statisticPage.displayStyle.pie, value: "Pie" },
-                  { label: t.statisticPage.displayStyle.bar, value: "Bar" },
-                ]}
-                onChange={setStyle}
-              />
-            </div>
+            <StatisticTypeSelect value={type} onChange={onTypeChange} />
           </div>
-          {items.length > 0 && style === "Pie" && (
+          <div className="flex flex-wrap items-end gap-4">
+            <DateRangePicker
+              value={range}
+              onChange={setRange}
+              placeholder={t.statisticPage.label.timeRange}
+            />
+            <CategoryTreeSelect
+              categories={categories}
+              value={categoryId}
+              onChange={(v) => setCategoryId(v as string)}
+              placeholder={t.statisticPage.categories.title}
+              triggerClassName="h-9 w-48"
+            />
+            <Select
+              value={style}
+              onValueChange={(v) => setStyle(v as DisplayStyle)}
+            >
+              <SelectTrigger className="h-9 w-44">
+                <SelectValue placeholder={t.statisticPage.label.displayStyle} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>
+                    {t.statisticPage.label.displayStyle}
+                  </SelectLabel>
+                  <SelectItem value="Pie">
+                    {t.statisticPage.displayStyle.pie}
+                  </SelectItem>
+                  <SelectItem value="Bar">
+                    {t.statisticPage.displayStyle.bar}
+                  </SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent>
+          {items.length === 0 ? (
+            <Empty />
+          ) : style === "Pie" ? (
             <PieChart
               data={items.map((i) => ({ name: i.name, value: i.duration }))}
               formatValue={formatDurationRough}
+              otherLabel={t.statisticPage.other}
             />
-          )}
-          {items.length > 0 && style === "Bar" && (
+          ) : (
             <BarChart
               data={items.map((i) => ({ label: i.name, value: i.duration }))}
               formatValue={formatDurationRough}
@@ -297,14 +231,9 @@ function AppDurationPanel({ t }: { t: ReturnType<typeof useI18n> }) {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">{t.statisticPage.detail}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {items.length === 0 ? (
-            <Empty />
-          ) : (
+      {items.length > 0 && (
+        <Card>
+          <CardContent>
             <ProgressList
               items={items.map((i) => ({
                 id: i.id,
@@ -314,14 +243,22 @@ function AppDurationPanel({ t }: { t: ReturnType<typeof useI18n> }) {
               }))}
               format={formatDurationRough}
             />
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
     </>
   )
 }
 
-function AppDaysPanel({ t }: { t: ReturnType<typeof useI18n> }) {
+function AppDaysPanel({
+  t,
+  type,
+  onTypeChange,
+}: {
+  t: ReturnType<typeof useI18n>
+  type: StatisticType
+  onTypeChange: (v: StatisticType) => void
+}) {
   const categories = useCategories()
   const [range, setRange] = useState<[number, number]>(() => {
     const [s, e] = getTimeRangeByDays(1)
@@ -357,52 +294,57 @@ function AppDaysPanel({ t }: { t: ReturnType<typeof useI18n> }) {
       <Card>
         <CardContent className="flex flex-col gap-4 pt-6">
           <div className="flex flex-wrap items-end gap-4">
-            <div className="flex flex-col gap-2">
-              <span className="text-sm font-medium">
-                {t.statisticPage.label.timeRange}
-              </span>
-              <TimeRangePicker value={range} onChange={setRange} />
-            </div>
-            <div className="flex flex-col gap-2">
-              <span className="text-sm font-medium">
-                {t.statisticPage.categories.title}
-              </span>
-              <Select value={categoryId} onValueChange={setCategoryId}>
-                <SelectTrigger className="h-9 w-48">
-                  <SelectValue
-                    placeholder={t.statisticPage.categories.placeholder}
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((c) => (
-                    <SelectItem key={c.id} value={String(c.id)}>
-                      {c.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex flex-col gap-2">
-              <span className="text-sm font-medium">
-                {t.statisticPage.label.displayStyle}
-              </span>
-              <StylePicker
-                value={style}
-                options={[
-                  { label: t.statisticPage.displayStyle.pie, value: "Pie" },
-                  { label: t.statisticPage.displayStyle.bar, value: "Bar" },
-                ]}
-                onChange={setStyle}
-              />
-            </div>
+            <StatisticTypeSelect value={type} onChange={onTypeChange} />
           </div>
-          {items.length > 0 && style === "Pie" && (
+          <div className="flex flex-wrap items-end gap-4">
+            <DateRangePicker
+              value={range}
+              onChange={setRange}
+              placeholder={t.statisticPage.label.timeRange}
+            />
+            <CategoryTreeSelect
+              categories={categories}
+              value={categoryId}
+              onChange={(v) => setCategoryId(v as string)}
+              placeholder={t.statisticPage.categories.title}
+              triggerClassName="h-9 w-48"
+            />
+            <Select
+              value={style}
+              onValueChange={(v) => setStyle(v as DisplayStyle)}
+            >
+              <SelectTrigger className="h-9 w-44">
+                <SelectValue placeholder={t.statisticPage.label.displayStyle} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>
+                    {t.statisticPage.label.displayStyle}
+                  </SelectLabel>
+                  <SelectItem value="Pie">
+                    {t.statisticPage.displayStyle.pie}
+                  </SelectItem>
+                  <SelectItem value="Bar">
+                    {t.statisticPage.displayStyle.bar}
+                  </SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent>
+          {items.length === 0 ? (
+            <Empty />
+          ) : style === "Pie" ? (
             <PieChart
               data={items.map((i) => ({ name: i.name, value: i.duration }))}
               formatValue={(v) => `${v} ${t.statisticPage.unit.day}`}
+              otherLabel={t.statisticPage.other}
             />
-          )}
-          {items.length > 0 && style === "Bar" && (
+          ) : (
             <BarChart
               data={items.map((i) => ({ label: i.name, value: i.duration }))}
               formatValue={(v) => `${v} ${t.statisticPage.unit.day}`}
@@ -411,14 +353,9 @@ function AppDaysPanel({ t }: { t: ReturnType<typeof useI18n> }) {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">{t.statisticPage.detail}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {items.length === 0 ? (
-            <Empty />
-          ) : (
+      {items.length > 0 && (
+        <Card>
+          <CardContent>
             <ProgressList
               items={items.map((i) => ({
                 id: i.id,
@@ -428,9 +365,9 @@ function AppDaysPanel({ t }: { t: ReturnType<typeof useI18n> }) {
               }))}
               format={(v) => `${v.toFixed(0)}${t.statisticPage.unit.day}`}
             />
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
     </>
   )
 }
@@ -438,9 +375,13 @@ function AppDaysPanel({ t }: { t: ReturnType<typeof useI18n> }) {
 function CategoryPanel({
   t,
   kind,
+  type,
+  onTypeChange,
 }: {
   t: ReturnType<typeof useI18n>
   kind: "duration" | "days"
+  type: StatisticType
+  onTypeChange: (v: StatisticType) => void
 }) {
   const categories = useCategories()
   const [range, setRange] = useState<[number, number]>(() => {
@@ -498,63 +439,58 @@ function CategoryPanel({
       <Card>
         <CardContent className="flex flex-col gap-4 pt-6">
           <div className="flex flex-wrap items-end gap-4">
-            <div className="flex flex-col gap-2">
-              <span className="text-sm font-medium">
-                {t.statisticPage.label.timeRange}
-              </span>
-              <TimeRangePicker value={range} onChange={setRange} />
-            </div>
-            <div className="flex flex-col gap-2">
-              <span className="text-sm font-medium">
-                {t.statisticPage.categories.title}
-              </span>
-              <div className="flex max-w-md flex-wrap gap-2">
-                {categories.map((c) => {
-                  const checked = categoryIds.includes(String(c.id))
-                  return (
-                    <label
-                      key={c.id}
-                      className="flex cursor-pointer items-center gap-1.5 text-sm"
-                    >
-                      <input
-                        type="checkbox"
-                        className="size-4"
-                        checked={checked}
-                        onChange={() =>
-                          setCategoryIds((prev) =>
-                            checked
-                              ? prev.filter((id) => id !== String(c.id))
-                              : [...prev, String(c.id)]
-                          )
-                        }
-                      />
-                      {c.name}
-                    </label>
-                  )
-                })}
-              </div>
-            </div>
-            <div className="flex flex-col gap-2">
-              <span className="text-sm font-medium">
-                {t.statisticPage.label.displayStyle}
-              </span>
-              <StylePicker
-                value={style}
-                options={[
-                  { label: t.statisticPage.displayStyle.pie, value: "Pie" },
-                  { label: t.statisticPage.displayStyle.bar, value: "Bar" },
-                ]}
-                onChange={setStyle}
-              />
-            </div>
+            <StatisticTypeSelect value={type} onChange={onTypeChange} />
           </div>
-          {items.length > 0 && style === "Pie" && (
+          <div className="flex flex-wrap items-end gap-4">
+            <DateRangePicker
+              value={range}
+              onChange={setRange}
+              placeholder={t.statisticPage.label.timeRange}
+            />
+            <CategoryTreeSelect
+              multiple
+              categories={categories}
+              value={categoryIds}
+              onChange={(v) => setCategoryIds(v as string[])}
+              placeholder={t.statisticPage.categories.title}
+              triggerClassName="h-9 w-64"
+            />
+            <Select
+              value={style}
+              onValueChange={(v) => setStyle(v as DisplayStyle)}
+            >
+              <SelectTrigger className="h-9 w-44">
+                <SelectValue placeholder={t.statisticPage.label.displayStyle} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>
+                    {t.statisticPage.label.displayStyle}
+                  </SelectLabel>
+                  <SelectItem value="Pie">
+                    {t.statisticPage.displayStyle.pie}
+                  </SelectItem>
+                  <SelectItem value="Bar">
+                    {t.statisticPage.displayStyle.bar}
+                  </SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent>
+          {items.length === 0 ? (
+            <Empty />
+          ) : style === "Pie" ? (
             <PieChart
               data={items.map((i) => ({ name: i.name, value: i.duration }))}
               formatValue={formatValue}
+              otherLabel={t.statisticPage.other}
             />
-          )}
-          {items.length > 0 && style === "Bar" && (
+          ) : (
             <BarChart
               data={items.map((i) => ({ label: i.name, value: i.duration }))}
               formatValue={formatValue}
@@ -563,14 +499,9 @@ function CategoryPanel({
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">{t.statisticPage.detail}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {items.length === 0 ? (
-            <Empty />
-          ) : (
+      {items.length > 0 && (
+        <Card>
+          <CardContent>
             <ProgressList
               items={items.map((i) => ({
                 id: i.id,
@@ -580,9 +511,9 @@ function CategoryPanel({
               }))}
               format={formatList}
             />
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
     </>
   )
 }
@@ -593,7 +524,15 @@ interface RhythmGroupState {
   categoryId: string
 }
 
-function CategoryRhythmPanel({ t }: { t: ReturnType<typeof useI18n> }) {
+function CategoryRhythmPanel({
+  t,
+  type,
+  onTypeChange,
+}: {
+  t: ReturnType<typeof useI18n>
+  type: StatisticType
+  onTypeChange: (v: StatisticType) => void
+}) {
   const categories = useCategories()
   const [timeSpan, setTimeSpan] = useState<TimeSpan>("day")
   const [granularity, setGranularity] = useState(MILLISECONDS_PER_HOUR)
@@ -701,200 +640,188 @@ function CategoryRhythmPanel({ t }: { t: ReturnType<typeof useI18n> }) {
   }, [chartData])
 
   return (
-    <Card>
-      <CardContent className="flex flex-col gap-4 pt-6">
-        <div className="flex flex-wrap items-end gap-4">
-          <div className="flex flex-col gap-2">
-            <span className="text-sm font-medium">
-              {t.statisticPage.label.timeSpan}
-            </span>
-            <div className="flex gap-1">
-              <Button
-                size="sm"
-                variant={timeSpan === "day" ? "default" : "outline"}
-                onClick={() => setTimeSpan("day")}
-              >
-                {t.statisticPage.timeSpan.day}
-              </Button>
-              <Button
-                size="sm"
-                variant={timeSpan === "week" ? "default" : "outline"}
-                onClick={() => setTimeSpan("week")}
-              >
-                {t.statisticPage.timeSpan.week}
-              </Button>
-            </div>
+    <>
+      <Card>
+        <CardContent className="flex flex-col gap-4 pt-6">
+          <div className="flex flex-wrap items-end gap-4">
+            <StatisticTypeSelect value={type} onChange={onTypeChange} />
           </div>
-          <div className="flex flex-col gap-2">
-            <span className="text-sm font-medium">
-              {t.statisticPage.label.granularity}
-            </span>
+          <div className="flex flex-wrap items-end gap-4">
+            <Select
+              value={timeSpan}
+              onValueChange={(v) => setTimeSpan(v as TimeSpan)}
+            >
+              <SelectTrigger className="h-9 w-36">
+                <SelectValue placeholder={t.statisticPage.label.timeSpan} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>{t.statisticPage.label.timeSpan}</SelectLabel>
+                  <SelectItem value="day">
+                    {t.statisticPage.timeSpan.day}
+                  </SelectItem>
+                  <SelectItem value="week">
+                    {t.statisticPage.timeSpan.week}
+                  </SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
             <Select
               value={String(granularity)}
               onValueChange={(v) => setGranularity(Number(v))}
             >
-              <SelectTrigger className="h-9 w-36">
-                <SelectValue />
+              <SelectTrigger className="h-9 w-44">
+                <SelectValue placeholder={t.statisticPage.label.granularity} />
               </SelectTrigger>
               <SelectContent>
-                {granularityOptions.map((opt) => (
-                  <SelectItem key={opt.value} value={String(opt.value)}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex flex-col gap-2">
-            <span className="text-sm font-medium">
-              {t.statisticPage.label.displayStyle}
-            </span>
-            <StylePicker
-              value={style}
-              options={[
-                { label: t.statisticPage.displayStyle.radar, value: "radar" },
-                { label: t.statisticPage.displayStyle.bar, value: "Bar" },
-              ]}
-              onChange={setStyle}
-            />
-          </div>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => {
-              const end = new Date()
-              end.setHours(24, 0, 0, 0)
-              const start = new Date(end.getTime() - 7 * MILLISECONDS_PER_DAY)
-              setGroups((prev) => [
-                ...prev,
-                { start: start.getTime(), end: end.getTime(), categoryId: "" },
-              ])
-            }}
-          >
-            <Plus data-icon="inline-start" />
-            {t.statisticPage.group.add}
-          </Button>
-        </div>
-
-        <div className="flex flex-col gap-2">
-          {groups.map((group, gi) => (
-            <div
-              key={gi}
-              className="flex flex-wrap items-center gap-3 rounded-md border p-3"
-            >
-              <span className="text-sm text-muted-foreground">
-                {t.statisticPage.group.timeRange}
-              </span>
-              <input
-                type="date"
-                className="h-8 rounded-md border bg-transparent px-2 text-sm"
-                value={startToInput(group.start)}
-                onChange={(e) =>
-                  setGroups((prev) =>
-                    prev.map((g, i) =>
-                      i === gi
-                        ? { ...g, start: inputToStart(e.target.value) }
-                        : g
-                    )
-                  )
-                }
-              />
-              <span className="text-muted-foreground">~</span>
-              <input
-                type="date"
-                className="h-8 rounded-md border bg-transparent px-2 text-sm"
-                value={endToInput(group.end)}
-                onChange={(e) =>
-                  setGroups((prev) =>
-                    prev.map((g, i) =>
-                      i === gi ? { ...g, end: inputToEnd(e.target.value) } : g
-                    )
-                  )
-                }
-              />
-              <span className="text-sm text-muted-foreground">
-                {t.statisticPage.group.category}
-              </span>
-              <Select
-                value={group.categoryId}
-                onValueChange={(v) =>
-                  setGroups((prev) =>
-                    prev.map((g, i) => (i === gi ? { ...g, categoryId: v } : g))
-                  )
-                }
-              >
-                <SelectTrigger className="h-8 w-40">
-                  <SelectValue placeholder={t.statisticPage.categories.all} />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((c) => (
-                    <SelectItem key={c.id} value={String(c.id)}>
-                      {c.name}
+                <SelectGroup>
+                  <SelectLabel>{t.statisticPage.label.granularity}</SelectLabel>
+                  {granularityOptions.map((opt) => (
+                    <SelectItem key={opt.value} value={String(opt.value)}>
+                      {opt.label}
                     </SelectItem>
                   ))}
-                </SelectContent>
-              </Select>
-              <Button
-                size="sm"
-                variant="ghost"
-                className="text-destructive"
-                onClick={() =>
-                  setGroups((prev) => prev.filter((_, i) => i !== gi))
-                }
-              >
-                <Trash2 className="size-4" />
-              </Button>
-            </div>
-          ))}
-        </div>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+            <Select
+              value={style}
+              onValueChange={(v) => setStyle(v as DisplayStyle)}
+            >
+              <SelectTrigger className="h-9 w-44">
+                <SelectValue placeholder={t.statisticPage.label.displayStyle} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>
+                    {t.statisticPage.label.displayStyle}
+                  </SelectLabel>
+                  <SelectItem value="radar">
+                    {t.statisticPage.displayStyle.radar}
+                  </SelectItem>
+                  <SelectItem value="Bar">
+                    {t.statisticPage.displayStyle.bar}
+                  </SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                const end = new Date()
+                end.setHours(24, 0, 0, 0)
+                const start = new Date(end.getTime() - 7 * MILLISECONDS_PER_DAY)
+                setGroups((prev) => [
+                  ...prev,
+                  {
+                    start: start.getTime(),
+                    end: end.getTime(),
+                    categoryId: "",
+                  },
+                ])
+              }}
+            >
+              <Plus data-icon="inline-start" />
+              {t.statisticPage.group.add}
+            </Button>
+          </div>
 
-        {points.length === 0 ? (
-          <Empty />
-        ) : style === "Bar" ? (
-          <BarChart
-            data={points.map((p) => ({
-              label: String(p.index),
-              group: String(p.group),
-              value: p.value,
-            }))}
-            formatValue={(v) =>
-              formatDurationRough(v * MILLISECONDS_PER_MINUTE)
-            }
-          />
-        ) : (
-          <RadarChart
-            data={points.map((p) => ({
-              time:
-                (p.index /
-                  ((timeSpan === "day"
-                    ? MILLISECONDS_PER_DAY
-                    : 7 * MILLISECONDS_PER_DAY) /
-                    granularity)) *
-                (timeSpan === "day" ? 24 : 168),
-              tag: String(p.group),
-              value: p.value,
-            }))}
-            domain={timeSpan === "day" ? [0, 24] : [0, 168]}
-            formatValue={(v) =>
-              formatDurationRough(v * MILLISECONDS_PER_MINUTE)
-            }
-            timeFormatter={
-              timeSpan === "day"
-                ? formatTimeOfDay
-                : (t) => `${Math.floor(t / 24)}d ${formatTimeOfDay(t % 24)}`
-            }
-            ticks={
-              timeSpan === "day"
-                ? undefined
-                : Array.from({ length: 8 }, (_, i) => ({
-                    value: i * 24,
-                    label: `${i}d`,
-                  }))
-            }
-          />
-        )}
-      </CardContent>
-    </Card>
+          <div className="flex flex-col gap-2">
+            {groups.map((group, gi) => (
+              <div
+                key={gi}
+                className="flex flex-wrap items-center gap-3 rounded-md border p-3"
+              >
+                <DateRangePicker
+                  value={[group.start, group.end]}
+                  showShortcuts={false}
+                  placeholder={t.statisticPage.group.timeRange}
+                  onChange={([start, end]) =>
+                    setGroups((prev) =>
+                      prev.map((g, i) => (i === gi ? { ...g, start, end } : g))
+                    )
+                  }
+                />
+                <CategoryTreeSelect
+                  categories={categories}
+                  value={group.categoryId}
+                  onChange={(v) =>
+                    setGroups((prev) =>
+                      prev.map((g, i) =>
+                        i === gi ? { ...g, categoryId: v as string } : g
+                      )
+                    )
+                  }
+                  placeholder={t.statisticPage.group.category}
+                  triggerClassName="h-8 w-44"
+                />
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="text-destructive"
+                  onClick={() =>
+                    setGroups((prev) => prev.filter((_, i) => i !== gi))
+                  }
+                >
+                  <Trash2 className="size-4" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent>
+          {points.length === 0 ? (
+            <Empty />
+          ) : style === "Bar" ? (
+            <BarChart
+              data={points.map((p) => ({
+                label: String(p.index),
+                group: String(p.group),
+                value: p.value,
+              }))}
+              formatValue={(v) =>
+                formatDurationRough(v * MILLISECONDS_PER_MINUTE)
+              }
+            />
+          ) : (
+            <RadarChart
+              data={points.map((p) => ({
+                time:
+                  (p.index /
+                    ((timeSpan === "day"
+                      ? MILLISECONDS_PER_DAY
+                      : 7 * MILLISECONDS_PER_DAY) /
+                      granularity)) *
+                  (timeSpan === "day" ? 24 : 168),
+                tag: String(p.group),
+                value: p.value,
+              }))}
+              domain={timeSpan === "day" ? [0, 24] : [0, 168]}
+              formatValue={(v) =>
+                formatDurationRough(v * MILLISECONDS_PER_MINUTE)
+              }
+              timeFormatter={
+                timeSpan === "day"
+                  ? formatTimeOfDay
+                  : (t) => `${Math.floor(t / 24)}d ${formatTimeOfDay(t % 24)}`
+              }
+              ticks={
+                timeSpan === "day"
+                  ? undefined
+                  : Array.from({ length: 8 }, (_, i) => ({
+                      value: i * 24,
+                      label: `${i}d`,
+                    }))
+              }
+            />
+          )}
+        </CardContent>
+      </Card>
+    </>
   )
 }
 
@@ -904,50 +831,23 @@ export function Statistic() {
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-4 p-4">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">
-            {t.statisticPage.types.title}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Select
-            value={type}
-            onValueChange={(v) => setType(v as StatisticType)}
-          >
-            <SelectTrigger className="w-56">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="AppDuration">
-                {t.statisticPage.types.appDuration}
-              </SelectItem>
-              <SelectItem value="AppDays">
-                {t.statisticPage.types.appDays}
-              </SelectItem>
-              <SelectItem value="CategoryDuration">
-                {t.statisticPage.types.categoryDuration}
-              </SelectItem>
-              <SelectItem value="CategoryDays">
-                {t.statisticPage.types.categoryDays}
-              </SelectItem>
-              <SelectItem value="CategoryRhythm">
-                {t.statisticPage.types.categoryRhythm}
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </CardContent>
-      </Card>
-
-      {type === "AppDuration" && <AppDurationPanel t={t} />}
-      {type === "AppDays" && <AppDaysPanel t={t} />}
+      {type === "AppDuration" && (
+        <AppDurationPanel t={t} type={type} onTypeChange={setType} />
+      )}
+      {type === "AppDays" && (
+        <AppDaysPanel t={t} type={type} onTypeChange={setType} />
+      )}
       {(type === "CategoryDuration" || type === "CategoryDays") && (
         <CategoryPanel
           t={t}
           kind={type === "CategoryDuration" ? "duration" : "days"}
+          type={type}
+          onTypeChange={setType}
         />
       )}
-      {type === "CategoryRhythm" && <CategoryRhythmPanel t={t} />}
+      {type === "CategoryRhythm" && (
+        <CategoryRhythmPanel t={t} type={type} onTypeChange={setType} />
+      )}
     </div>
   )
 }
