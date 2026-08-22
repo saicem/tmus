@@ -8,6 +8,7 @@ mod output;
 use crate::app::constant::{data_dir, APP_NAME};
 use crate::cmd::read_by_timestamp;
 use output::{format_duration, format_timestamp, print_json, print_table};
+use tmus_engine::storage::focus_app;
 use tmus_engine::util::Timestamp;
 use tmus_engine::{engine_start, EngineMode};
 
@@ -283,7 +284,7 @@ fn records(args: RecordsArgs, json: bool) -> Result<(), String> {
 
     let mut records = read_by_timestamp(start_ts, end_ts);
     if let Some(app_id) = args.app_id {
-        records.retain(|r| r.id == app_id);
+        records.retain(|r| r.id == focus_app::get_canonical_id(app_id));
     }
     if let Some(limit) = args.limit {
         records.truncate(limit);

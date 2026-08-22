@@ -3,6 +3,7 @@ use crate::util::date_str_from_days;
 use serde::{Deserialize, Serialize};
 use std::cmp::max;
 use tmus_engine::models::FocusRecord;
+use tmus_engine::storage::focus_app;
 use tmus_engine::util::{d_as_ms, ms_as_d, ms_as_m, Timestamp};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -32,12 +33,15 @@ pub struct AppDurationAreaRequest {
 #[tauri::command]
 #[tracing::instrument(skip(request))]
 pub async fn get_app_duration_area(request: AppDurationAreaRequest) -> AppDurationAreaModel {
+    // Resolve any versioned Store app id to the representative id so the
+    // detail view covers usage recorded across app updates.
+    let app_id = focus_app::get_canonical_id(request.app_id);
     let result: Vec<FocusRecord> = timezone_convert(
         read_by_timestamp(request.start_timestamp, request.end_timestamp),
         request.timezone_offset,
     )
     .into_iter()
-    .filter(|x| x.id == request.app_id)
+    .filter(|x| x.id == app_id)
     .collect();
     AppDurationAreaModel {
         app_id: request.app_id,

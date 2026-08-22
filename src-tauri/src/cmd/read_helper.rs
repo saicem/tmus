@@ -34,7 +34,17 @@ pub fn read_by_timestamp(start_timestamp: Timestamp, end_timestamp: Timestamp) -
         end_timestamp,
         rough_records.len()
     );
-    trim_focus_records(rough_records, start_timestamp, end_timestamp)
+    let mut records = trim_focus_records(rough_records, start_timestamp, end_timestamp);
+    // MSIX/Store apps get a new versioned path on every update, which creates
+    // a new app id for the same logical app. Remap all ids to the newest id of
+    // their version-independent path group so statistics merge the versions.
+    let canonical_id_map = storage::focus_app::get_canonical_id_map();
+    for record in records.iter_mut() {
+        if let Some(canonical_id) = canonical_id_map.get(record.id) {
+            record.id = *canonical_id;
+        }
+    }
+    records
 }
 
 /// Trims focus records to retain only those within the specified time range.

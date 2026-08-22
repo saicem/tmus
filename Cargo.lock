@@ -4755,6 +4755,7 @@ name = "tmus-engine"
 version = "0.1.1"
 dependencies = [
  "memmap2",
+ "regex",
  "serde",
  "tokio",
  "tracing",

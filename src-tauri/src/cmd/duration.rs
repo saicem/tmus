@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::ops::Not;
 use tmus_engine::models::{AppId, FocusRecord};
+use tmus_engine::storage::focus_app;
 use tmus_engine::util::Timestamp;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -90,6 +91,11 @@ pub async fn query_duration_statistic(
     let mut raw_data = read_by_timestamp(request.start_timestamp, request.end_timestamp);
 
     if let Some(selected_app_ids) = request.app_ids {
+        let canonical_id_map = focus_app::get_canonical_id_map();
+        let selected_app_ids: HashSet<AppId> = selected_app_ids
+            .into_iter()
+            .map(|id| canonical_id_map.get(id).copied().unwrap_or(id))
+            .collect();
         raw_data.retain(|record| selected_app_ids.contains(&record.id));
     }
 

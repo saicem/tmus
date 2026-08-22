@@ -1,5 +1,6 @@
 use super::models::AppId;
 use crate::storage::FILE_SHARE_READ;
+use regex::Regex;
 use std::collections::HashMap;
 use std::fs::{File, OpenOptions};
 use std::io::{Read, Write};
@@ -101,6 +102,53 @@ pub fn get_all_app() -> Vec<String> {
     get_state().id_path_map.lock().unwrap().to_owned()
 }
 
+/// WindowsApps (MSIX/Store) install paths use the Package Full Name layout:
+/// `...\WindowsApps\<PackageName>_<Version>_<Architecture>__<PublisherId>\...`
+/// e.g. `OpenAI.Codex_26.818.2441.0_x64__2p2nqsd0c76g0`.
+///
+/// Only `<Version>` and `<Architecture>` change on app updates; the stable
+/// identity is the Package Family Name `<PackageName>_<PublisherId>`.
+/// Normalizing to it keeps one logical app on one id across updates:
+/// `...\WindowsApps\OpenAI.Codex_26.818.2441.0_x64__2p2nqsd0c76g0\app\ChatGPT.exe`
+/// becomes `...\WindowsApps\OpenAI.Codex_2p2nqsd0c76g0\app\ChatGPT.exe`.
+/// The in-package path is preserved so distinct apps shipped in one package
+/// (e.g. two entry points of NanaZip) stay separate.
+fn normalize_store_app_path(path: &str) -> String {
+    static PACKAGE_SEGMENT: OnceLock<Regex> = OnceLock::new();
+    let re = PACKAGE_SEGMENT.get_or_init(|| {
+        Regex::new(
+            r#"(?i)(\\WindowsApps\\[^\\]+?)_\d+(?:\.\d+)+_(?:x86|x64|arm|arm64|x86a64|neutral)__([0-9a-z]+)((?:\\[^\\]+)*)"#,
+        )
+        .expect("invalid WindowsApps package path regex")
+    });
+    re.replace_all(path, "${1}_${2}${3}").into_owned()
+}
+
+fn build_canonical_id_map(id_path_map: &[String]) -> Vec<AppId> {
+    let mut canonical_by_path: HashMap<String, AppId> = HashMap::new();
+    for (id, path) in id_path_map.iter().enumerate() {
+        canonical_by_path.insert(normalize_store_app_path(path), id);
+    }
+    id_path_map
+        .iter()
+        .map(|path| canonical_by_path[&normalize_store_app_path(path)])
+        .collect()
+}
+
+/// Build a map from every app id to the representative id of its
+/// version-independent path group. Because the group is iterated in id order,
+/// the newest id of each group wins, so all versions of a Store app share one
+/// representative id for statistics.
+pub fn get_canonical_id_map() -> Vec<AppId> {
+    build_canonical_id_map(&get_state().id_path_map.lock().unwrap())
+}
+
+/// Resolve any app id to the representative id of its Store app group.
+/// Ids outside the map (unreachable in practice) are returned unchanged.
+pub fn get_canonical_id(id: AppId) -> AppId {
+    get_canonical_id_map().get(id).copied().unwrap_or(id)
+}
+
 /// Returns the app id which was written.
 fn write_app(name: &str) -> AppId {
     info!("New app found, write app: {}", name);
@@ -130,4 +178,70 @@ fn read_apps(file: &mut File) -> Vec<String> {
         .filter(|x| !x.is_empty())
         .map(|x| x.to_owned())
         .collect::<Vec<String>>()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_normalize_store_app_path() {
+        assert_eq!(
+            normalize_store_app_path(
+                r"C:\Program Files\WindowsApps\OpenAI.Codex_26.818.2441.0_x64__2p2nqsd0c76g0\app\ChatGPT.exe"
+            ),
+            r"C:\Program Files\WindowsApps\OpenAI.Codex_2p2nqsd0c76g0\app\ChatGPT.exe"
+        );
+        // Version and architecture are stripped; publisher id and subpath stay.
+        assert_eq!(
+            normalize_store_app_path(
+                r"C:\Program Files\WindowsApps\OpenAI.Codex_26.519.5221.0_x64__2p2nqsd0c76g0\app\Codex.exe"
+            ),
+            r"C:\Program Files\WindowsApps\OpenAI.Codex_2p2nqsd0c76g0\app\Codex.exe"
+        );
+        // Case-insensitive WindowsApps directory, neutral / x86a64 architectures.
+        assert_eq!(
+            normalize_store_app_path(
+                r"C:\Program Files\windowsapps\Microsoft.WindowsTerminal_1.20.3181.0_neutral__8wekyb3d8bbwe\WindowsTerminal.exe"
+            ),
+            r"C:\Program Files\windowsapps\Microsoft.WindowsTerminal_8wekyb3d8bbwe\WindowsTerminal.exe"
+        );
+        assert_eq!(
+            normalize_store_app_path(
+                r"C:\Program Files\WindowsApps\OpenAI.Codex_26.818.2441.0_x86a64__2p2nqsd0c76g0\app\ChatGPT.exe"
+            ),
+            r"C:\Program Files\WindowsApps\OpenAI.Codex_2p2nqsd0c76g0\app\ChatGPT.exe"
+        );
+        // Version-looking digits inside the package name must not confuse the split.
+        assert_eq!(
+            normalize_store_app_path(
+                r"C:\Program Files\WindowsApps\Microsoft.Windows.Photos_2025.11030.27002.0_x64__8wekyb3d8bbwe\Photos.exe"
+            ),
+            r"C:\Program Files\WindowsApps\Microsoft.Windows.Photos_8wekyb3d8bbwe\Photos.exe"
+        );
+        // Paths without the Store layout are untouched.
+        assert_eq!(
+            normalize_store_app_path(r"D:\Tools\Codex\Codex.exe"),
+            r"D:\Tools\Codex\Codex.exe"
+        );
+        assert_eq!(
+            normalize_store_app_path(r"C:\Windows\System32\notepad.exe"),
+            r"C:\Windows\System32\notepad.exe"
+        );
+    }
+
+    #[test]
+    fn test_build_canonical_id_map() {
+        let paths = vec![
+            r"C:\Program Files\WindowsApps\OpenAI.Codex_26.818.2441.0_x64__2p2nqsd0c76g0\app\ChatGPT.exe".to_owned(),
+            r"D:\Tools\Notepad\notepad.exe".to_owned(),
+            r"C:\Program Files\WindowsApps\OpenAI.Codex_26.818.5229.0_x64__2p2nqsd0c76g0\app\ChatGPT.exe".to_owned(),
+            r"C:\Program Files\WindowsApps\OpenAI.Codex_26.818.3698.0_x64__2p2nqsd0c76g0\app\ChatGPT.exe".to_owned(),
+            r"C:\Program Files\WindowsApps\OpenAI.Codex_26.519.5221.0_x64__2p2nqsd0c76g0\app\Codex.exe".to_owned(),
+        ];
+        let map = build_canonical_id_map(&paths);
+        // All versions of the same in-package executable resolve to the newest
+        // id (3); the renamed entry point (Codex.exe) and other apps stay as-is.
+        assert_eq!(map, vec![3, 1, 3, 3, 4]);
+    }
 }
