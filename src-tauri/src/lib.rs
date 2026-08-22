@@ -75,6 +75,7 @@ pub async fn run_gui_mode(cli: Cli) {
         ))
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_os::init())
+        .plugin(tauri_plugin_clipboard_manager::init())
         .setup(move |app| setup(app, cli.nw))
         .invoke_handler(cmd::handler())
         .build(tauri::generate_context!())

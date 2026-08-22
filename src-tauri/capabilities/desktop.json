@@ -2,12 +2,8 @@
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "desktop-capability",
   "local": true,
-  "platforms": [
-    "windows"
-  ],
-  "windows": [
-    "main"
-  ],
+  "platforms": ["windows"],
+  "windows": ["main"],
   "permissions": [
     "core:default",
     "core:window:allow-create",
@@ -50,6 +46,7 @@
     "os:allow-locale",
     "os:default",
     "dialog:default",
+    "clipboard-manager:allow-write-text",
     "updater:default"
   ]
 }

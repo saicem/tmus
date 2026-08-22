@@ -1,18 +1,22 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import {
-  flexRender,
+  columnFilteringFeature,
+  columnVisibilityFeature,
+  createColumnHelper,
+  createFilteredRowModel,
+  createSortedRowModel,
+  filterFn_includesString,
+  FlexRender,
+  globalFilteringFeature,
+  rowSortingFeature,
+  sortFn_alphanumeric,
+  tableFeatures,
+  useTable,
+  type Column,
   type ColumnFiltersState,
   type SortingState,
 } from "@tanstack/react-table"
-import {
-  getCoreRowModel,
-  getFilteredRowModel,
-  getSortedRowModel,
-  useLegacyTable,
-  type LegacyColumn,
-  type LegacyColumnDef,
-} from "@tanstack/react-table/legacy"
 import {
   ArrowDown,
   ArrowUp,
@@ -40,24 +44,74 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { AppIcon } from "@/components/common/AppIcon"
+import { writeText } from "@tauri-apps/plugin-clipboard-manager"
+import { toast } from "sonner"
 import { getAppDetailMap, showInFolder } from "@/lib/cmd"
 import { useI18n } from "@/lib/i18n"
 import type { FileDetail } from "@/lib/models"
 import { useAppStore } from "@/lib/state"
+import { cn } from "@/lib/utils"
 
-const DEFAULT_COLUMN_WIDTHS: Record<string, number> = {
-  name: 120,
-  company: 90,
-  path: 320,
-  actions: 110,
+const features = tableFeatures({
+  columnFilteringFeature,
+  globalFilteringFeature,
+  columnVisibilityFeature,
+  rowSortingFeature,
+  filteredRowModel: createFilteredRowModel(),
+  sortedRowModel: createSortedRowModel(),
+  filterFns: { includesString: filterFn_includesString },
+  sortFns: { alphanumeric: sortFn_alphanumeric },
+})
+
+const columnHelper = createColumnHelper<typeof features, FileDetail>()
+
+function TruncatedText({
+  text,
+  className,
+}: {
+  text: string
+  className?: string
+}) {
+  const ref = useRef<HTMLSpanElement>(null)
+  const [truncated, setTruncated] = useState(false)
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const update = () => setTruncated(el.scrollWidth > el.clientWidth + 1)
+    update()
+    const observer = new ResizeObserver(update)
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [text])
+
+  const content = (
+    <span ref={ref} className={cn("truncate", className)}>
+      {text}
+    </span>
+  )
+
+  if (!truncated) return content
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>{content}</TooltipTrigger>
+      <TooltipContent className="break-words">{text}</TooltipContent>
+    </Tooltip>
+  )
 }
 
-function SortableHeader({
+function SortableHeader<TValue>({
   column,
   title,
 }: {
-  column: LegacyColumn<FileDetail, unknown>
+  column: Column<typeof features, FileDetail, TValue>
   title: string
 }) {
   const sorted = column.getIsSorted()
@@ -65,10 +119,10 @@ function SortableHeader({
     <Button
       variant="ghost"
       size="sm"
-      className="-ml-3 h-7 px-2 font-medium"
+      className="-ml-3 h-7 max-w-full px-2 font-medium"
       onClick={() => column.toggleSorting(sorted === "asc")}
     >
-      {title}
+      <TruncatedText text={title} className="min-w-0" />
       {sorted === "asc" ? (
         <ArrowUp className="ml-1 size-3" />
       ) : sorted === "desc" ? (
@@ -77,38 +131,6 @@ function SortableHeader({
         <ArrowUpDown className="ml-1 size-3" />
       )}
     </Button>
-  )
-}
-
-function ColumnResizer({
-  width,
-  onWidth,
-  title,
-}: {
-  width: number
-  onWidth: (w: number) => void
-  title: string
-}) {
-  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    e.preventDefault()
-    e.stopPropagation()
-    const startX = e.clientX
-    const onMove = (ev: MouseEvent) => {
-      onWidth(Math.max(60, width + ev.clientX - startX))
-    }
-    const onUp = () => {
-      window.removeEventListener("mousemove", onMove)
-      window.removeEventListener("mouseup", onUp)
-    }
-    window.addEventListener("mousemove", onMove)
-    window.addEventListener("mouseup", onUp)
-  }
-  return (
-    <div
-      onMouseDown={handleMouseDown}
-      className="absolute inset-y-0 right-0 w-1 cursor-col-resize bg-transparent transition-colors hover:bg-primary"
-      title={title}
-    />
   )
 }
 
@@ -121,9 +143,6 @@ export function Application() {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [globalFilter, setGlobalFilter] = useState("")
   const [columnVisibility, setColumnVisibility] = useState({})
-  const [columnWidths, setColumnWidths] = useState<Record<string, number>>(
-    DEFAULT_COLUMN_WIDTHS
-  )
   const tableScrollRef = useRef<HTMLDivElement>(null)
   const [showLeftShadow, setShowLeftShadow] = useState(false)
   const [showRightShadow, setShowRightShadow] = useState(false)
@@ -144,7 +163,7 @@ export function Application() {
     const tableEl = el.querySelector("table")
     if (tableEl) observer.observe(tableEl)
     return () => observer.disconnect()
-  }, [updateScrollShadows, apps, columnWidths])
+  }, [updateScrollShadows, apps])
 
   useEffect(() => {
     let cancelled = false
@@ -163,106 +182,116 @@ export function Application() {
 
   const openDetail = (id: number) => navigate(`/detail/${id}`)
 
-  const setColumnWidth = (id: string) => (width: number) =>
-    setColumnWidths((prev) => ({ ...prev, [id]: width }))
-
-  const columns = useMemo<LegacyColumnDef<FileDetail>[]>(
-    () => [
-      {
-        id: "name",
-        accessorKey: "name",
-        header: ({ column }) => (
-          <SortableHeader column={column} title={t.navigateMenu.application} />
-        ),
-        cell: ({ row }) => {
-          const app = row.original
-          return (
-            <span className="flex min-w-0 items-center gap-2">
-              <AppIcon icon={app.icon} exist={app.exist} size={16} />
-              <span
-                className={`truncate ${
-                  app.exist ? "" : "text-muted-foreground line-through"
-                }`}
-              >
-                {app.name}
+  const columns = useMemo(
+    () =>
+      columnHelper.columns([
+        columnHelper.accessor("name", {
+          id: "name",
+          header: ({ column }) => (
+            <SortableHeader
+              column={column}
+              title={t.navigateMenu.application}
+            />
+          ),
+          cell: ({ row }) => {
+            const app = row.original
+            return (
+              <span className="flex min-w-0 items-center gap-2">
+                <AppIcon icon={app.icon} exist={app.exist} size={16} />
+                <TruncatedText
+                  text={app.name}
+                  className={
+                    app.exist ? "" : "text-muted-foreground line-through"
+                  }
+                />
               </span>
-            </span>
-          )
-        },
-      },
-      {
-        id: "company",
-        accessorFn: (row) => row.version?.companyName ?? "",
-        header: ({ column }) => (
-          <SortableHeader column={column} title={t.applicationPage.company} />
-        ),
-        cell: ({ row }) => (
-          <span className="text-muted-foreground">
-            {row.original.version?.companyName ?? "-"}
-          </span>
-        ),
-      },
-      {
-        id: "path",
-        accessorKey: "path",
-        header: ({ column }) => (
-          <SortableHeader column={column} title={t.applicationPage.path} />
-        ),
-        cell: ({ row }) => (
-          <span className="block max-w-80 truncate text-muted-foreground">
-            {row.original.path}
-          </span>
-        ),
-      },
-      {
-        id: "actions",
-        enableSorting: false,
-        enableHiding: false,
-        cell: ({ row }) => {
-          const app = row.original
-          return (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="size-8 p-0">
-                  <span className="sr-only">{t.applicationPage.openMenu}</span>
-                  <MoreHorizontal />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>
-                  {t.applicationPage.operations}
-                </DropdownMenuLabel>
-                <DropdownMenuItem onClick={() => openDetail(app.id)}>
-                  {t.applicationPage.details}
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  disabled={!app.exist}
-                  onClick={() => app.exist && showInFolder(app.path)}
-                >
-                  {t.applicationPage.showInFolder}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )
-        },
-      },
-    ],
+            )
+          },
+        }),
+        columnHelper.accessor((row) => row.version?.companyName ?? "", {
+          id: "company",
+          header: ({ column }) => (
+            <SortableHeader column={column} title={t.applicationPage.company} />
+          ),
+          cell: ({ row }) => (
+            <TruncatedText
+              text={row.original.version?.companyName ?? "-"}
+              className="block text-muted-foreground"
+            />
+          ),
+        }),
+        columnHelper.accessor("path", {
+          id: "path",
+          header: ({ column }) => (
+            <SortableHeader column={column} title={t.applicationPage.path} />
+          ),
+          cell: ({ row }) => (
+            <TruncatedText
+              text={row.original.path}
+              className="block text-muted-foreground"
+            />
+          ),
+        }),
+        columnHelper.display({
+          id: "actions",
+          enableSorting: false,
+          enableHiding: false,
+          cell: ({ row }) => {
+            const app = row.original
+            return (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="size-8 p-0">
+                    <span className="sr-only">
+                      {t.applicationPage.openMenu}
+                    </span>
+                    <MoreHorizontal />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>
+                    {t.applicationPage.operations}
+                  </DropdownMenuLabel>
+                  <DropdownMenuItem onClick={() => openDetail(app.id)}>
+                    {t.applicationPage.details}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={async () => {
+                      try {
+                        await writeText(app.path)
+                        toast.success(t.applicationPage.copyPathSuccess)
+                      } catch {
+                        toast.error(t.applicationPage.copyPathError)
+                      }
+                    }}
+                  >
+                    {t.applicationPage.copyPath}
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    disabled={!app.exist}
+                    onClick={() => app.exist && showInFolder(app.path)}
+                  >
+                    {t.applicationPage.showInFolder}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )
+          },
+        }),
+      ]),
     [t, navigate]
   )
 
-  const table = useLegacyTable({
+  const table = useTable({
+    features,
     data: apps,
     columns,
     state: { sorting, columnFilters, globalFilter, columnVisibility },
-    enableColumnResizing: true,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onGlobalFilterChange: setGlobalFilter,
     onColumnVisibilityChange: setColumnVisibility,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
     globalFilterFn: "includesString",
   })
 
@@ -322,29 +351,14 @@ export function Application() {
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => {
-                    const id = header.column.id
-                    const width = columnWidths[id] ?? 150
-                    return (
-                      <TableHead
-                        key={header.id}
-                        className="sticky top-0 z-10 bg-background"
-                        style={{ width }}
-                      >
-                        {flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                        {header.column.getCanResize() && (
-                          <ColumnResizer
-                            width={width}
-                            onWidth={setColumnWidth(id)}
-                            title={t.applicationPage.dragToResize}
-                          />
-                        )}
-                      </TableHead>
-                    )
-                  })}
+                  {headerGroup.headers.map((header) => (
+                    <TableHead
+                      key={header.id}
+                      className="sticky top-0 z-10 bg-background"
+                    >
+                      <FlexRender header={header} />
+                    </TableHead>
+                  ))}
                 </TableRow>
               ))}
             </TableHeader>
@@ -362,14 +376,8 @@ export function Application() {
                 table.getRowModel().rows.map((row) => (
                   <TableRow key={row.id}>
                     {row.getVisibleCells().map((cell) => (
-                      <TableCell
-                        key={cell.id}
-                        style={{ width: columnWidths[cell.column.id] ?? 150 }}
-                      >
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
+                      <TableCell key={cell.id}>
+                        <FlexRender cell={cell} />
                       </TableCell>
                     ))}
                   </TableRow>

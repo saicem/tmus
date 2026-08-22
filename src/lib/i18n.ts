@@ -119,8 +119,10 @@ interface I18nMessageType {
     openMenu: string
     path: string
     details: string
+    copyPath: string
+    copyPathSuccess: string
+    copyPathError: string
     showInFolder: string
-    dragToResize: string
     deleted: string
     count: string
   }
@@ -352,8 +354,10 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
       openMenu: "Open menu",
       path: "Path",
       details: "Details",
+      copyPath: "Copy Path",
+      copyPathSuccess: "Path copied",
+      copyPathError: "Failed to copy path",
       showInFolder: "Show in folder",
-      dragToResize: "Drag to resize",
       deleted: "Deleted",
       count: "apps",
     },
@@ -598,8 +602,10 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
       openMenu: "打开菜单",
       path: "路径",
       details: "详情",
+      copyPath: "复制路径",
+      copyPathSuccess: "路径已复制",
+      copyPathError: "复制失败",
       showInFolder: "在文件夹中显示",
-      dragToResize: "拖动调整宽度",
       deleted: "已删除",
       count: "个应用",
     },
