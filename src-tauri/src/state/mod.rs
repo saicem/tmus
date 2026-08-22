@@ -38,4 +38,7 @@ pub fn get_app_rule() -> rule::Rule {
 pub fn set_app_rule(config: rule::Rule) {
     let _ = dump_json(&config, rule_file_path());
     *get_rule().lock().unwrap() = config.clone();
+    // Rebuild the radix tree so rule changes (e.g. merge rules) take effect
+    // immediately instead of after an app restart.
+    *get_rule_radix_tree().lock().unwrap() = rule::RuleRadixTree::new(&config);
 }
