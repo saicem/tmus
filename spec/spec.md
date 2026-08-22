@@ -1,17 +1,16 @@
 # 项目概述
 
-这是一个基于 Tauri(Rust + Vue3) 的 Windows 桌面应用，用于管理应用的使用统计和分类。
+这是一个基于 Tauri(Rust + React) 的 Windows 桌面应用，用于管理应用的使用统计和分类。
 应用使用情况的记录和查询由 tmus-engine 实现。
 
 ## 技术栈
 
-- Vite
-- pnpm
-- Tauri
-- Rust
-- Vue3
-- TypeScript
-- Element Plus
+- Vite + TypeScript + pnpm
+- Tauri 2 + Rust（核心引擎 tmus-engine）
+- React 19
+- shadcn/ui + Tailwind CSS v4
+- Recharts（图表）
+- zustand / react-router / sonner / lucide-react
 
 ## 项目结构
 
@@ -21,15 +20,26 @@
 tmus/
 ├── src/                  # 前端源代码
 │   ├── components/       # 前端组件
-│   ├── pages/            # 页面组件（包括 Category.vue）
-│   ├── script/           # 脚本文件（包括 cmd.ts、models.ts）
-│   ├── App.vue           # 应用主组件
-│   └── main.ts           # 应用入口
+│   │   ├── ui/           # shadcn/ui 组件
+│   │   ├── layout/       # 布局组件（标题栏、侧边导航）
+│   │   ├── common/       # 通用组件（如 AppIcon）
+│   │   └── statistic/    # 统计组件（热力图等）
+│   ├── pages/            # 页面组件（React）
+│   ├── lib/              # 基础设施
+│   │   ├── charts/       # 图表组件（Recharts 封装）
+│   │   ├── cmd.ts        # Tauri 命令封装
+│   │   ├── models.ts     # 数据类型定义
+│   │   ├── i18n.ts       # 多语言
+│   │   └── state.ts      # 全局状态（zustand）
+│   ├── App.tsx           # 应用主组件
+│   └── main.tsx          # 应用入口
 ├── src-tauri/            # Tauri 后端代码
 │   ├── src/              # Rust 源代码
 │   │   ├── app/          # 应用相关功能
-│   │   ├── cmd/          # Tauri 命令
+│   │   ├── cmd/          # Tauri 命令（统一 request 对象 + TmusError）
 │   │   ├── cli/          # CLI 命令（支持 JSON 输出）
+│   │   ├── error.rs      # 统一错误类型 TmusError
+│   │   ├── state/        # 状态与配置
 │   │   └── main.rs       # 后端入口
 ├── tmus-engine/          # 应用使用统计引擎
 ├── spec/                 # 项目规范文件
