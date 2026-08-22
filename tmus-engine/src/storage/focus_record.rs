@@ -148,6 +148,7 @@ fn map_file<T: AsRef<Path>>(file_path: T, size: Option<usize>, read_only: bool) 
 
     let file = OpenOptions::new()
         .create(true)
+        .truncate(false)
         .read(true)
         .write(true)
         .open(file_path)

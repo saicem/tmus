@@ -24,6 +24,7 @@ impl WorkingLock {
         let path = data_dir.join("engine.lock");
         let file = OpenOptions::new()
             .create(true)
+            .truncate(false)
             .write(true)
             .share_mode(0)
             .open(&path)

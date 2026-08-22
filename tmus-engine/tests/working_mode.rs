@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 use tmus_engine::storage::WorkingLock;
-use tmus_engine::{engine_start, EngineError, EngineMode};
+use tmus_engine::{EngineError, EngineMode, engine_start};
 
 fn temp_dir(name: &str) -> PathBuf {
     let dir = std::env::temp_dir().join(format!("tmus-engine-{name}-{}", std::process::id()));

@@ -52,7 +52,6 @@ fn set_event_hook() {
         );
         if hook.is_invalid() {
             error!("Failed to set foreground change event hook");
-            return;
         }
     };
 }
@@ -73,7 +72,6 @@ unsafe extern "system" fn on_foreground_changed(
         handle().spawn(send_focus_event(process_path, now_timestamp()));
     } else {
         debug!("Failed to get process path: {:?}", process_path);
-        return;
     }
 }
 

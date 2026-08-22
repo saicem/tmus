@@ -73,7 +73,7 @@ fn init_inner(data_dir: impl AsRef<Path>, read_only: bool) {
             0
         } else {
             let today = now_day() as IndexUnit;
-            file.write(&today.to_le_bytes()).unwrap();
+            file.write_all(&today.to_le_bytes()).unwrap();
             index.push(0);
             today
         }
@@ -122,11 +122,9 @@ pub fn update_index(day: IndexUnit, index: IndexUnit) {
 fn write_index(value: IndexUnit, state: &State) {
     let mut index = state.record_index_vec.lock().unwrap();
     let mut file = state.file.lock().unwrap();
-    let file = file
-        .as_mut()
-        .expect("Cannot write to read-only storage.");
+    let file = file.as_mut().expect("Cannot write to read-only storage.");
     index.push(value);
-    file.write(&value.to_le_bytes()).unwrap();
+    file.write_all(&value.to_le_bytes()).unwrap();
 }
 
 fn last_day() -> IndexUnit {

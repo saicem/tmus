@@ -4,11 +4,11 @@ pub mod focus_record;
 mod lock;
 
 use super::models;
+use crate::EngineError;
 use crate::models::{CursorPosition, EngineMeta, FocusRecord};
 use crate::storage::focus_app::get_id_by_path;
 use crate::tracker::TrackingSpanEvent;
 use crate::util::{Timestamp, d_as_ms, ms_as_d, s_as_ms};
-use crate::EngineError;
 use std::fs;
 use std::path::Path;
 use std::sync::OnceLock;

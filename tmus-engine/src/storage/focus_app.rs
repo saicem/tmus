@@ -59,11 +59,9 @@ fn init_inner(data_dir: impl AsRef<Path>, read_only: bool) {
     };
 
     let id_path_map = read_apps(&mut file);
-    let mut app_count = 0;
     let mut path_id_map = HashMap::new();
-    for app in &id_path_map {
+    for (app_count, app) in id_path_map.iter().enumerate() {
         path_id_map.insert(app.clone(), app_count);
-        app_count += 1;
     }
     STATE
         .set(State {
@@ -80,7 +78,7 @@ pub fn get_path_by_id(id: AppId) -> String {
         .lock()
         .unwrap()
         .get(id)
-        .expect(&format!("id: {} not in app map.", id))
+        .unwrap_or_else(|| panic!("id: {} not in app map.", id))
         .to_string()
 }
 
@@ -115,7 +113,7 @@ fn write_app(name: &str) -> AppId {
     let app_id = id_name_map.len() as AppId;
     name_id_map.insert(name.to_string(), app_id);
     id_name_map.push(name.to_string());
-    file.write(format!("{}\n", name).as_bytes())
+    file.write_all(format!("{}\n", name).as_bytes())
         .expect("can't write to app.txt");
     file.flush().expect("can't flush app.txt");
     app_id
