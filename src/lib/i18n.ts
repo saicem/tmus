@@ -108,6 +108,7 @@ interface I18nMessageType {
       noData: string
     }
     detail: string
+    other: string
   }
   applicationPage: {
     search: string
@@ -342,6 +343,7 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
         noData: "No data available",
       },
       detail: "Details",
+      other: "Other",
       unit: {
         day: "day",
         hour: "hour",
@@ -582,6 +584,7 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
         noData: "暂无数据",
       },
       detail: "明细",
+      other: "其他",
       unit: {
         day: "天",
         hour: "小时",
