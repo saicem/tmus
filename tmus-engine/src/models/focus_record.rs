@@ -102,12 +102,16 @@ impl FocusRecord {
         let mut ret = Vec::new();
         loop {
             if ms_as_d(focus_at) == ms_as_d(blur_at) {
-                ret.push(FocusRecord::new(self.id, focus_at, blur_at));
+                // A span ending exactly at midnight would otherwise produce a
+                // zero-length tail record; never persist empty records.
+                if blur_at > focus_at {
+                    ret.push(FocusRecord::new(self.id, focus_at, blur_at));
+                }
                 break;
             } else {
-                let blur_at = start_of_next_d(focus_at);
-                ret.push(FocusRecord::new(self.id, focus_at, blur_at));
-                focus_at = blur_at;
+                let next_midnight = start_of_next_d(focus_at);
+                ret.push(FocusRecord::new(self.id, focus_at, next_midnight));
+                focus_at = next_midnight;
             }
         }
         ret
@@ -117,5 +121,37 @@ impl FocusRecord {
 impl From<RecordByte> for FocusRecord {
     fn from(value: RecordByte) -> Self {
         FocusRecord::from_byte(value)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::util::{d_as_ms, h_as_ms};
+
+    #[test]
+    fn split_record_skips_zero_length_midnight_tail() {
+        let day = d_as_ms(20000);
+        let record = FocusRecord {
+            id: 1,
+            focus_at: day + 23 * h_as_ms(1),
+            blur_at: day + 24 * h_as_ms(1),
+        };
+        let parts = record.split_record();
+        assert_eq!(parts.len(), 1);
+        assert!(parts.iter().all(|p| p.blur_at > p.focus_at));
+    }
+
+    #[test]
+    fn split_record_keeps_real_overnight_parts() {
+        let day = d_as_ms(20000);
+        let record = FocusRecord {
+            id: 1,
+            focus_at: day + 23 * h_as_ms(1),
+            blur_at: day + 24 * h_as_ms(1) + 30 * 60 * 1000,
+        };
+        let parts = record.split_record();
+        assert_eq!(parts.len(), 2);
+        assert!(parts.iter().all(|p| p.blur_at > p.focus_at));
     }
 }

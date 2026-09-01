@@ -87,6 +87,11 @@ pub fn write_record(event: TrackingSpanEvent) {
     };
 
     for sub_record in record.split_record() {
+        // Defensive: never persist zero-length slices even if a future split
+        // path regresses.
+        if sub_record.blur_at <= sub_record.focus_at {
+            continue;
+        }
         let index = focus_record::write(sub_record.unsafe_to_byte());
         focus_index::update_index(ms_as_d(sub_record.focus_at) as u64, index)
     }
