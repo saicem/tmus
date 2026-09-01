@@ -190,12 +190,11 @@ pub async fn usage(args: UsageArgs, json: bool) -> Result<(), String> {
         .map(parse_timestamp)
         .transpose()?
         .unwrap_or_else(now_timestamp);
-    let start = args
-        .start
-        .as_deref()
-        .map(parse_timestamp)
-        .transpose()?
-        .unwrap_or(0);
+    let start = match &args.start {
+        Some(s) => parse_timestamp(s)?,
+        None if args.last_month => now_timestamp() - 30 * 24 * 60 * 60 * 1000,
+        None => 0,
+    };
     if start >= end {
         return Err("Start time must be before end time".to_string());
     }

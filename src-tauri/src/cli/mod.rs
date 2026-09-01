@@ -91,6 +91,10 @@ pub struct UsageArgs {
     /// Return only the top N apps by duration
     #[arg(long)]
     pub top_k: Option<usize>,
+
+    /// Restrict to the last 30 days (ignored when --start is set)
+    #[arg(long)]
+    pub last_month: bool,
 }
 
 #[derive(clap::Args)]
