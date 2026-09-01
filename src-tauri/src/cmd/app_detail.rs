@@ -5,6 +5,7 @@ use base64::{engine::general_purpose::STANDARD, Engine as _};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
+use std::io::Cursor;
 use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
 use tmus_engine::models::AppId;
@@ -165,19 +166,18 @@ fn query_file_detail(id: usize, path: &str) -> FileDetail {
     }
 }
 
-/// Best-effort icon retrieval. WindowsApps (MSIX/Store) apps ship their real
-/// icon as PNG assets referenced by AppxManifest.xml while their executable
-/// often only embeds a generic icon, so read the manifest logo first and fall
-/// back to extracting the icon from the executable for regular apps.
+/// Best-effort icon retrieval. The icon embedded in the executable is the
+/// actual app icon (the one Explorer and the taskbar show), so try it first.
+/// For WindowsApps (MSIX/Store) apps fall back to the manifest tile logo,
+/// which is only used when the executable exposes no icon at all.
 fn get_app_icon_base64(path: &str) -> Option<String> {
-    if is_windows_apps_path(path) {
-        if let Some(icon) = get_windows_apps_icon_base64(path) {
-            return Some(icon);
-        }
-    }
-    get_icon_base64_by_path(path)
+    let exe_icon = get_icon_base64_by_path(path)
         .ok()
-        .map(|base64| format!("data:image/png;base64,{base64}"))
+        .map(|base64| format!("data:image/png;base64,{base64}"));
+    if !is_windows_apps_path(path) {
+        return exe_icon;
+    }
+    exe_icon.or_else(|| get_windows_apps_icon_base64(path))
 }
 
 fn is_windows_apps_path(path: &str) -> bool {
@@ -185,32 +185,26 @@ fn is_windows_apps_path(path: &str) -> bool {
 }
 
 /// Locate AppxManifest.xml and load the package logo as a base64 data URL.
+/// Monochrome glyph logos are composited onto the tile background color from
+/// the manifest so they stay visible on any theme.
 fn get_windows_apps_icon_base64(exe_path: &str) -> Option<String> {
     let package_root = Path::new(exe_path)
         .ancestors()
         .take(6)
         .find(|dir| dir.join("AppxManifest.xml").is_file())?;
     let manifest = fs::read_to_string(package_root.join("AppxManifest.xml")).ok()?;
+    let background = parse_background_color(&manifest);
     let logo = extract_manifest_logo(&manifest)?;
     let logo_path = resolve_logo_path(package_root, &logo)?;
     let bytes = fs::read(logo_path).ok()?;
+    let bytes = composite_icon_with_background(&bytes, background).unwrap_or(bytes);
     let base64 = STANDARD.encode(bytes);
     Some(format!("data:image/png;base64,{base64}"))
 }
 
-/// Extract the app logo from AppxManifest.xml: the classic `<Logo>` element
-/// first, then the VisualElements square logo attributes.
+/// Extract the app logo from AppxManifest.xml: prefer the high-resolution
+/// VisualElements square logos, falling back to the classic `<Logo>` element.
 fn extract_manifest_logo(manifest: &str) -> Option<String> {
-    const LOGO_START: &str = "<Logo>";
-    if let Some(start) = manifest.find(LOGO_START) {
-        let value_start = start + LOGO_START.len();
-        if let Some(end) = manifest[value_start..].find("</Logo>") {
-            let value = manifest[value_start..value_start + end].trim();
-            if !value.is_empty() {
-                return Some(value.to_owned());
-            }
-        }
-    }
     for attribute in [
         "Square150x150Logo",
         "Square44x44Logo",
@@ -221,7 +215,83 @@ fn extract_manifest_logo(manifest: &str) -> Option<String> {
             return Some(value);
         }
     }
+    const LOGO_START: &str = "<Logo>";
+    if let Some(start) = manifest.find(LOGO_START) {
+        let value_start = start + LOGO_START.len();
+        if let Some(end) = manifest[value_start..].find("</Logo>") {
+            let value = manifest[value_start..value_start + end].trim();
+            if !value.is_empty() {
+                return Some(value.to_owned());
+            }
+        }
+    }
     None
+}
+
+/// Parse the tile `BackgroundColor` attribute (`#RRGGBB` or `#AARRGGBB`).
+fn parse_background_color(manifest: &str) -> Option<[u8; 4]> {
+    let value = extract_xml_attribute(manifest, "BackgroundColor")?;
+    let hex = value.trim().strip_prefix('#').unwrap_or(value.trim());
+    let parsed = u32::from_str_radix(hex, 16).ok()?;
+    Some(match hex.len() {
+        6 => [
+            ((parsed >> 16) & 0xFF) as u8,
+            ((parsed >> 8) & 0xFF) as u8,
+            (parsed & 0xFF) as u8,
+            255,
+        ],
+        8 => [
+            ((parsed >> 16) & 0xFF) as u8,
+            ((parsed >> 8) & 0xFF) as u8,
+            (parsed & 0xFF) as u8,
+            ((parsed >> 24) & 0xFF) as u8,
+        ],
+        _ => return None,
+    })
+}
+
+/// Fill in a solid background for monochrome glyph logos that ship with a
+/// transparent canvas (e.g. white tile logos). Returns None to pass the
+/// original bytes through unchanged: when no background color is known, the
+/// icon is full-color, or it is already mostly opaque.
+fn composite_icon_with_background(bytes: &[u8], background: Option<[u8; 4]>) -> Option<Vec<u8>> {
+    let background = background?;
+    let img = image::load_from_memory(bytes).ok()?;
+    let rgba = img.to_rgba8();
+    let (width, height) = rgba.dimensions();
+    if width == 0 || height == 0 {
+        return None;
+    }
+
+    let total = u64::from(width) * u64::from(height);
+    let mut opaque = 0u64;
+    let mut colored = false;
+    for pixel in rgba.pixels() {
+        if pixel[3] > 200 {
+            opaque += 1;
+            let max_channel = pixel[0].max(pixel[1]).max(pixel[2]);
+            let min_channel = pixel[0].min(pixel[1]).min(pixel[2]);
+            if max_channel - min_channel > 24 {
+                colored = true;
+            }
+        }
+    }
+    // Skip icons that are full-color or already have a filled background.
+    if colored || opaque * 100 >= total * 55 {
+        return None;
+    }
+
+    let mut out = image::RgbaImage::from_pixel(
+        width,
+        height,
+        image::Rgba([background[0], background[1], background[2], 255]),
+    );
+    image::imageops::overlay(&mut out, &rgba, 0, 0);
+    let mut cursor = Cursor::new(Vec::new());
+    image::DynamicImage::ImageRgba8(out)
+        .write_to(&mut cursor, image::ImageFormat::Png)
+        .ok()?;
+    Some(cursor.into_inner())
 }
 
 fn extract_xml_attribute(xml: &str, name: &str) -> Option<String> {
@@ -295,4 +365,37 @@ pub async fn get_app_name_map() -> HashMap<AppId, String> {
         .iter()
         .map(|(id, detail)| (*id, detail.name.clone()))
         .collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parse_background_color_supports_rgb_and_argb() {
+        assert_eq!(
+            parse_background_color(
+                r##"<uap:VisualElements BackgroundColor="#3143FF"></uap:VisualElements>"##
+            ),
+            Some([0x31, 0x43, 0xFF, 255])
+        );
+        assert_eq!(
+            parse_background_color(r##"BackgroundColor="#803143FF""##),
+            Some([0x31, 0x43, 0xFF, 0x80])
+        );
+        assert_eq!(parse_background_color("<Logo>icon.png</Logo>"), None);
+    }
+
+    #[test]
+    fn extract_manifest_logo_prefers_square_logo() {
+        let manifest = concat!(
+            "<Logo>assets/icon.png</Logo>",
+            r#"<uap:VisualElements Square44x44Logo="assets/Square44x44Logo.png" "#,
+            r#"Square150x150Logo="assets/Square150x150Logo.png" />"#,
+        );
+        assert_eq!(
+            extract_manifest_logo(manifest).as_deref(),
+            Some("assets/Square150x150Logo.png")
+        );
+    }
 }
