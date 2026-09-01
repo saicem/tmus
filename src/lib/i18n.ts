@@ -161,6 +161,8 @@ interface I18nMessageType {
     sunday: string
     dateFormat: string
     timeFormat: string
+    timezone: string
+    timezoneAuto: string
     checkUpdate: string
     version: string
     currentVersionIsAlreadyTheLatestVersion: string
@@ -413,6 +415,8 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
       sunday: "Sunday",
       dateFormat: "Date Format",
       timeFormat: "Time Format",
+      timezone: "Timezone",
+      timezoneAuto: "Auto (system)",
       checkUpdate: "Check Update",
       version: "Tmus Version",
       currentVersionIsAlreadyTheLatestVersion:
@@ -669,6 +673,8 @@ const messages: Record<LanguageEnum, I18nMessageType> = {
       sunday: "星期日",
       dateFormat: "日期格式",
       timeFormat: "时间格式",
+      timezone: "时区",
+      timezoneAuto: "自动推断",
       checkUpdate: "检查更新",
       version: "Tmus 版本",
       currentVersionIsAlreadyTheLatestVersion: "当前版本已经是最新版本",

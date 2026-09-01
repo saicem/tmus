@@ -20,6 +20,8 @@ export interface Config {
   dateFormat: DateFormatEnum
   timeFormat: TimeFormatEnum
   autoCheckUpdate: boolean
+  /** UTC - local offset in ms; null means auto-infer from the system. */
+  timezoneOffset: number | null
 }
 
 const defaultConfig: Config = {
@@ -30,6 +32,7 @@ const defaultConfig: Config = {
   dateFormat: "yyyy-MM-dd",
   timeFormat: "H:mm:ss",
   autoCheckUpdate: true,
+  timezoneOffset: null,
 }
 
 export interface UpdateDialogState {

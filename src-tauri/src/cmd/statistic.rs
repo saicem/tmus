@@ -61,6 +61,8 @@ pub struct AppDurationRequest {
     pub start_time: Timestamp,
     pub end_time: Timestamp,
     pub category_id: Option<CategoryId>,
+    /// UTC - local offset in milliseconds; `None` auto-infers from start_time.
+    pub timezone_offset: Option<Timestamp>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -75,6 +77,8 @@ pub struct AppDayCountRequest {
     pub start_time: Timestamp,
     pub end_time: Timestamp,
     pub category_id: Option<CategoryId>,
+    /// UTC - local offset in milliseconds; `None` auto-infers from start_time.
+    pub timezone_offset: Option<Timestamp>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -103,6 +107,8 @@ pub struct CategoryDayCountRequest {
     pub start_time: Timestamp,
     pub end_time: Timestamp,
     pub category_ids: Vec<CategoryId>,
+    /// UTC - local offset in milliseconds; `None` auto-infers from start_time.
+    pub timezone_offset: Option<Timestamp>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -125,6 +131,9 @@ pub struct RhythmRequest {
     pub groups: Vec<RhythmGroup>,
     pub span: TimeSpan,
     pub granularity: Timestamp,
+    /// UTC - local offset in milliseconds; `None` auto-infers from the first
+    /// group's start time.
+    pub timezone_offset: Option<Timestamp>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -162,11 +171,13 @@ pub async fn get_app_usage_days(
     request: AppDurationRequest,
 ) -> Result<AppDayCountResponse, TmusError> {
     let records = read_helper::read_by_timestamp(request.start_time, request.end_time);
-    let timezone_offset = infer_timezone_offset(request.start_time);
+    let timezone_offset = request
+        .timezone_offset
+        .unwrap_or_else(|| infer_timezone_offset(request.start_time));
     let mut map: HashMap<AppId, HashSet<i64>> = HashMap::new();
     for record in records {
-        let start_day = ms_as_d(record.focus_at + timezone_offset);
-        let end_day = ms_as_d(record.blur_at + timezone_offset);
+        let start_day = ms_as_d(record.focus_at - timezone_offset);
+        let end_day = ms_as_d(record.blur_at - timezone_offset);
         let entry = map.entry(record.id).or_default();
         entry.insert(start_day);
         if end_day != start_day {
@@ -256,14 +267,16 @@ pub fn get_category_usage_days(
     }
 
     let app_category_map = get_app_category_map();
-    let timezone_offset = infer_timezone_offset(request.start_time);
+    let timezone_offset = request
+        .timezone_offset
+        .unwrap_or_else(|| infer_timezone_offset(request.start_time));
     let mut uncategorized_days = HashSet::new();
     let mut categorized_days_map: HashMap<CategoryId, HashSet<i64>> = HashMap::new();
     let records = read_helper::read_by_timestamp(request.start_time, request.end_time);
     for record in records {
         let category_id = app_category_map.get(&record.id);
-        let start_day = ms_as_d(record.focus_at + timezone_offset);
-        let end_day = ms_as_d(record.blur_at + timezone_offset);
+        let start_day = ms_as_d(record.focus_at - timezone_offset);
+        let end_day = ms_as_d(record.blur_at - timezone_offset);
         if let Some(category_id) = category_id {
             let entry = categorized_days_map.entry(*category_id).or_default();
             entry.insert(start_day);
@@ -350,7 +363,9 @@ pub fn get_category_usage_rhythm(request: RhythmRequest) -> Result<RhythmDataRes
     }
 
     // Compute result
-    let timezone_offset = infer_timezone_offset(request.groups[0].start_time);
+    let timezone_offset = request
+        .timezone_offset
+        .unwrap_or_else(|| infer_timezone_offset(request.groups[0].start_time));
     let result = request
         .groups
         .into_iter()
@@ -389,10 +404,10 @@ pub fn get_category_usage_rhythm(request: RhythmRequest) -> Result<RhythmDataRes
                     let end = record.blur_at;
                     if start >= cur_bound {
                         (cur_index, cur_bound) = {
-                            let start_tz = record.focus_at + timezone_offset;
+                            let start_tz = record.focus_at - timezone_offset;
                             let cur_index = (start_tz / granularity) % granularity_multiple;
                             let cur_bound =
-                                (start_tz / granularity + 1) * granularity - timezone_offset;
+                                (start_tz / granularity + 1) * granularity + timezone_offset;
                             (cur_index, cur_bound)
                         }
                     }
@@ -464,7 +479,37 @@ fn get_category_and_descendants_app_ids(
     Ok(app_ids)
 }
 
-/// Only use for distinguish is the same day
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn infer_timezone_offset_recovers_utc_minus_local() {
+        // Local midnight in UTC+8 is 16:00 UTC of the previous day.
+        let local_midnight = 100 * 24 * 60 * 60 * 1000 + 16 * 60 * 60 * 1000;
+        assert_eq!(infer_timezone_offset(local_midnight), -8 * 60 * 60 * 1000);
+        assert_eq!(infer_timezone_offset(0), 0);
+    }
+
+    #[test]
+    fn usage_day_matches_explicit_and_inferred_offset() {
+        let local_midnight = 100 * 24 * 60 * 60 * 1000 + 16 * 60 * 60 * 1000;
+        let focus = local_midnight + 10 * 60 * 60 * 1000; // local 10:00
+        let inferred = infer_timezone_offset(local_midnight);
+        let explicit = -8 * 60 * 60 * 1000;
+        assert_eq!(ms_as_d(focus - inferred), ms_as_d(focus - explicit));
+        assert_eq!(ms_as_d(focus - inferred), 101);
+    }
+}
+
+/// Infer the `UTC - local` offset from a locally day-aligned timestamp. For a
+/// start time at local midnight the remainder is `local offset from UTC + 24h`,
+/// so subtracting one day recovers the true `UTC - local` offset.
 fn infer_timezone_offset(t: Timestamp) -> Timestamp {
-    -(t % d_as_ms(1))
+    let remainder = t.rem_euclid(d_as_ms(1));
+    if remainder == 0 {
+        0
+    } else {
+        remainder - d_as_ms(1)
+    }
 }

@@ -14,6 +14,7 @@ import { AreaChart } from "@/lib/charts/AreaChart"
 import { getAppDetail, getAppDurationArea, showInFolder } from "@/lib/cmd"
 import { useI18n } from "@/lib/i18n"
 import type { AppDurationAreaModel, FileDetail } from "@/lib/models"
+import { useAppStore } from "@/lib/state"
 import { formatDurationRough, timeZoneOffsetMillis } from "@/lib/time-util"
 
 export function Detail() {
@@ -34,7 +35,9 @@ export function Detail() {
           appId,
           startTimestamp: 0,
           endTimestamp: Date.now(),
-          timezoneOffset: timeZoneOffsetMillis(),
+          timezoneOffset:
+            useAppStore.getState().config.timezoneOffset ??
+            timeZoneOffsetMillis(),
         }),
       ])
       if (cancelled) return

@@ -28,6 +28,7 @@ import {
 } from "@/lib/cmd"
 import { useI18n } from "@/lib/i18n"
 import type { Category, TimeSpan } from "@/lib/models"
+import { useAppStore } from "@/lib/state"
 import {
   formatDurationRough,
   formatTimeOfDay,
@@ -273,6 +274,7 @@ function AppDaysPanel({
       startTime: range[0],
       endTime: range[1],
       categoryId: categoryId ? Number(categoryId) : undefined,
+      timezoneOffset: useAppStore.getState().config.timezoneOffset,
     })
     const total = response.detail.reduce((sum, item) => sum + item.value, 0)
     setItems(
@@ -409,6 +411,7 @@ function CategoryPanel({
             startTime: range[0],
             endTime: range[1],
             categoryIds: ids,
+            timezoneOffset: useAppStore.getState().config.timezoneOffset,
           })
     const total = response.detail.reduce((sum, item) => sum + item.value, 0)
     setItems(
@@ -625,6 +628,7 @@ function CategoryRhythmPanel({
       })),
       span: timeSpan,
       granularity,
+      timezoneOffset: useAppStore.getState().config.timezoneOffset,
     })
     setChartData(response.values)
   }, [groups, timeSpan, granularity])

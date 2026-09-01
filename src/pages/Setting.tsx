@@ -36,6 +36,75 @@ import { toast } from "sonner"
 import { useI18n } from "@/lib/i18n"
 import type { RuleConfig } from "@/lib/models"
 import { useAppStore } from "@/lib/state"
+import { timeZoneOffsetMillis } from "@/lib/time-util"
+
+/** Format an offset (UTC - local, ms) as "UTC+08:00". */
+function formatTimezone(offsetMs: number): string {
+  const minutes = Math.round(-offsetMs / 60000)
+  const sign = minutes < 0 ? "-" : "+"
+  const abs = Math.abs(minutes)
+  const hh = String(Math.floor(abs / 60)).padStart(2, "0")
+  const mm = String(abs % 60).padStart(2, "0")
+  return `UTC${sign}${hh}:${mm}`
+}
+
+/** Current UTC - local offset of an IANA timezone at the given instant (ms). */
+function zoneOffsetAt(zone: string, at: number): number {
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone: zone,
+    hourCycle: "h23",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  })
+  const fields: Record<string, string> = {}
+  for (const part of formatter.formatToParts(new Date(at))) {
+    fields[part.type] = part.value
+  }
+  const asUtc = Date.UTC(
+    Number(fields.year),
+    Number(fields.month) - 1,
+    Number(fields.day),
+    Number(fields.hour),
+    Number(fields.minute),
+    Number(fields.second)
+  )
+  // Real offsets are minute-aligned; round away Intl formatting noise
+  // (fractional seconds) so the stored value is an exact offset.
+  return Math.round((asUtc - at) / 60000) * 60000
+}
+
+/**
+ * Every offset currently in use by any IANA timezone (deduped). Labels show
+ * only the offset: the representative zone is engine-dependent and confusing
+ * (e.g. "UTC+08:00" could otherwise show Antarctica/Casey or another arbitrary
+ * zone). Falls back to 15-minute steps when the tz database is unavailable.
+ */
+const TIMEZONE_OFFSETS: { offset: number; label: string }[] = (() => {
+  const now = Date.now()
+  const zones =
+    typeof Intl.supportedValuesOf === "function"
+      ? Intl.supportedValuesOf("timeZone")
+      : []
+  const offsets = new Set<number>()
+  for (const zone of zones) {
+    const offset = zoneOffsetAt(zone, now)
+    offsets.add(offset)
+  }
+  if (offsets.size > 0) {
+    return [...offsets]
+      .map((offset) => ({ offset, label: formatTimezone(offset) }))
+      .sort((a, b) => a.offset - b.offset)
+  }
+  return Array.from({ length: 105 }, (_, i) => {
+    const minutes = -720 + i * 15
+    const offset = -minutes * 60000
+    return { offset, label: formatTimezone(offset) }
+  })
+})()
 
 function SettingRow({
   label,
@@ -419,6 +488,44 @@ export function Setting() {
                 </SelectItem>
                 <SelectItem value="light">{t.configPage.themeLight}</SelectItem>
                 <SelectItem value="dark">{t.configPage.themeDark}</SelectItem>
+              </SelectContent>
+            </Select>
+          </SettingRow>
+          <Separator />
+          <SettingRow
+            label={t.configPage.timezone}
+            tip={
+              config.timezoneOffset === null
+                ? `${t.configPage.timezoneAuto}：${formatTimezone(
+                    timeZoneOffsetMillis()
+                  )}`
+                : undefined
+            }
+          >
+            <Select
+              value={
+                config.timezoneOffset === null
+                  ? "auto"
+                  : String(config.timezoneOffset)
+              }
+              onValueChange={(v) =>
+                setConfig({
+                  timezoneOffset: v === "auto" ? null : Number(v),
+                })
+              }
+            >
+              <SelectTrigger className="w-36">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="auto">
+                  {t.configPage.timezoneAuto}
+                </SelectItem>
+                {TIMEZONE_OFFSETS.map(({ offset, label }) => (
+                  <SelectItem key={offset} value={String(offset)}>
+                    {label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </SettingRow>

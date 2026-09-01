@@ -149,6 +149,8 @@ export interface AppDurationRequest {
   startTime: number
   endTime: number
   categoryId?: CategoryId
+  /** UTC - local offset in ms; null means auto-infer. */
+  timezoneOffset?: number | null
 }
 
 export interface AppDurationResponse {
@@ -159,6 +161,7 @@ export interface AppDayCountRequest {
   startTime: number
   endTime: number
   categoryId?: CategoryId
+  timezoneOffset?: number | null
 }
 
 export interface AppDayCountResponse {
@@ -179,6 +182,7 @@ export interface CategoryDayCountRequest {
   startTime: number
   endTime: number
   categoryIds: CategoryId[]
+  timezoneOffset?: number | null
 }
 
 export interface CategoryDayCountResponse {
@@ -195,6 +199,7 @@ export interface RhythmRequest {
   groups: RhythmGroup[]
   span: TimeSpan
   granularity: number
+  timezoneOffset?: number | null
 }
 
 export interface RhythmDataResponse {

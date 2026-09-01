@@ -48,6 +48,7 @@ export async function queryDurationStatistic(request: {
   appIds: number[] | null
   granularity: number
   cycle: number | null
+  timezoneOffset?: number | null
 }): Promise<DurationStat[]> {
   return await ivk("query_duration_statistic", { request })
 }

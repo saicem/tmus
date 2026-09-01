@@ -64,6 +64,7 @@ export function Overview() {
       appIds: null,
       granularity: MILLISECONDS_PER_DAY,
       cycle: null,
+      timezoneOffset: useAppStore.getState().config.timezoneOffset,
     })
     const durationByDateMap = toMap(data, (x) => [x.intervalStart, x.duration])
     const result: number[] = []
@@ -136,6 +137,7 @@ export function Overview() {
         appIds: null,
         granularity: MILLISECONDS_PER_DAY,
         cycle: null,
+        timezoneOffset: useAppStore.getState().config.timezoneOffset,
       }),
       (x) => [x.intervalStart, x.duration]
     )
@@ -173,6 +175,7 @@ export function Overview() {
         appIds: null,
         granularity,
         cycle,
+        timezoneOffset: useAppStore.getState().config.timezoneOffset,
       }),
       (x) => [
         x.intervalStart / granularity,
@@ -187,6 +190,7 @@ export function Overview() {
         appIds: null,
         granularity,
         cycle,
+        timezoneOffset: useAppStore.getState().config.timezoneOffset,
       }),
       (x) => [
         x.intervalStart / granularity,

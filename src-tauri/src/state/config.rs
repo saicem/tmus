@@ -2,6 +2,7 @@ use crate::app::constant::config_file_path;
 use crate::util::load_json;
 use serde::{Deserialize, Serialize};
 use std::sync::{Mutex, MutexGuard, OnceLock};
+use tmus_engine::util::Timestamp;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -13,6 +14,10 @@ pub struct Config {
     pub date_format: String,
     pub time_format: String,
     pub auto_check_update: bool,
+    /// UTC - local offset in milliseconds used by statistics queries; `None`
+    /// means auto-infer from the queried time range.
+    #[serde(default)]
+    pub timezone_offset: Option<Timestamp>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Default)]
@@ -45,6 +50,7 @@ impl Default for Config {
             date_format: "yyyy-MM-dd".to_string(),
             time_format: "H:mm:ss".to_string(),
             auto_check_update: true,
+            timezone_offset: None,
         }
     }
 }

@@ -7,6 +7,8 @@ use tmus_engine::models::{AppId, FocusRecord};
 use tmus_engine::storage::focus_app;
 use tmus_engine::util::Timestamp;
 
+const MILLISECONDS_PER_DAY: Timestamp = 24 * 60 * 60 * 1000;
+
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct IdDuration {
@@ -65,6 +67,9 @@ pub struct DurationStatisticRequest {
     pub start_timestamp: Timestamp,
     /// The end time (inclusive) for filtering focus records.
     pub end_timestamp: Timestamp,
+    /// UTC - local offset in milliseconds; `None` aligns intervals to the
+    /// (locally day-aligned) start timestamp, mirroring auto inference.
+    pub timezone_offset: Option<Timestamp>,
     /// Whether to merge data across all applications into a single result set.
     pub merge_apps: bool,
     /// Optional list of application IDs to filter by.
@@ -105,6 +110,7 @@ pub async fn query_duration_statistic(
         request.granularity,
         request.merge_apps,
         request.cycle,
+        request.timezone_offset,
     );
 
     Ok(aggregated_data
@@ -123,6 +129,7 @@ fn aggregate_by_interval(
     interval_millis: Timestamp,
     merge_apps: bool,
     cycle: Option<i64>,
+    timezone_offset: Option<Timestamp>,
 ) -> HashMap<(Option<usize>, i64), i64> {
     if focus_records.is_empty() {
         return HashMap::new();
@@ -130,6 +137,12 @@ fn aggregate_by_interval(
     let cycle_duration = cycle.map(|cycle| cycle * interval_millis);
     let mut aggregated_data = HashMap::new();
     let mut add_data = |app_id: usize, interval_start: i64, duration: i64| {
+        // A record ending exactly on an interval boundary would otherwise add a
+        // phantom zero-duration entry for the next interval, which shows up as
+        // an app with empty usage in the timeline. Skip non-positive slices.
+        if duration <= 0 {
+            return;
+        }
         let id = merge_apps.not().then_some(app_id);
         let interval_start = cycle_duration.map_or(interval_start, |cycle_duration| {
             (interval_start - base_timestamp) % cycle_duration
@@ -140,8 +153,19 @@ fn aggregate_by_interval(
             .or_insert(duration);
     };
     for record in focus_records {
-        let mut interval_start =
-            record.focus_at - (record.focus_at - base_timestamp) % interval_millis;
+        let mut interval_start = match timezone_offset {
+            Some(offset) => {
+                // Align slots to local day boundaries: local time is
+                // `focus_at - offset`. Start from the local day (in UTC ms)
+                // and add the slot aligned within that day, so day-level
+                // queries land on local midnight.
+                let local = record.focus_at - offset;
+                let day_start = local.div_euclid(MILLISECONDS_PER_DAY) * MILLISECONDS_PER_DAY;
+                let slot = (local - day_start).div_euclid(interval_millis) * interval_millis;
+                day_start + slot + offset
+            }
+            None => record.focus_at - (record.focus_at - base_timestamp) % interval_millis,
+        };
         let mut interval_end = interval_start + interval_millis;
         if record.blur_at < interval_end {
             add_data(record.id, interval_start, record.blur_at - record.focus_at);
@@ -156,4 +180,47 @@ fn aggregate_by_interval(
         }
     }
     aggregated_data
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn aggregate_skips_zero_duration_boundary_slice() {
+        let records = vec![FocusRecord {
+            id: 1,
+            focus_at: 23 * 60 * 60 * 1000,
+            blur_at: 24 * 60 * 60 * 1000,
+        }];
+        let result = aggregate_by_interval(&records, 0, 24 * 60 * 60 * 1000, false, None, None);
+        assert_eq!(result.len(), 1);
+        assert_eq!(result.get(&(Some(1), 0)), Some(&(60 * 60 * 1000)));
+        assert!(!result.contains_key(&(Some(1), 24 * 60 * 60 * 1000)));
+    }
+
+    #[test]
+    fn aggregate_aligns_intervals_to_explicit_timezone() {
+        // UTC+8 (offset = UTC - local = -8h). A record at local 23:30 belongs
+        // to the local day starting at 16:00 UTC the previous day.
+        let offset = -8 * 60 * 60 * 1000;
+        let local_midnight = 100 * 24 * 60 * 60 * 1000 + 16 * 60 * 60 * 1000;
+        let records = vec![FocusRecord {
+            id: 1,
+            focus_at: local_midnight + 23 * 60 * 60 * 1000,
+            blur_at: local_midnight + 23 * 60 * 60 * 1000 + 30 * 60 * 1000,
+        }];
+        let result = aggregate_by_interval(
+            &records,
+            local_midnight,
+            24 * 60 * 60 * 1000,
+            false,
+            None,
+            Some(offset),
+        );
+        assert_eq!(
+            result.get(&(Some(1), local_midnight)),
+            Some(&(30 * 60 * 1000))
+        );
+    }
 }
