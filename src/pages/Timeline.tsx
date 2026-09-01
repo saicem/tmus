@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react"
-import { format, isBefore, startOfDay, subDays, subWeeks } from "date-fns"
+import { format, isBefore, startOfDay, subDays } from "date-fns"
 import { AppIcon } from "@/components/common/AppIcon"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { getAppDetailMap, getTmusMeta, queryDurationStatistic } from "@/lib/cmd"
@@ -36,7 +36,7 @@ export function Timeline() {
     loadingRef.current = true
     setLoading(true)
     const endDate = nextDateRef.current
-    const startDate = subWeeks(startOfDay(endDate), 1)
+    const startDate = subDays(startOfDay(endDate), 7)
     const result = await queryDurationStatistic({
       startTimestamp: startDate.getTime(),
       endTimestamp: endDate.getTime(),
@@ -44,6 +44,7 @@ export function Timeline() {
       appIds: null,
       granularity: MILLISECONDS_PER_DAY,
       cycle: null,
+      timezoneOffset: useAppStore.getState().config.timezoneOffset,
     })
     const dateMap = groupBy(result, (x) => [
       x.intervalStart,
@@ -58,7 +59,9 @@ export function Timeline() {
     ripe.sort((a, b) => b.moment.valueOf() - a.moment.valueOf())
     ripe.forEach((dg) => dg.data.sort((a, b) => b.duration - a.duration))
     setGroups((prev) => [...prev, ...ripe])
-    nextDateRef.current = subDays(startDate, 1)
+    // Keep windows contiguous: the next page ends exactly where this one
+    // started, so no day is ever skipped between pages.
+    nextDateRef.current = startDate
     if (isBefore(nextDateRef.current, metaStartRef.current)) {
       noMoreRef.current = true
       setNoMore(true)
