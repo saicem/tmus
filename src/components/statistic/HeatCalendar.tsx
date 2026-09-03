@@ -96,7 +96,7 @@ export function HeatCalendar({ data }: { data: number[] }) {
                   return <td key={week} className="p-0" />
                 }
                 const doy = dayOfYear(week, dow)
-                const duration = data[doy] ?? 0
+                const duration = data[doy - 1] ?? 0
                 return (
                   <td key={week} className="p-0">
                     <Tooltip>
