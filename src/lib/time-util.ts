@@ -7,8 +7,6 @@ export const MILLISECONDS_PER_HOUR = 60 * MILLISECONDS_PER_MINUTE
 export const MILLISECONDS_PER_DAY = 24 * MILLISECONDS_PER_HOUR
 
 export const formatDuration = (duration: number) => {
-  const days = Math.floor(duration / MILLISECONDS_PER_DAY)
-  duration = duration % MILLISECONDS_PER_DAY
   const hours = Math.floor(duration / MILLISECONDS_PER_HOUR)
   duration = duration % MILLISECONDS_PER_HOUR
   const minutes = Math.floor(duration / MILLISECONDS_PER_MINUTE)
@@ -16,9 +14,6 @@ export const formatDuration = (duration: number) => {
   const seconds = Math.floor(duration / MILLISECONDS_PER_SECOND)
 
   const parts = []
-  if (days) {
-    parts.push(days + "d")
-  }
   if (hours) {
     parts.push(hours + "h")
   }
@@ -40,9 +35,7 @@ export const formatDurationRough = (ms: number) => {
   const m = s / 60
   if (m < 60) return `${sign}${m.toFixed(1)}m`
   const h = m / 60
-  if (h < 24) return `${sign}${h.toFixed(1)}h`
-  const d = h / 24
-  return `${sign}${d.toFixed(1)}d`
+  return `${sign}${h.toFixed(1)}h`
 }
 
 export const dayOfWeekOffset = (day: Date) => {
